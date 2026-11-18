@@ -1,0 +1,646 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colforms Admin — College Branding Settings</title>
+  <!-- Tailwind CSS CDN with forms and container-queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0B1120',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+        'cream-bg': '#FAF9F5',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '48px',
+        'section': '80px',
+        'section-lg': '112px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['56px', { lineHeight: '64px', letterSpacing: '-1.2px', fontWeight: '700' }],
+        'display-lg-mobile': ['32px', { lineHeight: '38px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'display-md': ['44px', { lineHeight: '52px', letterSpacing: '-0.8px', fontWeight: '700' }],
+        'display-md-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '600' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-float': '300ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-float': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-float': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans, Instrument Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Red+Hat+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-light-on-surface font-body antialiased min-h-[1024px] selection:bg-teal-soft selection:text-light-primary" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <div class="min-h-[1024px] flex flex-col md:flex-row relative" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- DESKTOP NAV: DETACHED FLOATING LEFT SIDEBAR (Shared App Shell) -->
+    <!-- ========================================================================= -->
+    <aside aria-label="Main Navigation" class="hidden md:flex flex-col justify-between fixed top-6 left-6 bottom-6 w-64 rounded-2xl bg-white border border-slate-200/80 shadow-[0_10px_35px_-4px_rgba(15,23,42,0.06)] p-5 z-40 transition-all duration-300">
+      
+      <!-- Top Brand Section & Menu Links -->
+      <div class="flex flex-col gap-6">
+        
+        <!-- Logo: Colforms Admin -->
+        <div class="flex items-center gap-3 px-2 pb-4 border-b border-slate-100">
+          <div class="w-9 h-9 rounded-xl bg-light-primary text-light-on-primary flex items-center justify-center font-headline font-bold text-label-lg shadow-xs">
+            <span class="material-symbols-outlined text-[20px]">assignment</span>
+          </div>
+          <div>
+            <span class="font-headline font-bold text-title-lg tracking-tight text-slate-900 block leading-tight">Colforms Admin</span>
+            <span class="font-body text-body-sm text-slate-600 block mt-0.5">Enterprise Portal</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links: Overview, Directory, Courses, Branding -->
+        <nav class="flex flex-col gap-1.5" aria-label="Sidebar Menu">
+          <span class="px-3 font-label text-label-sm text-slate-600 uppercase tracking-wider font-semibold mb-1">
+            Menu
+          </span>
+
+          <!-- Link 1: 📊 'Overview' -->
+          <a href="../colforms-admin/ColformsAdmin.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">analytics</span>
+            <span>Overview</span>
+          </a>
+
+          <!-- Link 2: 📖 'Directory' -->
+          <a href="../colforms-directory/ColformsDirectory.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">menu_book</span>
+            <span>Directory</span>
+          </a>
+
+          <!-- Link 3: 📚 'Courses' -->
+          <a href="../colforms-courses/ColformsCourses.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">auto_stories</span>
+            <span>Courses</span>
+          </a>
+
+          <!-- Link 4: 🎨 'Branding' (Active Destination) -->
+          <a href="#branding" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-label text-label-lg bg-teal-50 text-light-primary font-semibold border border-teal-100 transition-all shadow-xs">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[20px] text-light-primary" style="font-variation-settings: &#39;FILL&#39; 1;">palette</span>
+              <span>Branding</span>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Bottom Action: Sign Out -->
+      <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-8 h-8 rounded-full bg-teal-100 text-light-primary border border-teal-200 flex items-center justify-center font-headline font-bold text-label-sm">
+            AD
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="font-headline font-semibold text-label-md text-slate-900 truncate">Admin Principal</div>
+            <div class="font-body text-body-sm text-slate-600 truncate">admin@colforms.edu</div>
+          </div>
+        </div>
+
+        <a href="#signout" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors">
+          <span class="material-symbols-outlined text-[20px] text-rose-600">logout</span>
+          <span>Sign Out</span>
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ========================================================================= -->
+    <!-- MOBILE NAV: DETACHED FLOATING BOTTOM NAVIGATION PILL -->
+    <!-- ========================================================================= -->
+    <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-5 inset-x-4 z-50 flex justify-center pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-md px-6 py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_12px_36px_rgba(15,23,42,0.14)] flex items-center justify-between">
+        <a href="../colforms-admin/ColformsAdmin.html" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">analytics</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Overview</span>
+        </a>
+        <a href="../colforms-directory/ColformsDirectory.html" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">menu_book</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Directory</span>
+        </a>
+        <a href="../colforms-courses/ColformsCourses.html" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">auto_stories</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Courses</span>
+        </a>
+        <a href="#branding" class="flex flex-col items-center text-light-primary font-semibold">
+          <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: &#39;FILL&#39; 1;">palette</span>
+          <span class="text-[11px] font-label mt-0.5">Branding</span>
+        </a>
+        <a href="#signout" class="flex flex-col items-center text-rose-600 hover:text-rose-700 transition-colors">
+          <span class="material-symbols-outlined text-[22px]">logout</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Sign Out</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTENT: COLLEGE BRANDING SETTINGS UI -->
+    <!-- Two-column layout: Minimalist form on left, Real-time mini-preview card on right -->
+    <!-- ========================================================================= -->
+    <main class="flex-1 md:ml-[312px] p-6 md:p-8 pb-28 md:pb-12 min-h-[1024px]" data-stitch-vh="min-h-[1024px]===min-h-screen">
+      
+      <!-- Top Action Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-label text-label-sm text-light-primary font-semibold uppercase tracking-wider">Institution Customization</span>
+            <span class="text-slate-600 text-label-sm">•</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[12px] font-medium border border-teal-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-light-primary animate-pulse"></span>
+              Live Theme Sync
+            </span>
+          </div>
+          <h1 class="font-headline font-bold text-headline-md md:text-headline-lg text-slate-900 tracking-tight">
+            College Branding &amp; White-label
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="resetBrandDefaults()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-slate-700 border border-slate-300 font-label text-label-md shadow-xs hover:bg-slate-50 transition-colors whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px] text-slate-600">restart_alt</span>
+            <span>Reset Defaults</span>
+          </button>
+          
+          <button type="button" onclick="saveBrandChanges()" data-component-id="button-primary" data-component-type="button" data-component-variant="primary" class="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-light-primary text-light-on-primary font-label text-label-md shadow-sm hover:bg-[#0d6e66] transition-all duration-state-change hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-light-primary whitespace-nowrap">
+            <span class="material-symbols-outlined text-[18px]">check</span>
+            <span data-design-text-token="label-md">Save Changes</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Settings Layout Grid: Left Form (7 cols) + Right Real-time Mini-Preview (5 cols) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- ========================================================================= -->
+        <!-- LEFT: MINIMALIST BRANDING SETTINGS FORM (7 cols) -->
+        <!-- ========================================================================= -->
+        <section aria-label="Branding Form" class="lg:col-span-7 bg-white rounded-2xl p-6 md:p-8 border border-slate-200/90 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.04)] space-y-8">
+          
+          <div>
+            <h2 class="font-headline font-bold text-title-lg text-slate-900 mb-1">
+              Visual Palette &amp; Examination Themes
+            </h2>
+            <p class="font-body text-body-md text-slate-600">
+              Configure your institutional primary and secondary tones. These values style student examination consoles, faculty portals, and PDF report cards.
+            </p>
+          </div>
+
+          <!-- Color-Picker Inputs: Primary & Secondary -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            
+            <!-- Primary Brand Hex Color Input Field -->
+            <div class="p-5 rounded-2xl bg-slate-50/70 border border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <label for="primary-color-input" class="font-headline font-semibold text-label-lg text-slate-900">
+                  Primary Brand Hex Color
+                </label>
+                <span class="w-3 h-3 rounded-full bg-teal-600" id="primary-status-indicator"></span>
+              </div>
+              <p class="font-body text-body-sm text-slate-600">
+                Main headers, primary CTAs, active tab pills, and student portal navigation.
+              </p>
+
+              <div class="flex items-center gap-3 pt-1">
+                <!-- Native Color Picker Swatch -->
+                <div class="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-300 shadow-xs shrink-0 cursor-pointer">
+                  <input type="color" id="primary-color-picker" value="#0F766E" oninput="handleColorChange(&#39;primary&#39;, this.value)" class="absolute -inset-2 w-16 h-16 cursor-pointer border-none" aria-label="Pick primary brand color">
+                </div>
+                <!-- Hex Code Text Input Field -->
+                <div class="relative flex-1">
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-headline font-bold">#</span>
+                  <input type="text" id="primary-color-input" value="0F766E" maxlength="7" oninput="handleHexInput(&#39;primary&#39;, this.value)" class="w-full pl-8 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 font-headline font-semibold text-slate-900 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-light-primary">
+                </div>
+              </div>
+
+              <!-- Quick Preset Swatches -->
+              <div class="pt-2 flex items-center gap-2">
+                <span class="font-label text-[11px] text-slate-500">Presets:</span>
+                <button type="button" onclick="setPreset(&#39;primary&#39;, &#39;#0F766E&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #0F766E;" title="Deep Teal"></button>
+                <button type="button" onclick="setPreset(&#39;primary&#39;, &#39;#1E40AF&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #1E40AF;" title="Royal Blue"></button>
+                <button type="button" onclick="setPreset(&#39;primary&#39;, &#39;#4F46E5&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #4F46E5;" title="Indigo"></button>
+                <button type="button" onclick="setPreset(&#39;primary&#39;, &#39;#047857&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #047857;" title="Emerald"></button>
+                <button type="button" onclick="setPreset(&#39;primary&#39;, &#39;#831843&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #831843;" title="Crimson"></button>
+              </div>
+            </div>
+
+            <!-- Secondary Color Input Field -->
+            <div class="p-5 rounded-2xl bg-slate-50/70 border border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <label for="secondary-color-input" class="font-headline font-semibold text-label-lg text-slate-900">
+                  Secondary Color
+                </label>
+                <span class="w-3 h-3 rounded-full bg-teal-400" id="secondary-status-indicator"></span>
+              </div>
+              <p class="font-body text-body-sm text-slate-600">
+                Department badges, progress meters, subtle pill borders, and highlights.
+              </p>
+
+              <div class="flex items-center gap-3 pt-1">
+                <!-- Native Color Picker Swatch -->
+                <div class="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-300 shadow-xs shrink-0 cursor-pointer">
+                  <input type="color" id="secondary-color-picker" value="#14B8A6" oninput="handleColorChange(&#39;secondary&#39;, this.value)" class="absolute -inset-2 w-16 h-16 cursor-pointer border-none" aria-label="Pick secondary color">
+                </div>
+                <!-- Hex Code Text Input Field -->
+                <div class="relative flex-1">
+                  <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-headline font-bold">#</span>
+                  <input type="text" id="secondary-color-input" value="14B8A6" maxlength="7" oninput="handleHexInput(&#39;secondary&#39;, this.value)" class="w-full pl-8 pr-4 py-2.5 rounded-xl bg-white border border-slate-200 font-headline font-semibold text-slate-900 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-light-primary">
+                </div>
+              </div>
+
+              <!-- Quick Preset Swatches -->
+              <div class="pt-2 flex items-center gap-2">
+                <span class="font-label text-[11px] text-slate-500">Presets:</span>
+                <button type="button" onclick="setPreset(&#39;secondary&#39;, &#39;#14B8A6&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #14B8A6;" title="Teal Accent"></button>
+                <button type="button" onclick="setPreset(&#39;secondary&#39;, &#39;#38BDF8&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #38BDF8;" title="Sky Blue"></button>
+                <button type="button" onclick="setPreset(&#39;secondary&#39;, &#39;#F59E0B&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #F59E0B;" title="Amber"></button>
+                <button type="button" onclick="setPreset(&#39;secondary&#39;, &#39;#10B981&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #10B981;" title="Mint"></button>
+                <button type="button" onclick="setPreset(&#39;secondary&#39;, &#39;#EC4899&#39;)" class="w-5 h-5 rounded-full border border-white shadow-xs" style="background-color: #EC4899;" title="Pink"></button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Drag-and-Drop File Upload Zone for 'College Logo / Watermark' -->
+          <div class="space-y-3">
+            <div>
+              <label class="block font-headline font-semibold text-label-lg text-slate-900 mb-1">
+                College Logo / Examination Watermark
+              </label>
+              <p class="font-body text-body-sm text-slate-600">
+                Upload your official institutional emblem. It automatically applies as the top navigation mark and translucent background watermark on exam papers.
+              </p>
+            </div>
+
+            <!-- Dashed Upload Dropzone -->
+            <div id="dropzone-box" onclick="document.getElementById(&#39;logo-file-input&#39;).click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)" class="p-8 rounded-2xl border-2 border-dashed border-teal-300 hover:border-light-primary bg-slate-50/60 hover:bg-white transition-all text-center cursor-pointer group relative shadow-xs">
+              <input type="file" id="logo-file-input" accept="image/png, image/svg+xml, image/jpeg" class="hidden" onchange="handleLogoUpload(this)">
+
+              <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-light-primary group-hover:scale-110 transition-transform mb-3">
+                  <span class="material-symbols-outlined text-[30px]" id="dropzone-icon">school</span>
+                </div>
+                <h3 class="font-headline font-semibold text-title-md text-slate-900 mb-1">
+                  Drag &amp; Drop College Crest or Logo
+                </h3>
+                <p class="font-body text-body-sm text-slate-600 mb-4">
+                  SVG, high-res PNG, or JPG (Recommended transparent background, 512×512px, up to 5MB)
+                </p>
+                <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 font-label text-label-sm font-semibold shadow-xs group-hover:bg-slate-50 transition-colors">
+                  <span class="material-symbols-outlined text-[16px]">add_photo_alternate</span>
+                  <span>Browse Device Files</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Active Asset Metadata Strip -->
+            <div class="p-4 rounded-xl border border-slate-200 bg-white flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center text-light-primary font-headline font-bold text-label-lg shrink-0">
+                  <span class="material-symbols-outlined text-[20px]" id="current-logo-icon">school</span>
+                </div>
+                <div>
+                  <div class="font-headline font-semibold text-label-lg text-slate-900" id="current-logo-filename">
+                    apex_university_seal.svg
+                  </div>
+                  <div class="font-body text-body-sm text-slate-600">
+                    Vector Seal • Translucent watermark opacity: 12%
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[12px] font-semibold border border-teal-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>
+                  Active Asset
+                </span>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- RIGHT: REAL-TIME MINI-PREVIEW CARD (5 cols) -->
+        <!-- Updates colors & watermarks immediately as inputs change -->
+        <!-- ========================================================================= -->
+        <section aria-label="Real-time Preview" class="lg:col-span-5 sticky top-6 space-y-4">
+          
+          <div class="flex items-center justify-between px-1">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <span class="font-headline font-bold text-title-md text-slate-900">
+                Real-Time Theme Simulation
+              </span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600 font-label text-label-sm font-medium">
+              Live Preview
+            </span>
+          </div>
+
+          <!-- Main Interactive Mini-Preview Card Container -->
+          <div class="rounded-3xl bg-white border border-slate-200/90 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.08)] overflow-hidden transition-all duration-300">
+            
+            <!-- Simulated Header Bar with Primary Color Accent -->
+            <div id="preview-header-bar" class="p-5 text-white transition-colors duration-300" style="background-color: #0F766E;">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-[18px]" id="preview-logo-icon">school</span>
+                  </div>
+                  <div>
+                    <span class="font-headline font-bold text-label-lg tracking-tight block leading-tight" id="preview-college-name">
+                      Apex Institute of Tech
+                    </span>
+                    <span class="text-[11px] text-white font-medium block">Examination Portal</span>
+                  </div>
+                </div>
+
+                <span id="preview-badge" class="px-2.5 py-0.5 rounded-full text-slate-900 text-[11px] font-bold shadow-xs transition-colors duration-300" style="background-color: #14B8A6;">
+                  Proctored Live
+                </span>
+              </div>
+
+              <div class="flex items-center gap-4 text-[12px] text-white font-medium pt-1 border-t border-white/30">
+                <span>Course: B.Tech Computer Science</span>
+                <span>•</span>
+                <span>Term: Fall 2026</span>
+              </div>
+            </div>
+
+            <!-- Simulated Examination Paper Canvas with Dynamic Watermark -->
+            <div class="p-6 bg-slate-50/60 relative overflow-hidden select-none">
+              
+              <!-- Subtle Background Watermark Stamp (Pure SVG graphic) -->
+              <svg aria-hidden="true" role="presentation" class="absolute inset-0 w-full h-full pointer-events-none opacity-10 select-none" viewBox="0 0 300 150">
+                <g transform="rotate(-12 150 75)" text-anchor="middle" fill="#0F766E">
+                  <circle cx="150" cy="55" r="24" fill="none" stroke="#0F766E" stroke-width="2"></circle>
+                  <text x="150" y="62" font-size="20" font-family="&#39;Plus Jakarta Sans&#39;, sans-serif" font-weight="700">SEAL</text>
+                  <text x="150" y="98" font-size="11" font-family="&#39;Plus Jakarta Sans&#39;, sans-serif" font-weight="800" letter-spacing="2">OFFICIAL EXAMINATION</text>
+                </g>
+              </svg>
+
+              <!-- Foreground Content -->
+              <div class="relative z-10 space-y-4">
+                
+                <!-- Mock Test Card -->
+                <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-headline font-semibold text-label-lg text-slate-900">
+                      Midterm Test: CS-301 Data Structures
+                    </span>
+                    <span id="preview-secondary-pill" class="px-2 py-0.5 rounded-full text-slate-900 text-[11px] font-semibold transition-colors duration-300" style="background-color: #14B8A6;">
+                      Section A
+                    </span>
+                  </div>
+                  <p class="font-body text-body-sm text-slate-600">
+                    Q1. Construct a self-balancing AVL Tree given the sequence of keys and identify required double rotations.
+                  </p>
+                  
+                  <div class="pt-2 flex items-center justify-between border-t border-slate-100 text-body-sm">
+                    <span class="text-slate-500 tabular-nums">Time remaining: 45:12</span>
+                    <button type="button" id="preview-primary-btn" class="px-4 py-1.5 rounded-full text-white text-label-sm font-semibold shadow-xs transition-colors duration-300" style="background-color: #0F766E;">
+                      Submit Response
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Secondary Highlight Strip -->
+                <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span id="preview-accent-dot" class="w-2.5 h-2.5 rounded-full transition-colors duration-300" style="background-color: #14B8A6;"></span>
+                    <span class="font-body text-body-sm text-slate-700">Official Certificate Verification Hash</span>
+                  </div>
+                  <span class="font-mono text-[11px] text-slate-500 tabular-nums">#0x8F4A...2E</span>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- Preview Card Footer Information -->
+            <div class="p-4 bg-white border-t border-slate-100 flex items-center justify-between text-body-sm text-slate-500">
+              <span class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+                <span>Contrast AA Verified (&gt;= 4.5:1)</span>
+              </span>
+              <span class="tabular-nums font-mono text-[12px]" id="preview-color-codes">
+                #0F766E / #14B8A6
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Helpful Instructions Callout -->
+          <div class="p-4 rounded-2xl bg-teal-50/60 border border-teal-200/80 text-body-sm text-teal-900 flex items-start gap-3">
+            <span class="material-symbols-outlined text-[20px] text-light-primary shrink-0 mt-0.5">info</span>
+            <p>
+              Changes are reflected in real time above. Saving will deploy these color tokens to all active student portals, PDFs, and official college reports immediately.
+            </p>
+          </div>
+
+        </section>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Interactive script for dynamic real-time color syncing -->
+  <script>
+    let primaryHex = '#0F766E';
+    let secondaryHex = '#14B8A6';
+
+    function handleColorChange(type, value) {
+      if (type === 'primary') {
+        primaryHex = value;
+        document.getElementById('primary-color-input').value = value.replace('#', '').toUpperCase();
+      } else {
+        secondaryHex = value;
+        document.getElementById('secondary-color-input').value = value.replace('#', '').toUpperCase();
+      }
+      updatePreview();
+    }
+
+    function handleHexInput(type, value) {
+      const cleanHex = '#' + value.replace('#', '').trim();
+      if (/^#[0-9A-Fa-f]{6}$/.test(cleanHex)) {
+        if (type === 'primary') {
+          primaryHex = cleanHex;
+          document.getElementById('primary-color-picker').value = cleanHex;
+        } else {
+          secondaryHex = cleanHex;
+          document.getElementById('secondary-color-picker').value = cleanHex;
+        }
+        updatePreview();
+      }
+    }
+
+    function setPreset(type, color) {
+      if (type === 'primary') {
+        primaryHex = color;
+        document.getElementById('primary-color-picker').value = color;
+        document.getElementById('primary-color-input').value = color.replace('#', '').toUpperCase();
+      } else {
+        secondaryHex = color;
+        document.getElementById('secondary-color-picker').value = color;
+        document.getElementById('secondary-color-input').value = color.replace('#', '').toUpperCase();
+      }
+      updatePreview();
+    }
+
+    function updatePreview() {
+      // Update real-time preview elements
+      document.getElementById('preview-header-bar').style.backgroundColor = primaryHex;
+      document.getElementById('preview-primary-btn').style.backgroundColor = primaryHex;
+      document.getElementById('preview-watermark-icon').style.color = primaryHex;
+      document.getElementById('preview-watermark-text').style.color = primaryHex;
+      document.getElementById('primary-status-indicator').style.backgroundColor = primaryHex;
+
+      document.getElementById('preview-badge').style.backgroundColor = secondaryHex;
+      document.getElementById('preview-secondary-pill').style.backgroundColor = secondaryHex;
+      document.getElementById('preview-accent-dot').style.backgroundColor = secondaryHex;
+      document.getElementById('secondary-status-indicator').style.backgroundColor = secondaryHex;
+
+      document.getElementById('preview-color-codes').textContent = primaryHex.toUpperCase() + ' / ' + secondaryHex.toUpperCase();
+    }
+
+    function handleLogoUpload(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        document.getElementById('current-logo-filename').textContent = file.name;
+        // Mock visual icon change if image
+        document.getElementById('preview-logo-icon').textContent = 'verified';
+        document.getElementById('preview-watermark-icon').textContent = 'verified';
+      }
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropzone-box').classList.add('border-light-primary', 'bg-teal-50/50');
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('dropzone-box').classList.remove('border-light-primary', 'bg-teal-50/50');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      handleDragLeave(e);
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        const file = e.dataTransfer.files[0];
+        document.getElementById('current-logo-filename').textContent = file.name;
+        document.getElementById('preview-logo-icon').textContent = 'verified';
+        document.getElementById('preview-watermark-icon').textContent = 'verified';
+      }
+    }
+
+    function resetBrandDefaults() {
+      setPreset('primary', '#0F766E');
+      setPreset('secondary', '#14B8A6');
+      document.getElementById('current-logo-filename').textContent = 'apex_university_seal.svg';
+      document.getElementById('preview-logo-icon').textContent = 'school';
+      document.getElementById('preview-watermark-icon').textContent = 'school';
+    }
+
+    function saveBrandChanges() {
+      alert('College branding tokens (' + primaryHex.toUpperCase() + ' / ' + secondaryHex.toUpperCase() + ') successfully saved and deployed across all portals!');
+    }
+  </script>
+
+
+
+</body></html>

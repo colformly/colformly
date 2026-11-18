@@ -1,0 +1,1038 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colforms Admin — Courses Management</title>
+  <!-- Tailwind CSS CDN with forms and container-queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0B1120',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+        'cream-bg': '#FAF9F5',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '48px',
+        'section': '80px',
+        'section-lg': '112px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['56px', { lineHeight: '64px', letterSpacing: '-1.2px', fontWeight: '700' }],
+        'display-lg-mobile': ['32px', { lineHeight: '38px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'display-md': ['44px', { lineHeight: '52px', letterSpacing: '-0.8px', fontWeight: '700' }],
+        'display-md-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '600' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-float': '300ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-float': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-float': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans, Instrument Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Red+Hat+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-light-on-surface font-body antialiased min-h-[1024px] selection:bg-teal-soft selection:text-light-primary" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <div class="min-h-[1024px] flex flex-col md:flex-row relative" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- DESKTOP NAV: DETACHED FLOATING LEFT SIDEBAR (Shared App Shell) -->
+    <!-- ========================================================================= -->
+    <aside aria-label="Main Navigation" class="hidden md:flex flex-col justify-between fixed top-6 left-6 bottom-6 w-64 rounded-2xl bg-white border border-slate-200/80 shadow-[0_10px_35px_-4px_rgba(15,23,42,0.06)] p-5 z-40 transition-all duration-300">
+      
+      <!-- Top Brand Section & Menu Links -->
+      <div class="flex flex-col gap-6">
+        
+        <!-- Logo: Colforms Admin -->
+        <div class="flex items-center gap-3 px-2 pb-4 border-b border-slate-100">
+          <div class="w-9 h-9 rounded-xl bg-light-primary text-light-on-primary flex items-center justify-center font-headline font-bold text-label-lg shadow-xs">
+            <span class="material-symbols-outlined text-[20px]">assignment</span>
+          </div>
+          <div>
+            <span class="font-headline font-bold text-title-lg tracking-tight text-slate-900 block leading-tight">Colforms Admin</span>
+            <span class="font-body text-body-sm text-slate-600 block mt-0.5">Enterprise Portal</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links: Overview, Directory, Courses, Branding -->
+        <nav class="flex flex-col gap-1.5" aria-label="Sidebar Menu">
+          <span class="px-3 font-label text-label-sm text-slate-600 uppercase tracking-wider font-semibold mb-1">
+            Menu
+          </span>
+
+          <!-- Link 1: 📊 'Overview' -->
+          <a href="../colforms-admin/ColformsAdmin.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">analytics</span>
+            <span>Overview</span>
+          </a>
+
+          <!-- Link 2: 📖 'Directory' -->
+          <a href="../colforms-directory/ColformsDirectory.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">menu_book</span>
+            <span>Directory</span>
+          </a>
+
+          <!-- Link 3: 📚 'Courses' (Active Destination) -->
+          <a href="#courses" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-label text-label-lg bg-teal-50 text-light-primary font-semibold border border-teal-100 transition-all shadow-xs">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[20px] text-light-primary" style="font-variation-settings: &#39;FILL&#39; 1;">auto_stories</span>
+              <span>Courses</span>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>
+          </a>
+
+          <!-- Link 4: 🎨 'Branding' -->
+          <a href="../college-admin/CollegeAdmin.html" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">palette</span>
+            <span>Branding</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Bottom Action: Sign Out -->
+      <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-8 h-8 rounded-full bg-teal-100 text-light-primary border border-teal-200 flex items-center justify-center font-headline font-bold text-label-sm">
+            AD
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="font-headline font-semibold text-label-md text-slate-900 truncate">Admin Principal</div>
+            <div class="font-body text-body-sm text-slate-600 truncate">admin@colforms.edu</div>
+          </div>
+        </div>
+
+        <a href="#signout" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors">
+          <span class="material-symbols-outlined text-[20px] text-rose-600">logout</span>
+          <span>Sign Out</span>
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ========================================================================= -->
+    <!-- MOBILE NAV: DETACHED FLOATING BOTTOM NAVIGATION PILL -->
+    <!-- ========================================================================= -->
+    <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-5 inset-x-4 z-50 flex justify-center pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-md px-6 py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_12px_36px_rgba(15,23,42,0.14)] flex items-center justify-between">
+        <a href="../colforms-admin/ColformsAdmin.html" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">analytics</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Overview</span>
+        </a>
+        <a href="../colforms-directory/ColformsDirectory.html" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">menu_book</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Directory</span>
+        </a>
+        <a href="#courses" class="flex flex-col items-center text-light-primary font-semibold">
+          <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: &#39;FILL&#39; 1;">auto_stories</span>
+          <span class="text-[11px] font-label mt-0.5">Courses</span>
+        </a>
+        <a href="../college-admin/CollegeAdmin.html" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">palette</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Branding</span>
+        </a>
+        <a href="#signout" class="flex flex-col items-center text-rose-600 hover:text-rose-700 transition-colors">
+          <span class="material-symbols-outlined text-[22px]">logout</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Sign Out</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTENT: COURSES MANAGEMENT PAGE -->
+    <!-- High whitespace, hierarchical college structure mapping -->
+    <!-- ========================================================================= -->
+    <main class="flex-1 md:ml-[312px] p-6 md:p-8 pb-28 md:pb-12 min-h-[1024px]" data-stitch-vh="min-h-[1024px]===min-h-screen">
+      
+      <!-- Top Action Bar -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-label text-label-sm text-light-primary font-semibold uppercase tracking-wider">Campus Hierarchy Mapping</span>
+            <span class="text-slate-600 text-label-sm">•</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[12px] font-medium border border-teal-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>
+              Academic Year 2026–27
+            </span>
+          </div>
+          <h1 class="font-headline font-bold text-headline-md md:text-headline-lg text-slate-900 tracking-tight">
+            Courses &amp; Academic Structure
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Expand / Collapse All Helper -->
+          <button type="button" onclick="toggleAllAccordions()" id="btn-toggle-all" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white text-slate-700 border border-slate-300 font-label text-label-md shadow-xs hover:bg-slate-50 transition-colors whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px] text-slate-600">unfold_more</span>
+            <span id="toggle-all-text">Expand All</span>
+          </button>
+          
+          <!-- Top Action: Primary '+ Add New Course' button -->
+          <button type="button" onclick="openAddCourseModal()" data-component-id="button-primary" data-component-type="button" data-component-variant="primary" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-light-primary text-light-on-primary font-label text-label-md shadow-sm hover:bg-[#0d6e66] transition-all duration-state-change hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-light-primary whitespace-nowrap">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            <span data-design-text-token="label-md">+ Add New Course</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Campus Summary Metrics Strip -->
+      <section aria-label="Structure Summary" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-xs">
+          <div class="flex items-center justify-between text-slate-600 mb-1">
+            <span class="font-body text-body-sm font-medium">Total Degree Programs</span>
+            <span class="material-symbols-outlined text-[18px] text-light-primary">school</span>
+          </div>
+          <div class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">4 Programs</div>
+          <span class="font-body text-body-sm text-slate-600">B.Tech, BCA, MBA, B.Sc</span>
+        </div>
+
+        <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-xs">
+          <div class="flex items-center justify-between text-slate-600 mb-1">
+            <span class="font-body text-body-sm font-medium">Active Academic Years</span>
+            <span class="material-symbols-outlined text-[18px] text-light-primary">calendar_month</span>
+          </div>
+          <div class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">12 Years</div>
+          <span class="font-body text-body-sm text-slate-600">Across 4 undergraduate &amp; PG tiers</span>
+        </div>
+
+        <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-xs">
+          <div class="flex items-center justify-between text-slate-600 mb-1">
+            <span class="font-body text-body-sm font-medium">Classroom Sections</span>
+            <span class="material-symbols-outlined text-[18px] text-light-primary">grid_view</span>
+          </div>
+          <div class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">28 Sections</div>
+          <span class="font-body text-body-sm text-slate-600">Sec-A through Sec-D batches</span>
+        </div>
+
+        <div class="p-4 rounded-xl bg-white border border-slate-200/90 shadow-xs">
+          <div class="flex items-center justify-between text-slate-600 mb-1">
+            <span class="font-body text-body-sm font-medium">Total Enrolled Capacity</span>
+            <span class="material-symbols-outlined text-[18px] text-light-primary">groups</span>
+          </div>
+          <div class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">1,680 Seats</div>
+          <span class="font-body text-body-sm text-teal-700 font-medium">92% allocation filled</span>
+        </div>
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- MAIN CANVAS: HIERARCHICAL ACCORDION & NESTED CARD LAYOUT -->
+      <!-- Top Level: Course name (e.g. 'B.Tech Computer Science') -->
+      <!-- Nested Level 1: Years (e.g. '1st Year', '2nd Year') -->
+      <!-- Nested Level 2: Sections pill-shaped tags (e.g. 'Sec-A', 'Sec-B') + small '+' icon -->
+      <!-- ========================================================================= -->
+      <section aria-label="Course Hierarchy Accordion" class="space-y-6">
+
+        <!-- COURSE 1: B.Tech Computer Science (Expanded by default) -->
+        <div class="course-accordion bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all">
+          
+          <!-- Top Level: Course Header -->
+          <div onclick="toggleCourse(&#39;course-1&#39;)" class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/70 transition-colors select-none">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-teal-50 text-light-primary border border-teal-100 flex items-center justify-center font-headline font-bold text-title-md shrink-0">
+                <span class="material-symbols-outlined text-[24px]">terminal</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <h2 class="font-headline font-bold text-title-lg text-slate-900 tracking-tight">
+                    B.Tech Computer Science &amp; Engineering
+                  </h2>
+                  <span class="px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[12px] font-semibold border border-teal-200">
+                    4-Year Degree
+                  </span>
+                </div>
+                <p class="font-body text-body-sm text-slate-600 mt-0.5">
+                  Degree Code: BTECH-CSE • Total 4 Batches • 12 Active Sections • 720 Students
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="text-body-sm text-slate-600 font-medium hidden sm:inline">
+                4 Academic Years
+              </span>
+              <button type="button" class="w-8 h-8 rounded-full border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white flex items-center justify-center transition-transform" id="arrow-course-1">
+                <span class="material-symbols-outlined text-[20px]">expand_more</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Nested Content: Years & Sections -->
+          <div id="body-course-1" class="border-t border-slate-100 p-6 bg-slate-50/40 space-y-4">
+            
+            <!-- Nested Level 1: 1st Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-light-primary"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    1st Year (Freshmen Cohort • Batch 2026–30)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 180 Students (Capacity: 180)
+                </span>
+              </div>
+
+              <!-- Nested Level 2: Section Pill Tags + Small '+' Icon Button -->
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <!-- Sec-A -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity" title="Section options">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <!-- Sec-B -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity" title="Section options">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <!-- Sec-C -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-C</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity" title="Section options">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <!-- Small '+' Icon to Add New Section -->
+                <button type="button" onclick="openAddSectionModal(&#39;B.Tech CSE&#39;, &#39;1st Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-teal-400 text-light-primary hover:bg-teal-50 font-label text-label-sm font-semibold transition-all hover:scale-105" title="Add Section to 1st Year">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Nested Level 1: 2nd Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-light-primary"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    2nd Year (Sophomores • Batch 2025–29)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 180 Students (Capacity: 180)
+                </span>
+              </div>
+
+              <!-- Nested Level 2: Section Pill Tags + Small '+' Icon Button -->
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-C</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;B.Tech CSE&#39;, &#39;2nd Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-teal-400 text-light-primary hover:bg-teal-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Nested Level 1: 3rd Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-light-primary"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    3rd Year (Juniors • Batch 2024–28)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 180 Students (Capacity: 180)
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-C</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;B.Tech CSE&#39;, &#39;3rd Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-teal-400 text-light-primary hover:bg-teal-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Nested Level 1: 4th Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-light-primary"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    4th Year (Seniors • Batch 2023–27)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 180 Students (Capacity: 180)
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 text-light-primary border border-teal-200 font-label text-label-md font-semibold group hover:bg-teal-100 transition-colors">
+                  <span>Sec-C</span>
+                  <span class="text-[12px] font-normal text-teal-700">(60 students)</span>
+                  <button type="button" class="text-teal-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;B.Tech CSE&#39;, &#39;4th Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-teal-400 text-light-primary hover:bg-teal-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- COURSE 2: BCA (Bachelor of Computer Applications) -->
+        <div class="course-accordion bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all">
+          
+          <div onclick="toggleCourse(&#39;course-2&#39;)" class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/70 transition-colors select-none">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-800 border border-sky-200 flex items-center justify-center font-headline font-bold text-title-md shrink-0">
+                <span class="material-symbols-outlined text-[24px]">devices</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <h2 class="font-headline font-bold text-title-lg text-slate-900 tracking-tight">
+                    BCA (Bachelor of Computer Applications)
+                  </h2>
+                  <span class="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-800 text-[12px] font-semibold border border-sky-200">
+                    3-Year Degree
+                  </span>
+                </div>
+                <p class="font-body text-body-sm text-slate-600 mt-0.5">
+                  Degree Code: BCA-APP • Total 3 Batches • 6 Active Sections • 360 Students
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="text-body-sm text-slate-600 font-medium hidden sm:inline">
+                3 Academic Years
+              </span>
+              <button type="button" class="w-8 h-8 rounded-full border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white flex items-center justify-center transition-transform" id="arrow-course-2">
+                <span class="material-symbols-outlined text-[20px]">expand_more</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="body-course-2" class="hidden border-t border-slate-100 p-6 bg-slate-50/40 space-y-4">
+            
+            <!-- BCA 1st Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    1st Year (Batch 2026–29)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 120 Students
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-label text-label-md font-semibold group hover:bg-sky-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-sky-700">(60 students)</span>
+                  <button type="button" class="text-sky-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-label text-label-md font-semibold group hover:bg-sky-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-sky-700">(60 students)</span>
+                  <button type="button" class="text-sky-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;BCA&#39;, &#39;1st Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-sky-400 text-sky-800 hover:bg-sky-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- BCA 2nd Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    2nd Year (Batch 2025–28)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 120 Students
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-label text-label-md font-semibold group hover:bg-sky-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-sky-700">(60 students)</span>
+                  <button type="button" class="text-sky-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-label text-label-md font-semibold group hover:bg-sky-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-sky-700">(60 students)</span>
+                  <button type="button" class="text-sky-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;BCA&#39;, &#39;2nd Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-sky-400 text-sky-800 hover:bg-sky-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- BCA 3rd Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    3rd Year (Batch 2024–27)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 120 Students
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-label text-label-md font-semibold group hover:bg-sky-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-sky-700">(60 students)</span>
+                  <button type="button" class="text-sky-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200 font-label text-label-md font-semibold group hover:bg-sky-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-sky-700">(60 students)</span>
+                  <button type="button" class="text-sky-700 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;BCA&#39;, &#39;3rd Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-sky-400 text-sky-800 hover:bg-sky-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- COURSE 3: MBA (Master of Business Administration) -->
+        <div class="course-accordion bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.04)] overflow-hidden transition-all">
+          
+          <div onclick="toggleCourse(&#39;course-3&#39;)" class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/70 transition-colors select-none">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 flex items-center justify-center font-headline font-bold text-title-md shrink-0">
+                <span class="material-symbols-outlined text-[24px]">finance_mode</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <h2 class="font-headline font-bold text-title-lg text-slate-900 tracking-tight">
+                    MBA (Master of Business Administration)
+                  </h2>
+                  <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 text-[12px] font-semibold border border-amber-200">
+                    2-Year Post Graduate
+                  </span>
+                </div>
+                <p class="font-body text-body-sm text-slate-600 mt-0.5">
+                  Degree Code: MBA-CORP • Total 2 Batches • 4 Active Sections • 240 Students
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="text-body-sm text-slate-600 font-medium hidden sm:inline">
+                2 Academic Years
+              </span>
+              <button type="button" class="w-8 h-8 rounded-full border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-white flex items-center justify-center transition-transform" id="arrow-course-3">
+                <span class="material-symbols-outlined text-[20px]">expand_more</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="body-course-3" class="hidden border-t border-slate-100 p-6 bg-slate-50/40 space-y-4">
+            
+            <!-- MBA 1st Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    1st Year (Core Management • Batch 2026–28)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 120 Students
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-label text-label-md font-semibold group hover:bg-amber-100 transition-colors">
+                  <span>Sec-A</span>
+                  <span class="text-[12px] font-normal text-amber-800">(60 students)</span>
+                  <button type="button" class="text-amber-800 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-label text-label-md font-semibold group hover:bg-amber-100 transition-colors">
+                  <span>Sec-B</span>
+                  <span class="text-[12px] font-normal text-amber-800">(60 students)</span>
+                  <button type="button" class="text-amber-800 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;MBA&#39;, &#39;1st Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-amber-400 text-amber-900 hover:bg-amber-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- MBA 2nd Year -->
+            <div class="bg-white rounded-xl p-5 border border-slate-200/80 shadow-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+                  <h3 class="font-headline font-semibold text-title-md text-slate-900">
+                    2nd Year (Specializations • Batch 2025–27)
+                  </h3>
+                </div>
+                <span class="font-body text-body-sm text-slate-600">
+                  Total Strength: 120 Students
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                <span class="font-label text-label-sm text-slate-600 mr-1">Sections:</span>
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-label text-label-md font-semibold group hover:bg-amber-100 transition-colors">
+                  <span>Sec-A (Finance &amp; M&amp;A)</span>
+                  <span class="text-[12px] font-normal text-amber-800">(60 students)</span>
+                  <button type="button" class="text-amber-800 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-label text-label-md font-semibold group hover:bg-amber-100 transition-colors">
+                  <span>Sec-B (Marketing &amp; Tech)</span>
+                  <span class="text-[12px] font-normal text-amber-800">(60 students)</span>
+                  <button type="button" class="text-amber-800 hover:text-rose-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-[15px]">close</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="openAddSectionModal(&#39;MBA&#39;, &#39;2nd Year&#39;)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-dashed border-amber-400 text-amber-900 hover:bg-amber-50 font-label text-label-sm font-semibold transition-all hover:scale-105">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  <span>Add Section</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD NEW COURSE DIALOG -->
+  <!-- ========================================================================= -->
+  <div id="add-course-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-lg rounded-3xl bg-white border border-slate-200/90 shadow-[0_24px_60px_-12px_rgba(15,23,42,0.18)] p-6 md:p-8 animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 text-light-primary border border-teal-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[22px]">library_add</span>
+          </div>
+          <div>
+            <h2 class="font-headline font-bold text-title-lg text-slate-900">
+              Add New Academic Course
+            </h2>
+            <p class="font-body text-body-sm text-slate-600">
+              Introduce a degree program into the college directory.
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAddCourseModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <form onsubmit="handleNewCourseSubmit(event)" class="space-y-4">
+        <div>
+          <label for="new-course-title" class="block font-headline font-semibold text-label-lg text-slate-800 mb-1">
+            Course Full Title
+          </label>
+          <input type="text" id="new-course-title" required placeholder="e.g. B.Tech Artificial Intelligence &amp; Data Science" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-body text-body-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-white">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="new-course-code" class="block font-headline font-semibold text-label-lg text-slate-800 mb-1">
+              Program Code
+            </label>
+            <input type="text" id="new-course-code" required placeholder="e.g. BTECH-AI" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-body text-body-md text-slate-900 uppercase placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-white">
+          </div>
+
+          <div>
+            <label for="new-course-duration" class="block font-headline font-semibold text-label-lg text-slate-800 mb-1">
+              Course Duration
+            </label>
+            <select id="new-course-duration" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-body text-body-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-white">
+              <option value="4">4 Years (8 Semesters)</option>
+              <option value="3">3 Years (6 Semesters)</option>
+              <option value="2">2 Years (4 Semesters)</option>
+              <option value="5">5 Years (Integrated)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="new-course-dept" class="block font-headline font-semibold text-label-lg text-slate-800 mb-1">
+            Governing Department
+          </label>
+          <select id="new-course-dept" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-body text-body-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-white">
+            <option>Department of Computer Science &amp; Engineering</option>
+            <option>Department of Electronics &amp; Communication</option>
+            <option>School of Business &amp; Management</option>
+            <option>Department of Applied Sciences</option>
+          </select>
+        </div>
+
+        <div class="pt-4 mt-6 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeAddCourseModal()" class="px-5 py-2.5 rounded-full border border-slate-300 font-label text-label-md text-slate-700 hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" data-component-id="button-modal-course" data-component-type="button" data-component-variant="primary" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-light-primary text-light-on-primary font-label text-label-md font-semibold shadow-sm hover:bg-[#0d6e66] transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-light-primary whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">check</span>
+            <span>Create Course</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD NEW SECTION DIALOG -->
+  <!-- ========================================================================= -->
+  <div id="add-section-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-md rounded-3xl bg-white border border-slate-200/90 shadow-[0_24px_60px_-12px_rgba(15,23,42,0.18)] p-6 md:p-8 animate-in fade-in zoom-in-95 duration-200">
+      
+      <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 text-light-primary border border-teal-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[22px]">add_circle</span>
+          </div>
+          <div>
+            <h2 class="font-headline font-bold text-title-lg text-slate-900">
+              Add New Section
+            </h2>
+            <p id="section-modal-context" class="font-body text-body-sm text-slate-600">
+              B.Tech CSE • 1st Year
+            </p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAddSectionModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <form onsubmit="handleNewSectionSubmit(event)" class="space-y-4">
+        <div>
+          <label for="new-section-name" class="block font-headline font-semibold text-label-lg text-slate-800 mb-1">
+            Section Tag (e.g. Sec-D)
+          </label>
+          <input type="text" id="new-section-name" required placeholder="Sec-D" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-body text-body-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-white">
+        </div>
+
+        <div>
+          <label for="new-section-capacity" class="block font-headline font-semibold text-label-lg text-slate-800 mb-1">
+            Maximum Student Enrollment Cap
+          </label>
+          <input type="number" id="new-section-capacity" value="60" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-body text-body-md text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-white tabular-nums">
+        </div>
+
+        <div class="pt-4 mt-6 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeAddSectionModal()" class="px-5 py-2.5 rounded-full border border-slate-300 font-label text-label-md text-slate-700 hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" data-component-id="button-modal-sec" data-component-type="button" data-component-variant="primary" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-light-primary text-light-on-primary font-label text-label-md font-semibold shadow-sm hover:bg-[#0d6e66] transition-all hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-light-primary whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">check</span>
+            <span>Add Section</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <script>
+    let allExpanded = false;
+
+    function toggleCourse(id) {
+      const body = document.getElementById('body-' + id);
+      const arrow = document.getElementById('arrow-' + id);
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+      } else {
+        body.classList.add('hidden');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    function toggleAllAccordions() {
+      allExpanded = !allExpanded;
+      const ids = ['course-1', 'course-2', 'course-3'];
+      const btnText = document.getElementById('toggle-all-text');
+      
+      ids.forEach(id => {
+        const body = document.getElementById('body-' + id);
+        const arrow = document.getElementById('arrow-' + id);
+        if (allExpanded) {
+          body.classList.remove('hidden');
+          if (arrow) arrow.style.transform = 'rotate(180deg)';
+        } else {
+          body.classList.add('hidden');
+          if (arrow) arrow.style.transform = 'rotate(0deg)';
+        }
+      });
+
+      btnText.textContent = allExpanded ? 'Collapse All' : 'Expand All';
+    }
+
+    function openAddCourseModal() {
+      document.getElementById('add-course-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddCourseModal() {
+      document.getElementById('add-course-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function openAddSectionModal(courseName, yearName) {
+      document.getElementById('section-modal-context').textContent = courseName + ' • ' + yearName;
+      document.getElementById('add-section-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeAddSectionModal() {
+      document.getElementById('add-section-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function handleNewCourseSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('new-course-title').value;
+      alert('Course "' + title + '" successfully created and added to campus hierarchy!');
+      closeAddCourseModal();
+    }
+
+    function handleNewSectionSubmit(e) {
+      e.preventDefault();
+      const sec = document.getElementById('new-section-name').value;
+      alert('Section "' + sec + '" registered in academic year!');
+      closeAddSectionModal();
+    }
+  </script>
+
+
+
+</body></html>

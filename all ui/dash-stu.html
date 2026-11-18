@@ -1,0 +1,740 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colforms — Student Dashboard</title>
+  
+  <!-- Tailwind CSS CDN with Forms and Container Queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'cream-bg': '#FAF9F5',
+        'streak-orange': '#EA580C',
+        'gem-cyan': '#0284C7',
+        'ink-red': '#BE123C',
+        'ink-green': '#047857',
+        'spark-glow': '#8B5CF6',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#CCFBF1',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F1F5F9',
+        'light-on-surface-variant': '#475569',
+        'light-outline': '#CBD5E1',
+        'light-outline-variant': '#E2E8F0',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0F172A',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '10px',
+        'md': '14px',
+        'lg': '18px',
+        'xl': '22px',
+        '2xl': '26px',
+        '3xl': '30px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '40px',
+        'section': '64px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['48px', { lineHeight: '56px', letterSpacing: '-1.0px', fontWeight: '800' }],
+        'display-lg-mobile': ['32px', { lineHeight: '40px', letterSpacing: '-0.5px', fontWeight: '800' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '700' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '700' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '600' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'card-hover': '250ms',
+        'pen-stroke': '1200ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'card-hover': '0ms',
+        'pen-stroke': '200ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'cubic-bezier(0.16, 1, 0.3, 1)',
+        'card-hover': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'pen-stroke': 'ease-in-out',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-cream-bg text-slate-900 font-body antialiased min-h-[1024px] selection:bg-teal-100 selection:text-teal-900" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER -->
+  <!-- ========================================================================= -->
+  <div class="relative min-h-[1024px] flex flex-col md:flex-row p-4 md:p-6 lg:p-8 gap-6 max-w-[1440px] mx-auto" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- DESKTOP NAV: DETACHED FLOATING PILL SIDEBAR (rounded-3xl, thick soft shadow) -->
+    <!-- ========================================================================= -->
+    <aside aria-label="Student Navigation" class="hidden md:flex flex-col justify-between w-64 lg:w-72 shrink-0 rounded-3xl bg-white/95 backdrop-blur-xl border border-slate-200/80 p-5 shadow-[0_20px_45px_-12px_rgba(15,23,42,0.12)] sticky top-6 self-start h-[calc(1024px-3rem)] z-30" data-stitch-vh="h-[calc(1024px-3rem)]===h-[calc(100vh-3rem)]">
+      <div class="flex flex-col gap-7">
+        <!-- Logo / Brand Header -->
+        <div class="flex items-center gap-3 px-2 pt-1">
+          <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200/90 flex items-center justify-center shadow-xs">
+            <span class="text-headline-md leading-none select-none" role="img" aria-label="Rocket">🚀</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-headline font-bold text-title-lg text-slate-900 tracking-tight">Colforms</span>
+              <span class="px-2 py-0.5 rounded-full bg-teal-100 text-light-primary text-[10px] font-bold tracking-wider font-label uppercase">Student</span>
+            </div>
+            <p class="font-body text-body-sm text-slate-600 font-medium">B.Tech CSE • Year 2</p>
+          </div>
+        </div>
+
+        <!-- Navigation Links: Emojis / Thick Icons [🏠 'Home', 📝 'Tests', 📋 'Campus Forms', 👤 'Profile'] -->
+        <nav class="flex flex-col gap-2 font-label">
+          <!-- 🏠 Home (Active) -->
+          <a href="StudentDashboard.html" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-light-primary text-white shadow-[0_10px_25px_-5px_rgba(15,118,110,0.4)] transition-all font-semibold text-label-lg">
+            <span class="text-title-lg leading-none select-none" role="img" aria-label="Home">🏠</span>
+            <span class="tracking-wide">Home</span>
+            <span class="ml-auto w-2 h-2 rounded-full bg-teal-200"></span>
+          </a>
+
+          <!-- 📝 Tests -->
+          <a href="#tests" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 transition-all font-medium text-label-lg group">
+            <span class="text-title-lg leading-none select-none group-hover:scale-110 transition-transform" role="img" aria-label="Tests">📝</span>
+            <span>Result Sheet</span>
+            <span class="ml-auto px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-label-sm font-bold border border-amber-200">2 Due</span>
+          </a>
+
+          <!-- 📋 Campus Forms -->
+          <a href="#forms" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 transition-all font-medium text-label-lg group">
+            <span class="text-title-lg leading-none select-none group-hover:scale-110 transition-transform" role="img" aria-label="Campus Forms">📋</span>
+            <span><span style="color: rgb(15, 23, 42); letter-spacing: 0.1px; background-color: rgba(241, 245, 249, 0.8);">LeaderBoard</span></span>
+          </a>
+
+          <!-- 👤 Profile -->
+          
+        </nav>
+      </div>
+
+      <!-- Bottom Mini-Badge / Motivation Card -->
+      <div class="flex flex-col gap-3 pt-4 border-t border-slate-100">
+        <div class="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 shadow-xs flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center shrink-0">
+            <span class="text-title-lg leading-none select-none" role="img" aria-label="Trophy">🏆</span>
+          </div>
+          <div class="min-w-0">
+            <span class="font-headline font-bold text-label-md text-amber-950 block truncate">Class Rank #3</span>
+            <span class="font-body text-body-sm text-amber-900 font-medium block truncate">Top 5% of CSE Sec-A</span>
+          </div>
+        </div>
+
+        <!-- Sign Out Action -->
+        <a href="#signout" class="flex items-center gap-3 px-3 py-2 rounded-xl text-rose-700 hover:bg-rose-50/80 text-label-md font-semibold font-label transition-colors">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ========================================================================= -->
+    <!-- MOBILE NAV: DETACHED FLOATING BOTTOM PILL -->
+    <!-- ========================================================================= -->
+    <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-4 inset-x-4 z-50 flex justify-center pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-md px-5 py-3 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_20px_45px_rgba(15,23,42,0.22)] flex items-center justify-between">
+        <!-- 🏠 Home -->
+        <a href="StudentDashboard.html" class="flex flex-col items-center text-light-primary font-bold">
+          <span class="text-title-lg leading-none select-none" role="img" aria-label="Home">🏠</span>
+          <span class="text-[11px] font-label font-bold mt-1">Home</span>
+        </a>
+
+        <!-- 📝 Tests -->
+        <a href="#tests" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="text-title-lg leading-none select-none" role="img" aria-label="Tests">📝</span>
+          <span class="text-[11px] font-label font-medium mt-1">Tests</span>
+        </a>
+
+        <!-- 📋 Campus Forms -->
+        <a href="#forms" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="text-title-lg leading-none select-none" role="img" aria-label="Campus Forms">📋</span>
+          <span class="text-[11px] font-label font-medium mt-1">Forms</span>
+        </a>
+
+        <!-- 👤 Profile -->
+        <a href="#profile" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="text-title-lg leading-none select-none" role="img" aria-label="Profile">👤</span>
+          <span class="text-[11px] font-label font-medium mt-1">Profile</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTENT AREA: GAMIFIED, PLAYFUL, PASTEL OFF-WHITE -->
+    <!-- ========================================================================= -->
+    <main class="flex-1 min-w-0 flex flex-col gap-8 pb-20 md:pb-6">
+
+      <!-- TOP HEADER: USER AVATAR + STREAK / GEM COUNTER -->
+      <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 lg:p-6 rounded-3xl bg-white border border-slate-200/90 shadow-[0_16px_36px_-8px_rgba(15,23,42,0.08)]">
+        
+        <!-- User Avatar & Welcoming Greeting -->
+        <div class="flex items-center gap-4">
+          <div class="relative shrink-0">
+            <!-- Playful 3D-Style Illustrated Avatar -->
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-gradient-to-tr from-teal-400 via-amber-200 to-rose-300 p-0.5 shadow-md flex items-center justify-center">
+              <div class="w-full h-full rounded-3xl bg-amber-50 flex items-center justify-center text-headline-lg select-none">
+                🦊
+              </div>
+            </div>
+            <!-- Online / Ready Badge with High-Contrast Tick -->
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-800 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold shadow-xs" title="Online &amp; Active">
+              ✓
+            </span>
+          </div>
+
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="font-headline font-bold text-headline-sm sm:text-headline-md text-slate-900 tracking-tight">
+                Hey, Alex!
+              </h1>
+              <span class="text-title-lg leading-none select-none" role="img" aria-label="Waving hand">👋</span>
+            </div>
+            <p class="font-body text-body-md text-slate-600 font-medium mt-0.5 text-balance">
+              Ready to conquer today's challenges and earn XP?
+            </p>
+          </div>
+        </div>
+
+        <!-- Gamified Counters: Streak & Gems Pill Modules -->
+        <div class="flex items-center gap-3 self-start sm:self-center shrink-0">
+          
+          <!-- 🔥 Streak Counter -->
+          <div class="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-orange-50 border-2 border-orange-200 shadow-sm hover:scale-105 transition-transform cursor-pointer">
+            <span class="text-headline-sm leading-none select-none" role="img" aria-label="Fire">🔥</span>
+            <div>
+              <div class="font-headline font-extrabold text-title-lg text-orange-950 leading-none tabular-nums">
+                12 Days
+              </div>
+              <span class="font-label text-[10px] font-bold text-orange-800 uppercase tracking-wider block mt-0.5">
+                Daily Streak
+              </span>
+            </div>
+          </div>
+
+          <!-- 💎 Gem Counter -->
+          <div class="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-cyan-50 border-2 border-cyan-200 shadow-sm hover:scale-105 transition-transform cursor-pointer">
+            <span class="text-headline-sm leading-none select-none" role="img" aria-label="Gem">💎</span>
+            <div>
+              <div class="font-headline font-extrabold text-title-lg text-cyan-950 leading-none tabular-nums">
+                850
+              </div>
+              <span class="font-label text-[10px] font-bold text-cyan-800 uppercase tracking-wider block mt-0.5">
+                Campus Gems
+              </span>
+            </div>
+          </div>
+
+          <!-- ⚡ Level Tag -->
+          <div class="hidden lg:flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-purple-50 border-2 border-purple-200 shadow-sm">
+            <span class="text-title-lg leading-none select-none" role="img" aria-label="Lightning">⚡</span>
+            <div>
+              <div class="font-headline font-bold text-label-lg text-purple-950 leading-none">
+                Lvl 4 Scholar
+              </div>
+              <span class="font-label text-[10px] font-bold text-purple-800 uppercase tracking-wider block mt-0.5">
+                2,450 / 3,000 XP
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+      </header>
+
+      <!-- ========================================================================= -->
+      <!-- SECTION 1: 'TO-DO' (Thick, vibrant cards for Pending Tests with 'Start') -->
+      <!-- ========================================================================= -->
+      <section class="flex flex-col gap-4">
+        
+        <!-- Section Header -->
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-teal-100 border border-teal-200 flex items-center justify-center text-light-primary text-title-md font-bold shadow-xs">
+              ⚡
+            </span>
+            <h2 class="font-headline font-bold text-headline-sm text-slate-900 tracking-tight">
+              To-Do Tests
+            </h2>
+            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-label-sm font-bold border border-rose-200">
+              2 Urgent
+            </span>
+          </div>
+
+          <a href="#all-tests" class="text-light-primary font-label text-label-md font-bold hover:underline inline-flex items-center gap-1">
+            <span>View Syllabus</span>
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+          </a>
+        </div>
+
+        <!-- Vibrant Grid of Pending Test Cards (Thick borders & heavy soft shadows) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+          
+          <!-- PENDING TEST CARD 1: Algorithms (Vibrant Emerald/Teal Theme) -->
+          <div class="rounded-3xl bg-gradient-to-b from-[#E6FFFA] to-white border-2 border-teal-200 p-6 shadow-[0_20px_40px_-8px_rgba(20,184,166,0.18)] flex flex-col justify-between gap-5 relative overflow-hidden group hover:-translate-y-1 transition-all">
+            
+            <!-- Top Card Meta -->
+            <div>
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100 text-light-primary text-label-sm font-bold border border-teal-200">
+                  <span class="w-2 h-2 rounded-full bg-light-primary animate-pulse"></span>
+                  Due Today • 5:00 PM
+                </span>
+                <span class="font-label text-label-md font-bold text-slate-700 bg-white/90 px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
+                  +120 XP 🌟
+                </span>
+              </div>
+
+              <div class="flex items-start gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white border border-teal-100 flex items-center justify-center text-headline-md leading-none shadow-xs shrink-0 select-none">
+                  🧬
+                </div>
+                <div>
+                  <h3 class="font-headline font-bold text-title-lg text-slate-900 leading-snug group-hover:text-light-primary transition-colors">
+                    Data Structures: Balanced Trees &amp; HeapSort
+                  </h3>
+                  <p class="font-body text-body-sm text-slate-600 mt-1 text-balance">
+                    Prof. Sarah Mitchell • CS-301 • Midterm Quiz #3
+                  </p>
+                </div>
+              </div>
+
+              <!-- Pill Details Row -->
+              <div class="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-teal-100/80 text-slate-700 text-body-sm">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/60 font-medium">
+                  <span class="material-symbols-outlined text-[16px] text-teal-700">timer</span>
+                  <span>25 Mins</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/60 font-medium">
+                  <span class="material-symbols-outlined text-[16px] text-teal-700">quiz</span>
+                  <span>15 Questions</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/60 font-medium">
+                  <span class="material-symbols-outlined text-[16px] text-teal-700">verified</span>
+                  <span>Instant Grading</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Bottom Action: Primary 'Start' Button -->
+            <div class="flex items-center justify-between pt-2">
+              <span class="text-[12px] font-label font-bold text-teal-800">
+                1 attempt allowed
+              </span>
+              <a href="../student-result/StudentResult.html" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-headline font-bold text-label-lg shadow-[0_10px_25px_-2px_rgba(15,118,110,0.45)] hover:shadow-[0_14px_28px_-2px_rgba(15,118,110,0.55)] active:scale-95 transition-all">
+                <span>Start Test</span>
+                <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              </a>
+            </div>
+
+          </div>
+
+          <!-- PENDING TEST CARD 2: Operating Systems (Vibrant Violet/Indigo Theme) -->
+          <div class="rounded-3xl bg-gradient-to-b from-[#F3E8FF] to-white border-2 border-purple-200 p-6 shadow-[0_20px_40px_-8px_rgba(168,85,247,0.18)] flex flex-col justify-between gap-5 relative overflow-hidden group hover:-translate-y-1 transition-all">
+            
+            <!-- Top Card Meta -->
+            <div>
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-900 text-label-sm font-bold border border-purple-200">
+                  <span class="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
+                  Due Tomorrow • 11:59 PM
+                </span>
+                <span class="font-label text-label-md font-bold text-slate-700 bg-white/90 px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
+                  +150 XP 🌟
+                </span>
+              </div>
+
+              <div class="flex items-start gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white border border-purple-100 flex items-center justify-center text-headline-md leading-none shadow-xs shrink-0 select-none">
+                  ⚙️
+                </div>
+                <div>
+                  <h3 class="font-headline font-bold text-title-lg text-slate-900 leading-snug group-hover:text-purple-700 transition-colors">
+                    Operating Systems: Concurrency &amp; Semaphores
+                  </h3>
+                  <p class="font-body text-body-sm text-slate-600 mt-1 text-balance">
+                    Dr. Robert Chen • CS-304 • Practice Drill
+                  </p>
+                </div>
+              </div>
+
+              <!-- Pill Details Row -->
+              <div class="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-purple-100/80 text-slate-700 text-body-sm">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/60 font-medium">
+                  <span class="material-symbols-outlined text-[16px] text-purple-700">timer</span>
+                  <span>35 Mins</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/60 font-medium">
+                  <span class="material-symbols-outlined text-[16px] text-purple-700">quiz</span>
+                  <span>20 Questions</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/90 border border-slate-200/60 font-medium">
+                  <span class="material-symbols-outlined text-[16px] text-purple-700">handyman</span>
+                  <span>Simulator</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Bottom Action: Primary 'Start' Button -->
+            <div class="flex items-center justify-between pt-2">
+              <span class="text-[12px] font-label font-bold text-purple-900">
+                Calculator allowed
+              </span>
+              <a href="../student-result/StudentResult.html" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-headline font-bold text-label-lg shadow-[0_10px_25px_-2px_rgba(15,118,110,0.45)] hover:shadow-[0_14px_28px_-2px_rgba(15,118,110,0.55)] active:scale-95 transition-all">
+                <span>Start Test</span>
+                <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- SECTION 2: 'COMPLETED' (Horizontal scrollable list with circular score badges) -->
+      <!-- ========================================================================= -->
+      <section class="flex flex-col gap-4">
+        
+        <!-- Section Header -->
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center text-amber-800 text-title-md font-bold shadow-xs shrink-0">
+              📜
+            </span>
+            <h2 class="font-headline font-bold text-headline-sm text-slate-900 tracking-tight truncate">
+              Completed Tests
+            </h2>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-label-sm font-bold border border-emerald-200 shrink-0">
+              4 Evaluated
+            </span>
+          </div>
+
+          <div class="hidden sm:flex items-center gap-1.5 text-slate-700 text-body-sm font-medium shrink-0">
+            <span>Scroll</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </div>
+        </div>
+
+        <!-- Horizontal Scrollable Strip of Past Tests -->
+        <div class="overflow-x-auto no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div class="flex gap-4 w-max">
+            
+            <!-- COMPLETED TEST CARD 1: Score 96% -->
+            <div class="w-72 sm:w-80 rounded-3xl bg-white border border-slate-200/90 p-5 shadow-[0_14px_30px_-6px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_36px_-6px_rgba(15,23,42,0.12)] transition-all flex flex-col justify-between gap-4">
+              
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <span class="font-label text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Oct 24 • Graded</span>
+                  <h4 class="font-headline font-bold text-title-md text-slate-900 truncate mt-0.5">Database Systems</h4>
+                  <p class="font-body text-body-sm text-slate-600 truncate">SQL Joins &amp; Indexing</p>
+                </div>
+
+                <!-- Circular Score Badge -->
+                <div class="w-14 h-14 rounded-full bg-emerald-50 border-2 border-emerald-500 flex flex-col items-center justify-center shrink-0 shadow-xs">
+                  <span class="font-headline font-extrabold text-title-md text-emerald-800 leading-none">96%</span>
+                  <span class="text-[9px] font-bold text-emerald-700 tracking-tight">Grade A+</span>
+                </div>
+              </div>
+
+              <!-- Faculty Blessing & Signature Pill -->
+              <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                <span class="text-[10px] font-label font-bold text-emerald-800 uppercase tracking-wider block">Faculty Blessing:</span>
+                <p class="font-body text-body-sm text-slate-900 font-medium italic mt-0.5 truncate">
+                  "Outstanding work! Truly mastery-level. ❤️"
+                </p>
+              </div>
+
+              <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-body-sm">
+                <span class="font-mono text-slate-600 text-[11px]">Rank: 2nd / 64</span>
+                <a href="../student-result/StudentResult.html" class="text-light-primary hover:underline font-label text-label-sm font-bold inline-flex items-center gap-1">
+                  <span>View Result Sheet</span>
+                  <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                </a>
+              </div>
+
+            </div>
+
+            <!-- COMPLETED TEST CARD 2: Score 88% -->
+            <div class="w-72 sm:w-80 rounded-3xl bg-white border border-slate-200/90 p-5 shadow-[0_14px_30px_-6px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_36px_-6px_rgba(15,23,42,0.12)] transition-all flex flex-col justify-between gap-4">
+              
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <span class="font-label text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Oct 18 • Graded</span>
+                  <h4 class="font-headline font-bold text-title-md text-slate-900 truncate mt-0.5">Computer Networks</h4>
+                  <p class="font-body text-body-sm text-slate-600 truncate">TCP/IP &amp; Subnetting</p>
+                </div>
+
+                <!-- Circular Score Badge -->
+                <div class="w-14 h-14 rounded-full bg-teal-50 border-2 border-teal-500 flex flex-col items-center justify-center shrink-0 shadow-xs">
+                  <span class="font-headline font-extrabold text-title-md text-light-primary leading-none">88%</span>
+                  <span class="text-[9px] font-bold text-teal-700 tracking-tight">Grade A</span>
+                </div>
+              </div>
+
+              <!-- Faculty Blessing & Signature Pill -->
+              <div class="p-3 rounded-2xl bg-teal-50/70 border border-teal-200">
+                <span class="text-[10px] font-label font-bold text-light-primary uppercase tracking-wider block">Faculty Blessing:</span>
+                <p class="font-body text-body-sm text-slate-900 font-medium italic mt-0.5 truncate">
+                  "Great effort! Keep this momentum. ✨"
+                </p>
+              </div>
+
+              <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-body-sm">
+                <span class="font-mono text-slate-600 text-[11px]">Rank: 7th / 64</span>
+                <a href="../student-result/StudentResult.html" class="text-light-primary hover:underline font-label text-label-sm font-bold inline-flex items-center gap-1">
+                  <span>View Result Sheet</span>
+                  <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                </a>
+              </div>
+
+            </div>
+
+            <!-- COMPLETED TEST CARD 3: Score 92% -->
+            <div class="w-72 sm:w-80 rounded-3xl bg-white border border-slate-200/90 p-5 shadow-[0_14px_30px_-6px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_36px_-6px_rgba(15,23,42,0.12)] transition-all flex flex-col justify-between gap-4">
+              
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <span class="font-label text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Oct 12 • Graded</span>
+                  <h4 class="font-headline font-bold text-title-md text-slate-900 truncate mt-0.5">Software Engineering</h4>
+                  <p class="font-body text-body-sm text-slate-600 truncate">Agile &amp; CI/CD Pipelines</p>
+                </div>
+
+                <!-- Circular Score Badge -->
+                <div class="w-14 h-14 rounded-full bg-emerald-50 border-2 border-emerald-500 flex flex-col items-center justify-center shrink-0 shadow-xs">
+                  <span class="font-headline font-extrabold text-title-md text-emerald-800 leading-none">92%</span>
+                  <span class="text-[9px] font-bold text-emerald-700 tracking-tight">Grade A+</span>
+                </div>
+              </div>
+
+              <!-- Faculty Blessing & Signature Pill -->
+              <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                <span class="text-[10px] font-label font-bold text-emerald-800 uppercase tracking-wider block">Faculty Blessing:</span>
+                <p class="font-body text-body-sm text-slate-900 font-medium italic mt-0.5 truncate">
+                  "Exemplary architecture designs! 🚀"
+                </p>
+              </div>
+
+              <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-body-sm">
+                <span class="font-mono text-slate-600 text-[11px]">Rank: 4th / 64</span>
+                <a href="../student-result/StudentResult.html" class="text-light-primary hover:underline font-label text-label-sm font-bold inline-flex items-center gap-1">
+                  <span>View Result Sheet</span>
+                  <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                </a>
+              </div>
+
+            </div>
+
+            <!-- COMPLETED TEST CARD 4: Score 79% -->
+            <div class="w-72 sm:w-80 rounded-3xl bg-white border border-slate-200/90 p-5 shadow-[0_14px_30px_-6px_rgba(15,23,42,0.08)] hover:shadow-[0_20px_36px_-6px_rgba(15,23,42,0.12)] transition-all flex flex-col justify-between gap-4">
+              
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <span class="font-label text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Sep 29 • Graded</span>
+                  <h4 class="font-headline font-bold text-title-md text-slate-900 truncate mt-0.5">Discrete Mathematics</h4>
+                  <p class="font-body text-body-sm text-slate-600 truncate">Graph Theory &amp; Proofs</p>
+                </div>
+
+                <!-- Circular Score Badge -->
+                <div class="w-14 h-14 rounded-full bg-amber-50 border-2 border-amber-500 flex flex-col items-center justify-center shrink-0 shadow-xs">
+                  <span class="font-headline font-extrabold text-title-md text-amber-900 leading-none">79%</span>
+                  <span class="text-[9px] font-bold text-amber-700 tracking-tight">Grade B+</span>
+                </div>
+              </div>
+
+              <!-- Faculty Blessing & Signature Pill -->
+              <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
+                <span class="text-[10px] font-label font-bold text-amber-900 uppercase tracking-wider block">Faculty Blessing:</span>
+                <p class="font-body text-body-sm text-slate-900 font-medium italic mt-0.5 truncate">
+                  "Good foundation, review bipartite proofs. 👍"
+                </p>
+              </div>
+
+              <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-body-sm">
+                <span class="font-mono text-slate-600 text-[11px]">Rank: 16th / 64</span>
+                <a href="../student-result/StudentResult.html" class="text-light-primary hover:underline font-label text-label-sm font-bold inline-flex items-center gap-1">
+                  <span>View Result Sheet</span>
+                  <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                </a>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- SECTION 3: CAMPUS ACTIVITY & LEADERBOARD SNIPPET -->
+      <!-- ========================================================================= -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- Weekly Progress / XP Target -->
+        <div class="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-[0_16px_36px_-8px_rgba(15,23,42,0.08)] flex flex-col justify-between gap-4">
+          <div class="flex items-center justify-between">
+            <span class="font-headline font-bold text-title-md text-slate-900">Weekly XP Goal</span>
+            <span class="text-title-lg leading-none select-none" role="img" aria-label="Target">🎯</span>
+          </div>
+
+          <div>
+            <div class="flex items-baseline justify-between mb-2">
+              <span class="font-headline font-extrabold text-headline-sm text-slate-900 tabular-nums">1,850 <span class="text-body-md text-slate-600 font-normal">/ 2,000 XP</span></span>
+              <span class="font-label text-label-sm font-bold text-light-primary">92%</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full h-3 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200">
+              <div class="h-full rounded-full bg-light-primary transition-all" style="width: 92%;"></div>
+            </div>
+            <p class="font-body text-body-sm text-slate-600 mt-2">
+              Complete 1 more test or quiz to hit this week's 150 Gem bonus!
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-body-sm">
+            <span class="text-slate-600 font-medium">Resets Sunday midnight</span>
+            <span class="font-label text-label-sm font-bold text-teal-800">4 days left</span>
+          </div>
+        </div>
+
+        <!-- Campus Forms Quick Access -->
+        <div class="lg:col-span-2 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-[0_16px_36px_-8px_rgba(15,23,42,0.08)] flex flex-col justify-between gap-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-title-lg leading-none select-none" role="img" aria-label="Clipboard">📋</span>
+              <h3 class="font-headline font-bold text-title-md text-slate-900">Active Campus Forms</h3>
+            </div>
+            <a href="#forms" class="text-light-primary font-label text-label-sm font-bold hover:underline inline-flex items-center gap-0.5">
+              <span>View All</span>
+              <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- Form Card 1 -->
+            <div class="p-4 rounded-2xl bg-light-surface-variant border border-slate-200 hover:border-teal-300 transition-colors flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center shrink-0 text-light-primary">
+                <span class="material-symbols-outlined text-[20px]">assignment</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-headline font-bold text-label-md text-slate-900 truncate">Course Feedback 2026</span>
+                  <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">Pending</span>
+                </div>
+                <p class="font-body text-body-sm text-slate-600 truncate mt-0.5">Algorithms &amp; OS Faculty Feedback</p>
+                <a href="#fill-form-1" class="text-light-primary font-label text-label-sm font-bold hover:underline mt-2 inline-block">
+                  Fill Form (3 min) →
+                </a>
+              </div>
+            </div>
+
+            <!-- Form Card 2 -->
+            <div class="p-4 rounded-2xl bg-light-surface-variant border border-slate-200 hover:border-teal-300 transition-colors flex items-start gap-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0 text-purple-700">
+                <span class="material-symbols-outlined text-[20px]">badge</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-headline font-bold text-label-md text-slate-900 truncate">Lab Access Renewal</span>
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">Approved</span>
+                </div>
+                <p class="font-body text-body-sm text-slate-600 truncate mt-0.5">AI &amp; High Performance Computing Lab</p>
+                <span class="text-emerald-700 font-label text-label-sm font-semibold mt-2 inline-flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                  <span>Pass Active</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-body-sm text-slate-600">
+            <span>All forms are verified directly by College Administration</span>
+            <span class="font-mono text-[11px] text-slate-500">Colforms Encrypted</span>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+
+</body></html>

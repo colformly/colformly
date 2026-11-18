@@ -1,0 +1,837 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin — Command Center &amp; System Health</title>
+
+  <!-- Tailwind CSS CDN with Forms and Container Queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0B1120',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+        'cream-bg': '#FAF9F5',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '48px',
+        'section': '80px',
+        'section-lg': '112px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['56px', { lineHeight: '64px', letterSpacing: '-1.2px', fontWeight: '700' }],
+        'display-lg-mobile': ['32px', { lineHeight: '38px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'display-md': ['44px', { lineHeight: '52px', letterSpacing: '-0.8px', fontWeight: '700' }],
+        'display-md-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '600' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-float': '300ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-float': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-float': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+
+  <!-- Fonts: Plus Jakarta Sans, Instrument Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  </style>
+</head>
+<body class="bg-light-surface-variant text-slate-900 font-body antialiased min-h-[1024px] selection:bg-teal-100 selection:text-teal-900" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER -->
+  <!-- ========================================================================= -->
+  <div class="relative min-h-[1024px] flex flex-col md:flex-row p-4 md:p-6 lg:p-8 gap-6 max-w-[1440px] mx-auto" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- DESKTOP NAV: DETACHED FLOATING PILL SIDEBAR (rounded-2xl, subtle shadow) -->
+    <!-- ========================================================================= -->
+    <aside aria-label="Super Admin Navigation" class="hidden md:flex flex-col justify-between w-64 lg:w-72 shrink-0 rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/80 p-5 shadow-[0_16px_36px_-8px_rgba(15,23,42,0.06)] sticky top-6 self-start h-[calc(1024px-3rem)] z-30" data-stitch-vh="h-[calc(1024px-3rem)]===h-[calc(100vh-3rem)]">
+      <div class="flex flex-col gap-8">
+        <!-- Logo / Brand Header -->
+        <div class="flex items-center gap-3 px-2 pt-1">
+          <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary shadow-xs">
+            <span class="material-symbols-outlined text-[22px]">admin_panel_settings</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-headline font-bold text-title-lg text-slate-900 tracking-tight">Super Admin</span>
+              <span class="px-2 py-0.5 rounded-full bg-teal-100 text-light-primary text-[10px] font-bold font-label uppercase tracking-wider">
+                Root
+              </span>
+            </div>
+            <p class="font-body text-body-sm text-slate-600 font-medium">ColForms Core v2.4</p>
+          </div>
+        </div>
+
+        <!-- Navigation Links: Logo 'Super Admin', Links [📈 'Command Center', 🏢 'Organizations', 💻 'System Health'] -->
+        <nav class="flex flex-col gap-1.5 font-label">
+          <!-- 📈 Command Center (Active) -->
+          <a href="#command-center" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-light-primary text-white font-semibold text-label-lg shadow-sm transition-all">
+            <span class="text-title-lg leading-none select-none" role="img" aria-label="Chart">📈</span>
+            <span class="tracking-wide">Command Center</span>
+            <span class="ml-auto w-2 h-2 rounded-full bg-teal-200"></span>
+          </a>
+
+          <!-- 🏢 Organizations -->
+          <a href="#organizations" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100/70 transition-colors font-medium text-label-lg group">
+            <span class="text-title-lg leading-none select-none group-hover:scale-110 transition-transform" role="img" aria-label="Office">🏢</span>
+            <span>Organizations</span>
+            <span class="ml-auto px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold">
+              34
+            </span>
+          </a>
+
+          <!-- 💻 System Health -->
+          <a href="#system-health" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100/70 transition-colors font-medium text-label-lg group">
+            <span class="text-title-lg leading-none select-none group-hover:scale-110 transition-transform" role="img" aria-label="Laptop">💻</span>
+            <span>System Health</span>
+            <span class="ml-auto w-2 h-2 rounded-full bg-emerald-500"></span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Bottom Action: Sign Out & Cluster Status -->
+      <div class="flex flex-col gap-3 pt-4 border-t border-slate-100">
+        <!-- Cluster Status Micro Card -->
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-body text-body-sm text-slate-700 font-medium">Cluster: US-East-1</span>
+          </div>
+          <span class="font-label text-[11px] text-light-primary font-bold">99.98%</span>
+        </div>
+
+        <!-- Bottom Action ['Sign Out'] -->
+        <a href="#signout" class="flex items-center gap-3 px-3.5 py-2 rounded-xl text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 text-label-md font-semibold font-label transition-colors">
+          <span class="material-symbols-outlined text-[18px] text-rose-600">logout</span>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- ========================================================================= -->
+    <!-- MOBILE NAV: DETACHED FLOATING BOTTOM PILL -->
+    <!-- ========================================================================= -->
+    <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-4 inset-x-4 z-50 flex justify-center pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-md px-5 py-3 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_16px_36px_rgba(15,23,42,0.16)] flex items-center justify-between">
+        <!-- 📈 Command Center -->
+        <a href="#command-center" class="flex flex-col items-center text-light-primary font-bold">
+          <span class="text-title-lg leading-none select-none" role="img" aria-label="Chart">📈</span>
+          <span class="text-[11px] font-label font-bold mt-0.5">Center</span>
+        </a>
+
+        <!-- 🏢 Organizations -->
+        <a href="#organizations" class="flex flex-col items-center text-slate-600 hover:text-light-primary transition-colors">
+          <span class="text-title-lg leading-none select-none" role="img" aria-label="Office">🏢</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Colleges</span>
+        </a>
+
+        <!-- 💻 System Health -->
+        <a href="#system-health" class="flex flex-col items-center text-slate-600 hover:text-light-primary transition-colors">
+          <span class="text-title-lg leading-none select-none" role="img" aria-label="Laptop">💻</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Health</span>
+        </a>
+
+        <!-- Sign Out -->
+        <a href="#signout" class="flex flex-col items-center text-rose-600 hover:text-rose-700 transition-colors">
+          <span class="material-symbols-outlined text-[20px]">logout</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Sign Out</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTENT AREA: CLEAN, MINIMALIST, HIGH-QUALITY VISUALS -->
+    <!-- ========================================================================= -->
+    <main class="flex-1 min-w-0 flex flex-col gap-6 pb-20 md:pb-6">
+
+      <!-- TOP BAR: PAGE TITLE & GLOBAL ACTIONS -->
+      <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="font-headline font-bold text-headline-sm sm:text-headline-md text-slate-900 tracking-tight">
+              Command Center
+            </h1>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-label-sm font-bold border border-emerald-200">
+              Systems Healthy
+            </span>
+          </div>
+          <p class="font-body text-body-md text-slate-600 mt-1">
+            Global monitoring for enterprise college deployments, revenue growth, and live API relays.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+          <button type="button" onclick="triggerLiveRefresh()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-800 font-label text-label-sm font-semibold border border-slate-200 transition-colors inline-flex items-center gap-1.5 shadow-2xs">
+            <span class="material-symbols-outlined text-[16px] text-slate-600">sync</span>
+            <span>Refresh Telemetry</span>
+          </button>
+          
+          <button type="button" class="px-4 py-2 rounded-xl bg-light-primary hover:bg-[#0D655E] text-white font-headline font-bold text-label-sm transition-all inline-flex items-center gap-1.5 shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            <span>Onboard College</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ========================================================================= -->
+      <!-- SECTION 1: METRIC CARDS (Total SaaS Revenue MRR, Active Colleges, API Executions) -->
+      <!-- ========================================================================= -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        
+        <!-- METRIC CARD 1: Total SaaS Revenue (MRR) -->
+        <div class="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="font-label text-label-sm font-bold text-slate-500 uppercase tracking-wider block">
+                Total SaaS Revenue (MRR)
+              </span>
+              <div class="font-headline font-extrabold text-display-md-mobile sm:text-headline-lg text-slate-900 mt-1 tabular-nums">
+                $42,850
+              </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary shadow-2xs shrink-0">
+              <span class="material-symbols-outlined text-[24px]">payments</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-body-sm">
+            <span class="inline-flex items-center gap-1 text-emerald-800 font-semibold text-[13px]">
+              <span class="material-symbols-outlined text-[16px] text-emerald-600">trending_up</span>
+              <span>+18.4% this month</span>
+            </span>
+            <span class="text-slate-500 text-[12px]">$514k ARR Run-rate</span>
+          </div>
+        </div>
+
+        <!-- METRIC CARD 2: Active Colleges -->
+        <div class="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="font-label text-label-sm font-bold text-slate-500 uppercase tracking-wider block">
+                Active Colleges
+              </span>
+              <div class="font-headline font-extrabold text-display-md-mobile sm:text-headline-lg text-slate-900 mt-1 tabular-nums">
+                34 <span class="text-headline-sm font-normal text-slate-500">/ 38</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700 shadow-2xs shrink-0">
+              <span class="material-symbols-outlined text-[24px]">apartment</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-body-sm">
+            <span class="inline-flex items-center gap-1 text-emerald-800 font-semibold text-[13px]">
+              <span class="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+              <span>31 Active • 3 Trial</span>
+            </span>
+            <span class="text-slate-500 text-[12px]">4 Pending Setup</span>
+          </div>
+        </div>
+
+        <!-- METRIC CARD 3: API Executions -->
+        <div class="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="font-label text-label-sm font-bold text-slate-500 uppercase tracking-wider block">
+                API Executions
+              </span>
+              <div class="font-headline font-extrabold text-display-md-mobile sm:text-headline-lg text-slate-900 mt-1 tabular-nums">
+                1.48M <span class="text-headline-sm font-normal text-slate-500">reqs</span>
+              </div>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 shadow-2xs shrink-0">
+              <span class="material-symbols-outlined text-[24px]">speed</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-body-sm">
+            <span class="inline-flex items-center gap-1 text-light-primary font-semibold text-[13px]">
+              <span class="material-symbols-outlined text-[16px]">bolt</span>
+              <span>Avg Latency: 42ms</span>
+            </span>
+            <span class="text-emerald-800 font-semibold text-[12px]">99.96% Success</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- SECTION 2: CLIENTS TABLE (Clean, minimalist, rounded rows, trial/active badges) -->
+      <!-- ========================================================================= -->
+      <section class="rounded-2xl bg-white border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+        
+        <!-- Table Toolbar -->
+        <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-headline font-bold text-headline-sm text-slate-900">
+                Client Organizations
+              </h2>
+              <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold">
+                5 Total
+              </span>
+            </div>
+            <p class="font-body text-body-sm text-slate-600 mt-0.5">
+              Multi-tenant academic domains and tenant subscription levels.
+            </p>
+          </div>
+
+          <!-- Search Filter -->
+          <div class="relative w-full sm:w-72">
+            <span class="material-symbols-outlined text-[18px] text-slate-400 absolute left-3 top-2.5">search</span>
+            <input type="text" placeholder="Search college or domain..." class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-body-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-light-primary/20 focus:border-light-primary">
+          </div>
+        </div>
+
+        <!-- Table View -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-body-sm text-slate-800">
+            <thead class="bg-slate-50/80 text-slate-600 font-label text-label-sm uppercase tracking-wider border-b border-slate-100">
+              <tr>
+                <th scope="col" class="py-3.5 px-5">Organization &amp; Domain</th>
+                <th scope="col" class="py-3.5 px-5">Plan Tier</th>
+                <th scope="col" class="py-3.5 px-5">Students / Teachers</th>
+                <th scope="col" class="py-3.5 px-5">Status</th>
+                <th scope="col" class="py-3.5 px-5">Monthly Fee</th>
+                <th scope="col" class="py-3.5 px-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              
+              <!-- ROW 1: MIT World Peace University -->
+              <tr class="hover:bg-slate-50/60 transition-colors">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary font-bold text-label-md shrink-0">
+                      MW
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-headline font-bold text-label-lg text-slate-900">MIT World Peace University</div>
+                      <span class="text-body-sm text-slate-500 font-medium">mitwpu.colforms.io</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200 font-headline font-semibold text-label-sm">
+                    Enterprise VIP
+                  </span>
+                </td>
+                <td class="py-4 px-5 tabular-nums">
+                  <span class="font-semibold text-slate-900">8,450</span> <span class="text-slate-500">/ 320</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-label text-label-sm font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    <span>Active</span>
+                  </span>
+                </td>
+                <td class="py-4 px-5 font-bold text-slate-900 tabular-nums">
+                  $3,800/mo
+                </td>
+                <td class="py-4 px-5 text-right relative">
+                  <button type="button" onclick="toggleActionMenu(&#39;menu-1&#39;)" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                  </button>
+                  <!-- Dropdown Menu: Suspend or Change Tier -->
+                  <div id="menu-1" class="hidden absolute right-5 top-12 z-20 w-44 rounded-2xl bg-white border border-slate-200 shadow-lg py-1.5 text-left text-body-sm">
+                    <a href="#change-tier" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-light-primary">upgrade</span>
+                      <span>Change Tier</span>
+                    </a>
+                    <a href="#suspend" class="flex items-center gap-2 px-3.5 py-2 text-rose-700 hover:text-rose-800 hover:bg-rose-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-rose-600">block</span>
+                      <span>Suspend Access</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- ROW 2: Stanford Engineering Institute (Trial) -->
+              <tr class="hover:bg-slate-50/60 transition-colors">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-800 font-bold text-label-md shrink-0">
+                      SE
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-headline font-bold text-label-lg text-slate-900">Stanford Engineering Dept</div>
+                      <span class="text-body-sm text-slate-500 font-medium">stanford.colforms.io</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-headline font-semibold text-label-sm">
+                    Growth Pilot
+                  </span>
+                </td>
+                <td class="py-4 px-5 tabular-nums">
+                  <span class="font-semibold text-slate-900">1,200</span> <span class="text-slate-500">/ 45</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-label text-label-sm font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                    <span>Trial (7d left)</span>
+                  </span>
+                </td>
+                <td class="py-4 px-5 font-semibold text-slate-500 tabular-nums">
+                  $0 (Trial)
+                </td>
+                <td class="py-4 px-5 text-right relative">
+                  <button type="button" onclick="toggleActionMenu(&#39;menu-2&#39;)" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                  </button>
+                  <div id="menu-2" class="hidden absolute right-5 top-12 z-20 w-44 rounded-2xl bg-white border border-slate-200 shadow-lg py-1.5 text-left text-body-sm">
+                    <a href="#change-tier" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-light-primary">upgrade</span>
+                      <span>Change Tier</span>
+                    </a>
+                    <a href="#suspend" class="flex items-center gap-2 px-3.5 py-2 text-rose-700 hover:text-rose-800 hover:bg-rose-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-rose-600">block</span>
+                      <span>Suspend Access</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- ROW 3: BITS Pilani Campus -->
+              <tr class="hover:bg-slate-50/60 transition-colors">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700 font-bold text-label-md shrink-0">
+                      BP
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-headline font-bold text-label-lg text-slate-900">BITS Pilani Tech Institute</div>
+                      <span class="text-body-sm text-slate-500 font-medium">pilani.colforms.io</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200 font-headline font-semibold text-label-sm">
+                    Enterprise VIP
+                  </span>
+                </td>
+                <td class="py-4 px-5 tabular-nums">
+                  <span class="font-semibold text-slate-900">6,120</span> <span class="text-slate-500">/ 210</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-label text-label-sm font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    <span>Active</span>
+                  </span>
+                </td>
+                <td class="py-4 px-5 font-bold text-slate-900 tabular-nums">
+                  $2,950/mo
+                </td>
+                <td class="py-4 px-5 text-right relative">
+                  <button type="button" onclick="toggleActionMenu(&#39;menu-3&#39;)" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                  </button>
+                  <div id="menu-3" class="hidden absolute right-5 top-12 z-20 w-44 rounded-2xl bg-white border border-slate-200 shadow-lg py-1.5 text-left text-body-sm">
+                    <a href="#change-tier" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-light-primary">upgrade</span>
+                      <span>Change Tier</span>
+                    </a>
+                    <a href="#suspend" class="flex items-center gap-2 px-3.5 py-2 text-rose-700 hover:text-rose-800 hover:bg-rose-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-rose-600">block</span>
+                      <span>Suspend Access</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- ROW 4: Oxford Academy (Trial) -->
+              <tr class="hover:bg-slate-50/60 transition-colors">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-800 font-bold text-label-md shrink-0">
+                      OA
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-headline font-bold text-label-lg text-slate-900">Oxford CS Academy</div>
+                      <span class="text-body-sm text-slate-500 font-medium">oxford.colforms.io</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-headline font-semibold text-label-sm">
+                    Starter
+                  </span>
+                </td>
+                <td class="py-4 px-5 tabular-nums">
+                  <span class="font-semibold text-slate-900">850</span> <span class="text-slate-500">/ 35</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-label text-label-sm font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                    <span>Trial (2d left)</span>
+                  </span>
+                </td>
+                <td class="py-4 px-5 font-semibold text-slate-500 tabular-nums">
+                  $0 (Trial)
+                </td>
+                <td class="py-4 px-5 text-right relative">
+                  <button type="button" onclick="toggleActionMenu(&#39;menu-4&#39;)" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                  </button>
+                  <div id="menu-4" class="hidden absolute right-5 top-12 z-20 w-44 rounded-2xl bg-white border border-slate-200 shadow-lg py-1.5 text-left text-body-sm">
+                    <a href="#change-tier" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-light-primary">upgrade</span>
+                      <span>Change Tier</span>
+                    </a>
+                    <a href="#suspend" class="flex items-center gap-2 px-3.5 py-2 text-rose-700 hover:text-rose-800 hover:bg-rose-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-rose-600">block</span>
+                      <span>Suspend Access</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- ROW 5: Delhi Technological University -->
+              <tr class="hover:bg-slate-50/60 transition-colors">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary font-bold text-label-md shrink-0">
+                      DT
+                    </div>
+                    <div class="min-w-0">
+                      <div class="font-headline font-bold text-label-lg text-slate-900">Delhi Tech University</div>
+                      <span class="text-body-sm text-slate-500 font-medium">dtu.colforms.io</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200 font-headline font-semibold text-label-sm">
+                    Enterprise VIP
+                  </span>
+                </td>
+                <td class="py-4 px-5 tabular-nums">
+                  <span class="font-semibold text-slate-900">9,800</span> <span class="text-slate-500">/ 410</span>
+                </td>
+                <td class="py-4 px-5">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-label text-label-sm font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    <span>Active</span>
+                  </span>
+                </td>
+                <td class="py-4 px-5 font-bold text-slate-900 tabular-nums">
+                  $4,200/mo
+                </td>
+                <td class="py-4 px-5 text-right relative">
+                  <button type="button" onclick="toggleActionMenu(&#39;menu-5&#39;)" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                  </button>
+                  <div id="menu-5" class="hidden absolute right-5 top-12 z-20 w-44 rounded-2xl bg-white border border-slate-200 shadow-lg py-1.5 text-left text-body-sm">
+                    <a href="#change-tier" class="flex items-center gap-2 px-3.5 py-2 text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-light-primary">upgrade</span>
+                      <span>Change Tier</span>
+                    </a>
+                    <a href="#suspend" class="flex items-center gap-2 px-3.5 py-2 text-rose-700 hover:text-rose-800 hover:bg-rose-50 transition-colors">
+                      <span class="material-symbols-outlined text-[18px] text-rose-600">block</span>
+                      <span>Suspend Access</span>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- SECTION 3: SYSTEM LOGS & HEALTH TELEMETRY (Clean, light aesthetic) -->
+      <!-- ========================================================================= -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        <!-- Live Edge Telemetry Widget -->
+        <div class="rounded-2xl bg-white border border-slate-200/80 p-6 flex flex-col justify-between gap-5 shadow-xs">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="font-headline font-bold text-title-md text-slate-900">Relay Performance</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                100% OPERATIONAL
+              </span>
+            </div>
+
+            <!-- Google Forms API Bypass Success Rate -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2 mb-3">
+              <div class="flex items-center justify-between text-body-sm">
+                <span class="text-slate-700 font-medium">Google Forms API Bypass</span>
+                <span class="font-bold text-light-primary text-label-md">99.84% Success</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full rounded-full bg-light-primary" style="width: 99.84%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-slate-500 font-medium">
+                <span>Relayed: 421,800 calls</span>
+                <span class="text-emerald-700">0 throttles</span>
+              </div>
+            </div>
+
+            <!-- Cloudflare Worker CPU / Memory -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div class="flex items-center justify-between text-body-sm">
+                <span class="text-slate-700 font-medium">Worker V8 Execution Time</span>
+                <span class="font-bold text-emerald-800 text-label-md">2.1ms (P95)</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+                <div class="h-full rounded-full bg-emerald-600" style="width: 14%;"></div>
+              </div>
+              <div class="flex justify-between text-[11px] text-slate-500 font-medium">
+                <span>Allocated budget: 50ms</span>
+                <span>Load: 4.2%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-body-sm text-slate-600 font-medium">
+            <span>TLS 1.3 Strict Verified</span>
+            <span class="text-emerald-700">Cloudflare Enterprise</span>
+          </div>
+        </div>
+
+        <!-- Terminal Widget: Clean Light Log Feed (Span 2 cols) -->
+        <div class="lg:col-span-2 rounded-2xl bg-white border border-slate-200/80 p-6 shadow-xs flex flex-col justify-between gap-4">
+          
+          <!-- Terminal Header Bar -->
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+              <span class="font-headline font-bold text-title-md text-slate-900">Cloudflare Worker &amp; API Logs</span>
+            </div>
+            <div class="flex items-center gap-2 text-body-sm text-slate-500 font-medium">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              <span>Live Streaming</span>
+            </div>
+          </div>
+
+          <!-- Clean Formatted Log Rows -->
+          <div class="custom-scrollbar h-60 overflow-y-auto space-y-2 text-body-sm pr-1">
+            
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-full bg-teal-100 text-light-primary text-[11px] font-bold shrink-0">GET 200</span>
+                <span class="font-medium text-slate-800 truncate">/api/v2/tenant/mitwpu/forms/sync</span>
+                <span class="text-slate-500 text-[12px] hidden md:inline">• GoogleFormsOAuth2</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-500 text-[12px] shrink-0 font-medium">
+                <span>38ms</span>
+                <span>00:20:12</span>
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold shrink-0">POST 201</span>
+                <span class="font-medium text-slate-800 truncate">/webhook/google-forms/submission</span>
+                <span class="text-slate-500 text-[12px] hidden md:inline">• 1.4KB payload</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-500 text-[12px] shrink-0 font-medium">
+                <span>44ms</span>
+                <span>00:20:13</span>
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-bold shrink-0">HEALTH</span>
+                <span class="font-medium text-slate-800 truncate">Frankfurt Edge-Node-04 cluster synchronization</span>
+                <span class="text-slate-500 text-[12px] hidden md:inline">• 100% healthy</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-500 text-[12px] shrink-0 font-medium">
+                <span>12ms</span>
+                <span>00:20:14</span>
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-full bg-teal-100 text-light-primary text-[11px] font-bold shrink-0">GET 200</span>
+                <span class="font-medium text-slate-800 truncate">/api/v2/tenant/dtu/evaluations/auto-sign</span>
+                <span class="text-slate-500 text-[12px] hidden md:inline">• ECDSA verified</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-500 text-[12px] shrink-0 font-medium">
+                <span>52ms</span>
+                <span>00:20:15</span>
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[11px] font-bold shrink-0">AUTH</span>
+                <span class="font-medium text-slate-800 truncate">JWT token issued for tenant &#39;pilani&#39;</span>
+                <span class="text-slate-500 text-[12px] hidden md:inline">• Scope: read/write</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-500 text-[12px] shrink-0 font-medium">
+                <span>18ms</span>
+                <span>00:20:16</span>
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold shrink-0">POST 200</span>
+                <span class="font-medium text-slate-800 truncate">/api/v2/bypass/google-forms/scrape-validate</span>
+                <span class="text-slate-500 text-[12px] hidden md:inline">• Bypass confirmed</span>
+              </div>
+              <div class="flex items-center gap-3 text-slate-500 text-[12px] shrink-0 font-medium">
+                <span>29ms</span>
+                <span>00:20:17</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Feed Footer Status -->
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-body-sm text-slate-500">
+            <span class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+              <span>All 64 global edge nodes synced</span>
+            </span>
+            <span class="text-[12px]">Auto-refreshing every 2s</span>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Interactive Action Menu Logic -->
+  <script>
+    function toggleActionMenu(menuId) {
+      const menu = document.getElementById(menuId);
+      const isHidden = menu.classList.contains('hidden');
+      
+      // Close all menus first
+      document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
+      
+      if (isHidden) {
+        menu.classList.remove('hidden');
+      }
+    }
+
+    // Close open menus when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!event.target.closest('[onclick^="toggleActionMenu"]') && !event.target.closest('[id^="menu-"]')) {
+        document.querySelectorAll('[id^="menu-"]').forEach(m => m.classList.add('hidden'));
+      }
+    });
+
+    function triggerLiveRefresh() {
+      const btn = event.currentTarget;
+      btn.classList.add('opacity-75');
+      const icon = btn.querySelector('.material-symbols-outlined');
+      icon.classList.add('animate-spin');
+      setTimeout(() => {
+        btn.classList.remove('opacity-75');
+        icon.classList.remove('animate-spin');
+      }, 800);
+    }
+  </script>
+
+
+
+</body></html>

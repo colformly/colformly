@@ -1,0 +1,594 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Portal — Dashboard &amp; AI Studio</title>
+  <!-- Tailwind CSS CDN with forms and container-queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0B1120',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+        'cream-bg': '#FAF9F5',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '48px',
+        'section': '80px',
+        'section-lg': '112px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['56px', { lineHeight: '64px', letterSpacing: '-1.2px', fontWeight: '700' }],
+        'display-lg-mobile': ['32px', { lineHeight: '38px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'display-md': ['44px', { lineHeight: '52px', letterSpacing: '-0.8px', fontWeight: '700' }],
+        'display-md-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '600' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-float': '300ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-float': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-float': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans, Instrument Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Red+Hat+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-light-on-surface font-body antialiased min-h-[1024px] selection:bg-teal-soft selection:text-light-primary relative overflow-x-hidden" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <!-- Atmospheric Glassmorphic Backdrop Elements -->
+  <div class="fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-teal-200/25 blur-[120px] pointer-events-none -z-10"></div>
+  <div class="fixed top-[20%] right-[-5%] w-[600px] h-[600px] rounded-full bg-sky-200/25 blur-[140px] pointer-events-none -z-10"></div>
+  <div class="fixed bottom-[-10%] left-[20%] w-[550px] h-[550px] rounded-full bg-emerald-100/30 blur-[130px] pointer-events-none -z-10"></div>
+
+  <div class="min-h-[1024px] flex flex-col md:flex-row relative" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- DESKTOP NAV: DETACHED FLOATING PILL SIDEBAR (GLASSMORPHISM) -->
+    <!-- Floating pill/panel detached from left edge & top edge (rounded-2xl, subtle shadow) -->
+    <!-- Logo: 'Teacher Portal' -->
+    <!-- Links: [🏠 'Dashboard', ✨ 'AI Test Studio', 👥 'My Classes', ⚙️ 'Settings'] -->
+    <!-- Bottom Action: ['Sign Out'] -->
+    <!-- ========================================================================= -->
+    <aside aria-label="Main Navigation" class="hidden md:flex flex-col justify-between fixed top-6 left-6 bottom-6 w-64 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-[0_12px_40px_-6px_rgba(15,23,42,0.07)] p-5 z-40 transition-all duration-300">
+      
+      <!-- Top Brand Section & Menu Links -->
+      <div class="flex flex-col gap-6">
+        
+        <!-- Logo: Teacher Portal -->
+        <div class="flex items-center gap-3 px-2 pb-4 border-b border-slate-200/60">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-light-primary to-teal-accent text-white flex items-center justify-center font-headline font-bold text-label-lg shadow-sm">
+            <span class="material-symbols-outlined text-[22px]">co_present</span>
+          </div>
+          <div>
+            <span class="font-headline font-bold text-title-lg tracking-tight text-slate-900 block leading-tight">Teacher Portal</span>
+            <span class="font-body text-body-sm text-slate-600 block mt-0.5">Faculty Workspace</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex flex-col gap-1.5" aria-label="Sidebar Menu">
+          <span class="px-3 font-label text-label-sm text-slate-600 uppercase tracking-wider font-semibold mb-1">
+            Faculty Hub
+          </span>
+
+          <!-- Link 1: 🏠 'Dashboard' (Active) -->
+          <a href="#dashboard" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-label text-label-lg bg-teal-500/15 text-light-primary font-semibold border border-teal-500/25 shadow-xs transition-all">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[20px] text-light-primary" style="font-variation-settings: &#39;FILL&#39; 1;">home</span>
+              <span>Dashboard</span>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>
+          </a>
+
+          <!-- Link 2: ✨ 'AI Test Studio' -->
+          <a href="#ai-test-studio" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-white/70 hover:text-slate-900 transition-colors group">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[20px] text-teal-600 group-hover:scale-110 transition-transform">auto_awesome</span>
+              <span>AI Test Studio</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 text-white text-[10px] font-bold shadow-xs">AI</span>
+          </a>
+
+          <!-- Link 3: 👥 'My Classes' -->
+          <a href="#my-classes" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-white/70 hover:text-slate-900 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">groups</span>
+            <span>My Classes</span>
+          </a>
+
+          <!-- Link 4: ⚙️ 'Settings' -->
+          <a href="#settings" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-white/70 hover:text-slate-900 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">settings</span>
+            <span>Settings</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Bottom Action: Sign Out -->
+      <div class="pt-4 border-t border-slate-200/60 flex flex-col gap-3">
+        <!-- Faculty Profile Card -->
+        <div class="flex items-center gap-3 px-2 py-1 rounded-xl bg-white/50 border border-white/60">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-teal-100 to-teal-200 text-light-primary border border-teal-300 flex items-center justify-center font-headline font-bold text-label-sm shadow-xs">
+            SM
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="font-headline font-semibold text-label-md text-slate-900 truncate">Prof. Sarah Mitchell</div>
+            <div class="font-body text-body-sm text-slate-600 truncate">Computer Science Dept</div>
+          </div>
+        </div>
+
+        <!-- Explicit 'Sign Out' Action -->
+        <a href="#signout" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-rose-700 hover:bg-rose-50/80 border border-transparent hover:border-rose-200 transition-colors">
+          <span class="material-symbols-outlined text-[20px] text-rose-600">logout</span>
+          <span>Sign Out</span>
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ========================================================================= -->
+    <!-- MOBILE NAV: DETACHED FLOATING BOTTOM PILL -->
+    <!-- ========================================================================= -->
+    <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-5 inset-x-4 z-50 flex justify-center pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-md px-5 py-2.5 rounded-full bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_12px_36px_rgba(15,23,42,0.16)] flex items-center justify-between">
+        <!-- 🏠 Dashboard -->
+        <a href="#dashboard" class="flex flex-col items-center text-light-primary font-semibold">
+          <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: &#39;FILL&#39; 1;">home</span>
+          <span class="text-[11px] font-label mt-0.5">Home</span>
+        </a>
+
+        <!-- ✨ AI Test Studio -->
+        <a href="#ai-test-studio" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px] text-teal-600">auto_awesome</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">AI Studio</span>
+        </a>
+
+        <!-- 👥 My Classes -->
+        <a href="#my-classes" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">groups</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Classes</span>
+        </a>
+
+        <!-- ⚙️ Settings -->
+        <a href="#settings" class="flex flex-col items-center text-slate-700 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">settings</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Settings</span>
+        </a>
+
+        <!-- Sign Out -->
+        <a href="#signout" class="flex flex-col items-center text-rose-600 hover:text-rose-700 transition-colors">
+          <span class="material-symbols-outlined text-[22px]">logout</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Sign Out</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTENT AREA -->
+    <!-- Offset on desktop to account for the floating sidebar -->
+    <!-- ========================================================================= -->
+    <main class="flex-1 md:ml-[312px] p-6 md:p-8 pb-28 md:pb-12 min-h-[1024px]" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+      <!-- ========================================================================= -->
+      <!-- WELCOME HEADER -->
+      <!-- Clean, glassmorphic card with date, semester context, and teacher greetings -->
+      <!-- ========================================================================= -->
+      <section aria-label="Welcome Header" class="rounded-3xl bg-white/70 backdrop-blur-xl border border-white/80 p-6 md:p-8 shadow-[0_8px_32px_-4px_rgba(15,23,42,0.05)] mb-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative overflow-hidden">
+        
+        <!-- Decorative subtle radial glow -->
+        <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-teal-300/20 blur-3xl pointer-events-none"></div>
+
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 text-light-primary text-[12px] font-semibold border border-teal-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-light-primary animate-pulse"></span>
+              Fall Semester 2026 • Term Active
+            </span>
+            <span class="text-slate-600 text-label-sm">•</span>
+            <span class="font-body text-body-sm text-slate-600">Today: Tuesday, Nov 17, 2026</span>
+          </div>
+
+          <h1 class="font-headline font-bold text-headline-md md:text-headline-lg text-slate-900 tracking-tight">
+            Welcome back, Prof. Sarah! 👋
+          </h1>
+          <p class="font-body text-body-md text-slate-600 mt-1 max-w-2xl">
+            You have <strong class="text-slate-900 font-semibold">124 student submissions</strong> waiting for review across 3 class cohorts and 1 active AI-evaluated test running in Section 4A.
+          </p>
+        </div>
+
+        <!-- Quick Status Chips in Header -->
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+          <div class="p-3.5 rounded-2xl bg-white/80 border border-slate-200/80 shadow-xs flex items-center gap-3 min-w-[150px]">
+            <div class="w-10 h-10 rounded-xl bg-teal-50 text-light-primary flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[20px]">assignment</span>
+            </div>
+            <div>
+              <span class="font-headline font-bold text-title-md text-slate-900 tabular-nums block leading-tight">4 Tests</span>
+              <span class="font-body text-[12px] text-slate-600 block">Scheduled this week</span>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-white/80 border border-slate-200/80 shadow-xs flex items-center gap-3 min-w-[150px]">
+            <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-800 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[20px]">groups</span>
+            </div>
+            <div>
+              <span class="font-headline font-bold text-title-md text-slate-900 tabular-nums block leading-tight">186</span>
+              <span class="font-body text-[12px] text-slate-600 block">Enrolled students</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- TWO LARGE QUICK-ACTION BUTTONS -->
+      <!-- '+ New AI Test' & '+ New Feedback Form' -->
+      <!-- Minimalist, glassmorphism, high whitespace, tactile hover -->
+      <!-- ========================================================================= -->
+      <section aria-label="Primary Quick Actions" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        
+        <!-- Quick Action 1: '+ New AI Test' -->
+        <div onclick="triggerAiTestModal()" class="rounded-3xl bg-gradient-to-br from-white/90 via-teal-50/40 to-white/90 backdrop-blur-xl border border-teal-200/80 hover:border-light-primary p-7 shadow-[0_8px_30px_-6px_rgba(15,23,42,0.06)] hover:shadow-[0_16px_40px_-8px_rgba(15,118,110,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col justify-between relative overflow-hidden min-h-[170px]">
+          <!-- Corner Ambient Glow -->
+          <div class="absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-teal-400/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-light-primary to-teal-accent text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                <span class="material-symbols-outlined text-[26px]">auto_awesome</span>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-label-sm font-semibold border border-teal-200">
+                <span class="material-symbols-outlined text-[14px]">bolt</span>
+                Instant Generation
+              </span>
+            </div>
+
+            <h2 class="font-headline font-bold text-headline-sm text-slate-900 tracking-tight mb-1 group-hover:text-light-primary transition-colors">
+              + New AI Test
+            </h2>
+            <p class="font-body text-body-md text-slate-600 max-w-md">
+              Prompt the AI engine with your lecture syllabus or PDF notes to synthesize multiple-choice and coding questions automatically.
+            </p>
+          </div>
+
+          <div class="pt-4 mt-3 flex items-center gap-2 text-light-primary font-label text-label-md font-semibold">
+            <span>Launch Test Builder</span>
+            <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1.5 transition-transform">arrow_forward</span>
+          </div>
+        </div>
+
+        <!-- Quick Action 2: '+ New Feedback Form' -->
+        <div onclick="triggerFeedbackFormModal()" class="rounded-3xl bg-gradient-to-br from-white/90 via-sky-50/40 to-white/90 backdrop-blur-xl border border-sky-200/80 hover:border-sky-500 p-7 shadow-[0_8px_30px_-6px_rgba(15,23,42,0.06)] hover:shadow-[0_16px_40px_-8px_rgba(14,165,233,0.14)] hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col justify-between relative overflow-hidden min-h-[170px]">
+          <!-- Corner Ambient Glow -->
+          <div class="absolute -right-8 -bottom-8 w-36 h-36 rounded-full bg-sky-400/15 blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500"></div>
+
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-sky-400 text-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+                <span class="material-symbols-outlined text-[26px]">rate_review</span>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-label-sm font-semibold border border-sky-200">
+                <span class="material-symbols-outlined text-[14px]">psychology_alt</span>
+                Class Pulse
+              </span>
+            </div>
+
+            <h2 class="font-headline font-bold text-headline-sm text-slate-900 tracking-tight mb-1 group-hover:text-sky-800 transition-colors">
+              + New Feedback Form
+            </h2>
+            <p class="font-body text-body-md text-slate-600 max-w-md">
+              Create anonymous course surveys, lab comprehension polls, and midterm evaluation forms with preset educational templates.
+            </p>
+          </div>
+
+          <div class="pt-4 mt-3 flex items-center gap-2 text-sky-800 font-label text-label-md font-semibold">
+            <span>Create Survey Form</span>
+            <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1.5 transition-transform">arrow_forward</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- LINE CHART WIDGET FOR 'RECENT CLASS AVERAGES' -->
+      <!-- Minimalist line art, soft teal area glow, and comparison breakdown -->
+      <!-- ========================================================================= -->
+      <section aria-labelledby="chart-heading" class="rounded-3xl bg-white/80 backdrop-blur-xl border border-white/80 p-6 md:p-8 shadow-[0_8px_32px_-4px_rgba(15,23,42,0.05)] mb-8">
+        
+        <!-- Widget Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-label text-label-sm text-light-primary font-semibold uppercase tracking-wider">Performance Analytics</span>
+              <span class="text-slate-600 text-label-sm">•</span>
+              <span class="font-body text-body-sm text-slate-600">Trailing 6 Assessments</span>
+            </div>
+            <h2 id="chart-heading" class="font-headline font-bold text-headline-sm text-slate-900 tracking-tight">
+              Recent Class Averages
+            </h2>
+          </div>
+
+          <!-- Section Select Filter & Metric Summary -->
+          <div class="flex flex-wrap items-center gap-3">
+            <!-- Class Selector Pill -->
+            <select id="chart-class-selector" onchange="handleChartClassChange(this.value)" class="px-3.5 py-1.5 rounded-full border border-slate-200 bg-white font-label text-label-sm text-slate-800 shadow-xs focus:outline-none focus:ring-2 focus:ring-light-primary">
+              <option value="CSE-Sec-A">CSE Sec-A (Algorithms)</option>
+              <option value="CSE-Sec-B">CSE Sec-B (Operating Systems)</option>
+              <option value="All-Classes">Combined Average (All Cohorts)</option>
+            </select>
+
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 text-light-primary font-headline font-semibold text-label-sm border border-teal-200">
+              <span class="material-symbols-outlined text-[16px]">trending_up</span>
+              <span id="metric-class-avg">Current Avg: 86.8%</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards Row Above Chart -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+            <span class="font-body text-body-sm text-slate-600 block mb-1">Highest Scoring Test</span>
+            <div class="flex items-baseline gap-2">
+              <span class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">92.4%</span>
+              <span class="text-teal-700 font-label text-label-sm font-semibold">Test #4 (Graphs)</span>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+            <span class="font-body text-body-sm text-slate-600 block mb-1">Class Attendance Rate</span>
+            <div class="flex items-baseline gap-2">
+              <span class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">96.2%</span>
+              <span class="text-slate-600 font-label text-label-sm">+1.4% vs midterm</span>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs">
+            <span class="font-body text-body-sm text-slate-600 block mb-1">Submissions Graded Automatically</span>
+            <div class="flex items-baseline gap-2">
+              <span class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">94%</span>
+              <span class="text-teal-700 font-label text-label-sm font-semibold">Via AI Studio</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Minimalist Interactive Line Chart SVG -->
+        <div class="relative w-full h-56 pt-2 select-none">
+          <svg class="w-full h-full overflow-visible" viewBox="0 0 600 180" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#0F766E" stop-opacity="0.25"></stop>
+                <stop offset="100%" stop-color="#0F766E" stop-opacity="0.0"></stop>
+              </linearGradient>
+            </defs>
+
+            <!-- Horizontal Background Guide Lines -->
+            <line x1="0" y1="30" x2="600" y2="30" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4 4"></line>
+            <line x1="0" y1="75" x2="600" y2="75" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4 4"></line>
+            <line x1="0" y1="120" x2="600" y2="120" stroke="#F1F5F9" stroke-width="1.5" stroke-dasharray="4 4"></line>
+            <line x1="0" y1="165" x2="600" y2="165" stroke="#E2E8F0" stroke-width="1"></line>
+
+            <!-- Soft Teal Gradient Area Fill -->
+            <path id="chart-area-path" d="M 30 135 L 140 105 L 250 115 L 360 65 L 470 75 L 570 45 L 570 165 L 30 165 Z" fill="url(#chartGrad)"></path>
+
+            <!-- Primary Smooth Line Curve -->
+            <path id="chart-line-path" d="M 30 135 L 140 105 L 250 115 L 360 65 L 470 75 L 570 45" fill="none" stroke="#0F766E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+
+            <!-- Data Point Markers with Tooltip Interaction -->
+            <g id="chart-dots">
+              <!-- Point 1 (Quiz 1: 76%) -->
+              <circle cx="30" cy="135" r="5" fill="#0F766E" stroke="#FFFFFF" stroke-width="2" class="cursor-pointer hover:r-7 transition-all"></circle>
+              <!-- Point 2 (Quiz 2: 82%) -->
+              <circle cx="140" cy="105" r="5" fill="#0F766E" stroke="#FFFFFF" stroke-width="2" class="cursor-pointer hover:r-7 transition-all"></circle>
+              <!-- Point 3 (Quiz 3: 80%) -->
+              <circle cx="250" cy="115" r="5" fill="#0F766E" stroke="#FFFFFF" stroke-width="2" class="cursor-pointer hover:r-7 transition-all"></circle>
+              <!-- Point 4 (Midterm: 90%) -->
+              <circle cx="360" cy="65" r="5" fill="#0F766E" stroke="#FFFFFF" stroke-width="2" class="cursor-pointer hover:r-7 transition-all"></circle>
+              <!-- Point 5 (Quiz 4: 87%) -->
+              <circle cx="470" cy="75" r="5" fill="#0F766E" stroke="#FFFFFF" stroke-width="2" class="cursor-pointer hover:r-7 transition-all"></circle>
+              <!-- Point 6 (Project 1: 94%) -->
+              <circle cx="570" cy="45" r="6" fill="#0F766E" stroke="#FFFFFF" stroke-width="2.5" class="cursor-pointer hover:r-8 transition-all"></circle>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Chart X-Axis Labels -->
+        <div class="flex items-center justify-between text-slate-600 font-label text-label-sm pt-4 border-t border-slate-100">
+          <div class="text-center">
+            <span class="block font-semibold text-slate-800">Quiz 1</span>
+            <span class="text-[12px] text-slate-500 tabular-nums">76.2%</span>
+          </div>
+          <div class="text-center">
+            <span class="block font-semibold text-slate-800">Quiz 2</span>
+            <span class="text-[12px] text-slate-500 tabular-nums">82.0%</span>
+          </div>
+          <div class="text-center">
+            <span class="block font-semibold text-slate-800">Quiz 3</span>
+            <span class="text-[12px] text-slate-500 tabular-nums">80.5%</span>
+          </div>
+          <div class="text-center">
+            <span class="block font-semibold text-slate-800">Midterm</span>
+            <span class="text-[12px] text-slate-500 tabular-nums">90.2%</span>
+          </div>
+          <div class="text-center">
+            <span class="block font-semibold text-slate-800">Quiz 4</span>
+            <span class="text-[12px] text-slate-500 tabular-nums">87.6%</span>
+          </div>
+          <div class="text-center">
+            <span class="block font-semibold text-light-primary">Project 1</span>
+            <span class="text-[12px] text-teal-700 font-bold tabular-nums">94.0% (Peak)</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- RECENT ACTIVE CLASSES STRIP -->
+      <!-- Quick overview of Sarah's assigned classes -->
+      <!-- ========================================================================= -->
+      <section aria-labelledby="classes-strip-heading" class="rounded-3xl bg-white/70 backdrop-blur-xl border border-white/80 p-6 md:p-8 shadow-[0_8px_32px_-4px_rgba(15,23,42,0.05)]">
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+          <h2 id="classes-strip-heading" class="font-headline font-bold text-title-lg text-slate-900">
+            Assigned Class Sections
+          </h2>
+          <a href="#my-classes" class="text-light-primary font-label text-label-sm font-semibold hover:underline inline-flex items-center gap-1">
+            <span>Manage All 3 Classes</span>
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+          </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <span class="font-headline font-bold text-title-md text-slate-900 block">CSE Sec-A</span>
+              <span class="font-body text-body-sm text-slate-600 block">64 Students • Algorithms</span>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-teal-50 text-light-primary text-[11px] font-bold border border-teal-200">
+              Avg 88.4%
+            </span>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <span class="font-headline font-bold text-title-md text-slate-900 block">CSE Sec-B</span>
+              <span class="font-body text-body-sm text-slate-600 block">62 Students • OS Internals</span>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-teal-50 text-light-primary text-[11px] font-bold border border-teal-200">
+              Avg 85.1%
+            </span>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+              <span class="font-headline font-bold text-title-md text-slate-900 block">ECE Sec-C</span>
+              <span class="font-body text-body-sm text-slate-600 block">60 Students • Embedded C</span>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-teal-50 text-light-primary text-[11px] font-bold border border-teal-200">
+              Avg 82.6%
+            </span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Interactive Trigger Scripts -->
+  <script>
+    function triggerAiTestModal() {
+      alert('Launching AI Test Studio: Ready to synthesize questions from lecture topics!');
+    }
+
+    function triggerFeedbackFormModal() {
+      alert('Launching Feedback Form Builder: Ready to collect student comprehension responses!');
+    }
+
+    function handleChartClassChange(val) {
+      const line = document.getElementById('chart-line-path');
+      const area = document.getElementById('chart-area-path');
+      const avgLabel = document.getElementById('metric-class-avg');
+
+      if (val === 'CSE-Sec-B') {
+        line.setAttribute('d', 'M 30 145 L 140 120 L 250 110 L 360 85 L 470 90 L 570 60');
+        area.setAttribute('d', 'M 30 145 L 140 120 L 250 110 L 360 85 L 470 90 L 570 60 L 570 165 L 30 165 Z');
+        avgLabel.textContent = 'Current Avg: 84.1%';
+      } else if (val === 'All-Classes') {
+        line.setAttribute('d', 'M 30 140 L 140 112 L 250 112 L 360 75 L 470 82 L 570 52');
+        area.setAttribute('d', 'M 30 140 L 140 112 L 250 112 L 360 75 L 470 82 L 570 52 L 570 165 L 30 165 Z');
+        avgLabel.textContent = 'Current Avg: 85.5%';
+      } else {
+        line.setAttribute('d', 'M 30 135 L 140 105 L 250 115 L 360 65 L 470 75 L 570 45');
+        area.setAttribute('d', 'M 30 135 L 140 105 L 250 115 L 360 65 L 470 75 L 570 45 L 570 165 L 30 165 Z');
+        avgLabel.textContent = 'Current Avg: 86.8%';
+      }
+    }
+  </script>
+
+
+
+</body></html>

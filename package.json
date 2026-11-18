@@ -1,0 +1,25 @@
+{
+  "name": "colformly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Colformly — Cheat-proof B2B EdTech SaaS",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean",
+    "dev:web": "turbo run dev --filter=@colformly/web",
+    "dev:org": "turbo run dev --filter=@colformly/org-portal",
+    "dev:admin": "turbo run dev --filter=@colformly/super-admin",
+    "build:web": "turbo run build --filter=@colformly/web",
+    "build:org": "turbo run build --filter=@colformly/org-portal",
+    "build:admin": "turbo run build --filter=@colformly/super-admin"
+  },
+  "packageManager": "pnpm@10.21.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "turbo": "^2.11.12"
+  }
+}

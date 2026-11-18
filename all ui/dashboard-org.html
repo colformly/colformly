@@ -1,0 +1,508 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colforms Admin — Enterprise Dashboard</title>
+  <!-- Tailwind CSS CDN with forms and container-queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0B1120',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+        'cream-bg': '#FAF9F5',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '48px',
+        'section': '80px',
+        'section-lg': '112px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['56px', { lineHeight: '64px', letterSpacing: '-1.2px', fontWeight: '700' }],
+        'display-lg-mobile': ['32px', { lineHeight: '38px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'display-md': ['44px', { lineHeight: '52px', letterSpacing: '-0.8px', fontWeight: '700' }],
+        'display-md-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '600' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-float': '300ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-float': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-float': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans, Instrument Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Red+Hat+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-light-on-surface font-body antialiased min-h-[1024px] selection:bg-teal-soft selection:text-light-primary" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <div class="min-h-[1024px] flex flex-col md:flex-row relative" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+    <!-- ========================================================================= -->
+    <!-- DESKTOP NAV: DETACHED FLOATING LEFT SIDEBAR -->
+    <!-- Floating pill/panel detached from left edge & top edge, rounded-2xl, subtle shadow -->
+    <!-- Logo: 'Colforms Admin', Links: ['Overview', 'Directory', 'Sections', 'Branding'], Bottom: ['Sign Out'] -->
+    <!-- ========================================================================= -->
+    <aside aria-label="Main Navigation" class="hidden md:flex flex-col justify-between fixed top-6 left-6 bottom-6 w-64 rounded-2xl bg-white border border-slate-200/80 shadow-[0_10px_35px_-4px_rgba(15,23,42,0.06)] p-5 z-40 transition-all duration-300">
+      
+      <!-- Top Brand Section & Menu Links -->
+      <div class="flex flex-col gap-6">
+        
+        <!-- Logo: Colforms Admin -->
+        <div class="flex items-center gap-3 px-2 pb-4 border-b border-slate-100">
+          <div class="w-9 h-9 rounded-xl bg-light-primary text-light-on-primary flex items-center justify-center font-headline font-bold text-label-lg shadow-xs">
+            <span class="material-symbols-outlined text-[20px]">assignment</span>
+          </div>
+          <div>
+            <span class="font-headline font-bold text-title-lg tracking-tight text-slate-900 block leading-tight">Colforms Admin</span>
+            <span class="font-body text-body-sm text-slate-600 block mt-0.5">Enterprise Portal</span>
+          </div>
+        </div>
+
+        <!-- Navigation Links: Overview, Directory, Sections, Branding -->
+        <nav class="flex flex-col gap-1.5" aria-label="Sidebar Menu">
+          <span class="px-3 font-label text-label-sm text-slate-600 uppercase tracking-wider font-semibold mb-1">
+            Menu
+          </span>
+
+          <!-- Link 1: 📊 'Overview' (Active) -->
+          <a href="#overview" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-label text-label-lg bg-teal-50 text-light-primary font-semibold border border-teal-100 transition-all shadow-xs">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-[20px] text-light-primary" style="font-variation-settings: &#39;FILL&#39; 1;">analytics</span>
+              <span>Overview</span>
+            </div>
+            <span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>
+          </a>
+
+          <!-- Link 2: 📖 'Directory' -->
+          <a href="#directory" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">menu_book</span>
+            <span>Directory</span>
+          </a>
+
+          <!-- Link 3: 📚 'Sections' -->
+          <a href="#sections" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">auto_stories</span>
+            <span>Courses<br></span>
+          </a>
+
+          <!-- Link 4: 🎨 'Branding' -->
+          <a href="#branding" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="material-symbols-outlined text-[20px] text-slate-500">palette</span>
+            <span>Branding</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Bottom Action: Sign Out -->
+      <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+        <!-- Admin Profile Micro Card -->
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-8 h-8 rounded-full bg-teal-100 text-light-primary border border-teal-200 flex items-center justify-center font-headline font-bold text-label-sm">
+            AD
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="font-headline font-semibold text-label-md text-slate-900 truncate">Admin Principal</div>
+            <div class="font-body text-body-sm text-slate-600 truncate">admin@colforms.edu</div>
+          </div>
+        </div>
+
+        <!-- Explicit 'Sign Out' Action -->
+        <a href="#signout" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-label text-label-lg text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-colors">
+          <span class="material-symbols-outlined text-[20px] text-rose-600">logout</span>
+          <span>Sign Out</span>
+        </a>
+      </div>
+
+    </aside>
+
+    <!-- ========================================================================= -->
+    <!-- MOBILE NAV: DETACHED FLOATING BOTTOM NAVIGATION PILL -->
+    <!-- Rounded pill floating off bottom edges with frosted glass -->
+    <!-- ========================================================================= -->
+    <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-5 inset-x-4 z-50 flex justify-center pointer-events-none">
+      <div class="pointer-events-auto w-full max-w-md px-6 py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-[0_12px_36px_rgba(15,23,42,0.14)] flex items-center justify-between">
+        
+        <!-- 📊 Overview (Active) -->
+        <a href="#overview" class="flex flex-col items-center text-light-primary font-semibold">
+          <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: &#39;FILL&#39; 1;">analytics</span>
+          <span class="text-[11px] font-label mt-0.5">Overview</span>
+        </a>
+
+        <!-- 📖 Directory -->
+        <a href="#directory" class="flex flex-col items-center text-slate-500 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">menu_book</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Directory</span>
+        </a>
+
+        <!-- 📚 Sections -->
+        <a href="#sections" class="flex flex-col items-center text-slate-500 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">auto_stories</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Sections</span>
+        </a>
+
+        <!-- 🎨 Branding -->
+        <a href="#branding" class="flex flex-col items-center text-slate-500 hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-[22px]">palette</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Branding</span>
+        </a>
+
+        <!-- Sign Out -->
+        <a href="#signout" class="flex flex-col items-center text-rose-600 hover:text-rose-700 transition-colors">
+          <span class="material-symbols-outlined text-[22px]">logout</span>
+          <span class="text-[11px] font-label font-medium mt-0.5">Sign Out</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN CONTENT AREA (Offset for floating desktop sidebar) -->
+    <!-- ========================================================================= -->
+    <main class="flex-1 md:ml-[312px] p-6 md:p-8 pb-28 md:pb-12 min-h-[1024px]" data-stitch-vh="min-h-[1024px]===min-h-screen">
+      
+      <!-- Top Header Strip -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="font-label text-label-sm text-light-primary font-semibold uppercase tracking-wider">Enterprise Administration</span>
+            <span class="text-slate-600 text-label-sm">•</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[12px] font-medium border border-teal-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-light-primary animate-pulse"></span>
+              Live Sync Connected
+            </span>
+          </div>
+          <h1 class="font-headline font-bold text-headline-md md:text-headline-lg text-slate-900 tracking-tight">
+            Dashboard Overview
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white text-slate-700 border border-slate-300 font-label text-label-md shadow-xs hover:bg-slate-50 transition-colors whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px] text-slate-600">download</span>
+            <span>Export</span>
+          </button>
+          <button type="button" data-component-id="button-primary" data-component-type="button" data-component-variant="primary" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-light-primary text-light-on-primary font-label text-label-md shadow-sm hover:bg-[#0d6e66] transition-all duration-state-change hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-light-primary whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            <span data-design-text-token="label-md">New Test</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TOP STATS ROW (3 STAT CARDS) -->
+      <!-- 'Active Students', 'Tests Today', 'Server Health' -->
+      <!-- ========================================================================= -->
+      <section aria-label="Key Dashboard Statistics" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        
+        <!-- Stat Card 1: Active Students -->
+        <div class="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.04)] hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-600 mb-3">
+            <span class="font-body text-body-sm font-medium">Active Students</span>
+            <span class="w-10 h-10 rounded-xl bg-teal-50 text-light-primary flex items-center justify-center border border-teal-100">
+              <span class="material-symbols-outlined text-[22px]">school</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="font-headline font-bold text-headline-md text-slate-900 tabular-nums">12,840</span>
+            <span class="text-light-primary font-label text-label-sm font-semibold flex items-center">
+              <span class="material-symbols-outlined text-[15px]">arrow_upward</span> +8.2%
+            </span>
+          </div>
+          <div class="mt-2 text-slate-600 font-body text-body-sm flex items-center gap-2">
+            <span>Enrolled in current term</span>
+            <span class="text-slate-600">•</span>
+            <span class="text-teal-700 font-medium">99.4% active</span>
+          </div>
+        </div>
+
+        <!-- Stat Card 2: Tests Today -->
+        <div class="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.04)] hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-600 mb-3">
+            <span class="font-body text-body-sm font-medium">Tests Today</span>
+            <span class="w-10 h-10 rounded-xl bg-teal-50 text-light-primary flex items-center justify-center border border-teal-100">
+              <span class="material-symbols-outlined text-[22px]">quiz</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="font-headline font-bold text-headline-md text-slate-900 tabular-nums">184</span>
+            <span class="text-light-primary font-label text-label-sm font-semibold flex items-center">
+              <span class="material-symbols-outlined text-[15px]">arrow_upward</span> +32 vs avg
+            </span>
+          </div>
+          <div class="mt-2 text-slate-600 font-body text-body-sm flex items-center gap-2">
+            <span>42 ongoing right now</span>
+            <span class="text-slate-600">•</span>
+            <span class="text-slate-700 font-medium">3,420 submissions</span>
+          </div>
+        </div>
+
+        <!-- Stat Card 3: Server Health -->
+        <div class="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.04)] hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
+          <div class="flex items-center justify-between text-slate-600 mb-3">
+            <span class="font-body text-body-sm font-medium">Server Health</span>
+            <span class="w-10 h-10 rounded-xl bg-teal-50 text-light-primary flex items-center justify-center border border-teal-100">
+              <span class="material-symbols-outlined text-[22px]">dns</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="font-headline font-bold text-headline-md text-slate-900 tabular-nums">99.98%</span>
+            <span class="text-light-primary font-label text-label-sm font-semibold flex items-center">
+              <span class="material-symbols-outlined text-[15px]">check_circle</span> Optimal
+            </span>
+          </div>
+          <div class="mt-2 text-slate-600 font-body text-body-sm flex items-center gap-2">
+            <span>Latency: 18ms p99</span>
+            <span class="text-slate-600">•</span>
+            <span class="text-teal-700 font-medium">Zero dropped packets</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================================================= -->
+      <!-- RECENT ACTIVITY FEED -->
+      <!-- High whitespace, clean timestamps, avatar badges, status indicators -->
+      <!-- ========================================================================= -->
+      <section aria-labelledby="activity-heading" class="rounded-2xl border border-slate-200/90 bg-white shadow-[0_4px_24px_-4px_rgba(15,23,42,0.04)] p-6 md:p-8">
+        
+        <!-- Activity Feed Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
+          <div>
+            <h2 id="activity-heading" class="font-headline font-bold text-title-lg text-slate-900 tracking-tight">
+              Recent Activity Feed
+            </h2>
+            <p class="font-body text-body-sm text-slate-600 mt-0.5">
+              Live audit stream of faculty assessments, student test submissions, and institutional updates.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-label-sm font-medium">
+              <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+              Auto-updating
+            </span>
+            <button type="button" class="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors" title="Filter feed">
+              <span class="material-symbols-outlined text-[20px]">filter_list</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Activity Feed Items List -->
+        <div class="space-y-6">
+          
+          <!-- Event Item 1 -->
+          <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50/80 transition-colors border border-transparent hover:border-slate-100">
+            <div class="w-10 h-10 rounded-full bg-teal-50 text-light-primary border border-teal-200 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[20px]">task_alt</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                <span class="font-headline font-semibold text-title-md text-slate-900">
+                  Calculus III Midterm Exam completed by Section 4B
+                </span>
+                <span class="font-body text-body-sm text-slate-600 tabular-nums shrink-0">
+                  4 minutes ago
+                </span>
+              </div>
+              <p class="font-body text-body-md text-slate-600">
+                128 of 130 enrolled students successfully submitted before deadline. Automated integrity audit passed with 100% verified check.
+              </p>
+              <div class="mt-2.5 flex items-center gap-3 text-body-sm">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[12px] font-semibold border border-teal-200">
+                  Prof. Mitchell
+                </span>
+                <span class="text-slate-600">Avg score: 86.4%</span>
+                <span class="text-slate-600">•</span>
+                <a href="#results" class="text-light-primary font-medium hover:underline">View Batch Analytics</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Item 2 -->
+          <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50/80 transition-colors border border-transparent hover:border-slate-100">
+            <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-800 border border-sky-200 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[20px]">person_add</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                <span class="font-headline font-semibold text-title-md text-slate-900">
+                  Bulk whitelist imported: 420 Engineering students
+                </span>
+                <span class="font-body text-body-sm text-slate-600 tabular-nums shrink-0">
+                  18 minutes ago
+                </span>
+              </div>
+              <p class="font-body text-body-md text-slate-600">
+                CSV upload parsed via Directory Manager. Welcome emails with SSO login instructions dispatched to @colforms.edu domain.
+              </p>
+              <div class="mt-2.5 flex items-center gap-3 text-body-sm">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-800 text-[12px] font-semibold border border-sky-200">
+                  Directory Service
+                </span>
+                <span class="text-slate-600">0 format errors</span>
+                <span class="text-slate-600">•</span>
+                <a href="#directory" class="text-light-primary font-medium hover:underline">Inspect Enrolled List</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Item 3 -->
+          <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50/80 transition-colors border border-transparent hover:border-slate-100">
+            <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-900 border border-amber-200 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[20px]">palette</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                <span class="font-headline font-semibold text-title-md text-slate-900">
+                  Institution Watermark &amp; Brand Theme refreshed
+                </span>
+                <span class="font-body text-body-sm text-slate-600 tabular-nums shrink-0">
+                  1 hour ago
+                </span>
+              </div>
+              <p class="font-body text-body-md text-slate-600">
+                Official high-resolution crest updated for PDF test generation. Primary color palette confirmed across student examination consoles.
+              </p>
+              <div class="mt-2.5 flex items-center gap-3 text-body-sm">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 text-[12px] font-semibold border border-amber-200">
+                  Branding Module
+                </span>
+                <span class="text-slate-600">Version 3.2 Live</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Event Item 4 -->
+          <div class="flex items-start gap-4 p-4 rounded-xl hover:bg-slate-50/80 transition-colors border border-transparent hover:border-slate-100">
+            <div class="w-10 h-10 rounded-full bg-teal-50 text-light-primary border border-teal-200 flex items-center justify-center shrink-0 mt-0.5">
+              <span class="material-symbols-outlined text-[20px]">published_with_changes</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
+                <span class="font-headline font-semibold text-title-md text-slate-900">
+                  Section 2C curriculum module published
+                </span>
+                <span class="font-body text-body-sm text-slate-600 tabular-nums shrink-0">
+                  3 hours ago
+                </span>
+              </div>
+              <p class="font-body text-body-md text-slate-600">
+                Advanced Operating Systems lab assignments and rubric released to 64 enrolled computer engineering candidates.
+              </p>
+              <div class="mt-2.5 flex items-center gap-3 text-body-sm">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[12px] font-semibold border border-teal-200">
+                  Dr. Lawson
+                </span>
+                <span class="text-slate-600">Sections Hub</span>
+                <span class="text-slate-600">•</span>
+                <a href="#sections" class="text-light-primary font-medium hover:underline">Review Syllabus</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Activity Feed Footer Link -->
+        <div class="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
+          <span class="font-body text-body-sm text-slate-600">
+            Showing 4 most recent institutional events
+          </span>
+          <a href="#all-activity" class="text-light-primary font-label text-label-md font-semibold hover:underline inline-flex items-center gap-1">
+            <span>View Full Audit Log</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </a>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+
+</body></html>

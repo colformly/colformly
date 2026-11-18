@@ -1,0 +1,558 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colforms Journal — Building Zero-Cost EdTech in Public</title>
+
+  <!-- Tailwind CSS CDN with Forms and Container Queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0B1120',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+        'cream-bg': '#FAF9F5',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '48px',
+        'section': '80px',
+        'section-lg': '112px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['56px', { lineHeight: '64px', letterSpacing: '-1.2px', fontWeight: '700' }],
+        'display-lg-mobile': ['32px', { lineHeight: '38px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'display-md': ['44px', { lineHeight: '52px', letterSpacing: '-0.8px', fontWeight: '700' }],
+        'display-md-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '600' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-float': '300ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-float': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-float': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+
+  <!-- Fonts: Plus Jakarta Sans, Instrument Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-light-surface-variant text-slate-900 font-body antialiased min-h-[1024px] selection:bg-teal-100 selection:text-teal-900" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <!-- ========================================================================= -->
+  <!-- DESKTOP TOP NAV: DETACHED, FLOATING PILL NAVBAR WITH FROSTED GLASS -->
+  <!-- ========================================================================= -->
+  <header class="fixed top-5 inset-x-0 z-50 flex justify-center px-4 pointer-events-none hidden md:flex">
+    <nav aria-label="Desktop Primary Navigation" class="pointer-events-auto w-full max-w-5xl px-6 py-3 rounded-full bg-white/70 backdrop-blur-md border border-slate-200/80 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.08)] flex items-center justify-between">
+      <!-- Logo: 'Colforms' -->
+      <a href="../landing-page/LandingPage.html" class="flex items-center gap-2.5 group">
+        <div class="w-9 h-9 rounded-full bg-light-primary text-white flex items-center justify-center font-headline font-bold text-label-md shadow-xs">
+          C
+        </div>
+        <span class="font-headline font-bold text-title-lg text-slate-900 tracking-tight">Colforms</span>
+        <span class="px-2 py-0.5 rounded-full bg-teal-50 text-light-primary text-[10px] font-bold uppercase tracking-wider font-label border border-teal-200">
+          Journal
+        </span>
+      </a>
+
+      <!-- Nav Links: ['Features', 'Case Study', 'Pricing', 'Blog'] -->
+      <ul class="flex items-center gap-7">
+        <li>
+          <a href="../landing-page/LandingPage.html#features" class="font-label text-label-md font-semibold text-slate-600 hover:text-light-primary transition-colors">
+            Features
+          </a>
+        </li>
+        <li>
+          <a href="../landing-page/LandingPage.html#case-studies" class="font-label text-label-md font-semibold text-slate-600 hover:text-light-primary transition-colors">
+            Case Study
+          </a>
+        </li>
+        <li>
+          <a href="../landing-page/LandingPage.html#pricing" class="font-label text-label-md font-semibold text-slate-600 hover:text-light-primary transition-colors">
+            Pricing
+          </a>
+        </li>
+        <li>
+          <a href="ColformsBlog.html" class="font-label text-label-md font-bold text-light-primary transition-colors relative">
+            Blog
+            <span class="absolute -bottom-1 inset-x-0 h-0.5 bg-light-primary rounded-full"></span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Actions: ['Contact Sales', solid primary button 'Sign In'] -->
+      <div class="flex items-center gap-3">
+        <a href="#contact-sales" class="font-label text-label-sm font-bold text-slate-700 hover:text-slate-900 px-3 py-1.5 transition-colors">
+          Contact Sales
+        </a>
+
+        <a href="../colforms-admin/ColformsAdmin.html" class="inline-flex items-center justify-center px-5 py-2 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-headline font-bold text-label-sm shadow-xs active:scale-95 transition-all">
+          <span>Sign In</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE NAV: DETACHED, FLOATING PILL-SHAPED BOTTOM NAVIGATION BAR -->
+  <!-- ========================================================================= -->
+  <nav aria-label="Mobile Navigation" class="md:hidden fixed bottom-4 inset-x-4 z-50 flex justify-center pointer-events-none">
+    <div class="pointer-events-auto w-full max-w-md px-6 py-3 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_16px_36px_rgba(15,23,42,0.16)] flex items-center justify-between">
+      <a href="../landing-page/LandingPage.html" class="flex flex-col items-center text-slate-600 hover:text-light-primary transition-colors">
+        <span class="material-symbols-outlined text-[20px]">home</span>
+        <span class="text-[11px] font-label font-medium mt-0.5">Home</span>
+      </a>
+
+      <a href="../landing-page/LandingPage.html#features" class="flex flex-col items-center text-slate-600 hover:text-light-primary transition-colors">
+        <span class="material-symbols-outlined text-[20px]">featured_play_list</span>
+        <span class="text-[11px] font-label font-medium mt-0.5">Features</span>
+      </a>
+
+      <a href="../landing-page/LandingPage.html#pricing" class="flex flex-col items-center text-slate-600 hover:text-light-primary transition-colors">
+        <span class="material-symbols-outlined text-[20px]">payments</span>
+        <span class="text-[11px] font-label font-medium mt-0.5">Pricing</span>
+      </a>
+
+      <a href="ColformsBlog.html" class="flex flex-col items-center text-light-primary font-bold">
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &#39;FILL&#39; 1;">article</span>
+        <span class="text-[11px] font-label font-bold mt-0.5">Blog</span>
+      </a>
+
+      <a href="../colforms-admin/ColformsAdmin.html" class="flex flex-col items-center text-light-primary font-bold">
+        <span class="material-symbols-outlined text-[20px]">login</span>
+        <span class="text-[11px] font-label font-bold mt-0.5">Sign In</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN BLOG PAGE CONTAINER -->
+  <!-- ========================================================================= -->
+  <main class="pt-24 md:pt-32 pb-24 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto flex flex-col gap-12">
+
+    <!-- Atmospheric subtle background glow -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-teal-100/40 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+
+    <!-- ========================================================================= -->
+    <!-- HEADER SECTION: Centered Title, Subtitle, and Category Filter Pills -->
+    <!-- ========================================================================= -->
+    <header class="text-center max-w-3xl mx-auto flex flex-col items-center gap-4">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-50 border border-teal-200 text-light-primary font-label text-label-sm font-bold shadow-2xs">
+        <span class="w-2 h-2 rounded-full bg-light-primary animate-pulse"></span>
+        <span>Open Engineering &amp; Product Logs</span>
+      </div>
+
+      <h1 class="font-headline font-extrabold text-display-md-mobile sm:text-headline-lg lg:text-display-md text-slate-900 tracking-tight text-balance">
+        The Colforms Journal
+      </h1>
+
+      <p class="font-body text-body-lg text-slate-600 text-pretty max-w-xl">
+        Building zero-cost, cheat-proof EdTech in public.
+      </p>
+
+      <!-- Category Filter Pills Bar: [All, Engineering, Founder Logs, Case Studies] -->
+      <nav aria-label="Blog Category Filter" class="flex flex-wrap items-center justify-center gap-2 pt-4">
+        <!-- All (Active) -->
+        <button type="button" onclick="filterCategory(&#39;All&#39;)" id="filter-all" class="px-5 py-2 rounded-full bg-light-primary text-white font-headline font-bold text-label-sm shadow-sm transition-all">
+          All
+        </button>
+
+        <!-- Engineering -->
+        <button type="button" onclick="filterCategory(&#39;Engineering&#39;)" id="filter-engineering" class="px-5 py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 font-headline font-semibold text-label-sm border border-slate-200 transition-colors">
+          Engineering
+        </button>
+
+        <!-- Founder Logs -->
+        <button type="button" onclick="filterCategory(&#39;Founder Logs&#39;)" id="filter-founder" class="px-5 py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 font-headline font-semibold text-label-sm border border-slate-200 transition-colors">
+          Founder Logs
+        </button>
+
+        <!-- Case Studies -->
+        <button type="button" onclick="filterCategory(&#39;Case Studies&#39;)" id="filter-cases" class="px-5 py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 font-headline font-semibold text-label-sm border border-slate-200 transition-colors">
+          Case Studies
+        </button>
+      </nav>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- HERO FEATURED CARD: Wide, Stunning 2-Column Card (rounded-3xl, soft shadow) -->
+    <!-- ========================================================================= -->
+    <article class="rounded-3xl bg-white border border-slate-200/90 shadow-[0_20px_45px_-10px_rgba(15,23,42,0.08)] overflow-hidden group hover:shadow-[0_28px_55px_-12px_rgba(15,23,42,0.12)] transition-all">
+      <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+        
+        <!-- Left: Image Mockup Graphic -->
+        <div class="lg:col-span-7 bg-gradient-to-br from-teal-50 via-slate-50 to-emerald-50/50 p-8 sm:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-100 relative overflow-hidden">
+          
+          <div class="flex items-center gap-2 mb-6">
+            <span class="px-3 py-1 rounded-full bg-teal-100 text-light-primary font-headline font-bold text-label-sm border border-teal-200">
+              Featured Architecture
+            </span>
+            <span class="font-body text-body-sm text-slate-500 font-medium">8 min read</span>
+          </div>
+
+          <!-- Illustrated Dashboard Graphic Sneak Peek -->
+          <div class="rounded-2xl bg-white border border-slate-200 shadow-md p-5 space-y-3.5 transform group-hover:scale-[1.01] transition-transform">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-teal-500"></span>
+                <span class="font-headline font-bold text-label-sm text-slate-800">Edge Gateway: 0ms Cold Start</span>
+              </div>
+              <span class="font-mono text-[11px] text-emerald-800 font-bold">$0.00 / month AWS Bill</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 text-center">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-[10px] font-label text-slate-500 uppercase block font-semibold">Active Students</span>
+                <span class="font-headline font-extrabold text-title-md text-slate-900">10,480</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-[10px] font-label text-slate-500 uppercase block font-semibold">Peak RPS</span>
+                <span class="font-headline font-extrabold text-title-md text-light-primary">3,200</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-[10px] font-label text-slate-500 uppercase block font-semibold">API Relays</span>
+                <span class="font-headline font-extrabold text-title-md text-emerald-800">100%</span>
+              </div>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-teal-50/60 border border-teal-200 text-body-sm text-slate-700 flex items-center justify-between">
+              <span class="text-[12px] font-medium">Supabase Auth + Cloudflare Workers edge caching</span>
+              <span class="text-light-primary font-bold text-[11px]">Sub-20ms</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 mt-6 text-slate-500 text-body-sm font-medium">
+            <span class="material-symbols-outlined text-[18px] text-teal-600">verified</span>
+            <span>Verified in production across 34 engineering campuses</span>
+          </div>
+
+        </div>
+
+        <!-- Right: Editorial Content -->
+        <div class="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between gap-6">
+          <div class="space-y-4">
+            <div class="flex items-center gap-2 text-body-sm text-slate-500 font-medium">
+              <span>Nov 16, 2026</span>
+              <span>•</span>
+              <span class="text-light-primary font-semibold">Systems Architecture</span>
+            </div>
+
+            <h2 class="font-headline font-bold text-headline-sm sm:text-headline-md text-slate-900 leading-tight group-hover:text-light-primary transition-colors text-balance">
+              How We Scaled to 10,000 Students Without Spending a Rupee on Cloud Infrastructure
+            </h2>
+
+            <p class="font-body text-body-md text-slate-600 leading-relaxed text-pretty">
+              By combining Google Forms webhooks, Cloudflare Workers free tier caching, and client-side cryptographic evaluations, we eliminated conventional server overhead completely while serving 10,000 college concurrent test takers.
+            </p>
+          </div>
+
+          <!-- Author & Link Row -->
+          <div class="pt-5 border-t border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-teal-100 text-light-primary border border-teal-200 flex items-center justify-center font-headline font-bold text-label-md">
+                AK
+              </div>
+              <div>
+                <span class="font-headline font-bold text-label-md text-slate-900 block">Aayush Kumar</span>
+                <span class="font-body text-body-sm text-slate-500 block">Founder &amp; Tech Lead</span>
+              </div>
+            </div>
+
+            <a href="#read-featured" class="inline-flex items-center gap-1 font-label text-label-sm font-bold text-light-primary hover:underline">
+              <span>Read Article</span>
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+    </article>
+
+    <!-- ========================================================================= -->
+    <!-- ASYMMETRICAL MAIN GRID: 3-Column Responsive Grid + Bento Highlight Card -->
+    <!-- ========================================================================= -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+      
+      <!-- ARTICLE CARD 1: Architecture -->
+      <article class="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-5 group">
+        <div class="space-y-4">
+          <!-- Thumbnail Graphic Placeholder -->
+          <div class="h-44 rounded-2xl bg-gradient-to-tr from-cyan-50 to-teal-50 border border-slate-200/80 flex items-center justify-center p-4 relative overflow-hidden">
+            <div class="text-center space-y-1">
+              <div class="w-10 h-10 rounded-xl bg-white border border-teal-200 mx-auto flex items-center justify-center text-light-primary shadow-xs">
+                <span class="material-symbols-outlined text-[22px]">security</span>
+              </div>
+              <span class="font-mono text-[11px] text-teal-800 font-bold block">DOM Tab-Focus Lock</span>
+            </div>
+            <span class="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-white text-light-primary text-[10px] font-bold border border-teal-200 shadow-2xs font-label">
+              6 min read
+            </span>
+          </div>
+
+          <div class="space-y-2">
+            <span class="px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-[11px] font-bold border border-teal-200 font-label">
+              Architecture
+            </span>
+            <h3 class="font-headline font-bold text-title-lg text-slate-900 group-hover:text-light-primary transition-colors leading-snug">
+              Building Cheat-Proof Exam Viewports Without Kernel-Level DRM
+            </h3>
+            <p class="font-body text-body-sm text-slate-600 leading-relaxed">
+              How we detect multi-monitor switching, split-screen extensions, and AI pasteboard injections directly in pure JavaScript sandbox environments.
+            </p>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-body-sm text-slate-500 font-medium">
+          <span>Dr. R. Chen • Oct 28</span>
+          <span class="text-light-primary font-bold text-label-sm inline-flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+            Read →
+          </span>
+        </div>
+      </article>
+
+      <!-- ARTICLE CARD 2: Case Studies -->
+      <article class="rounded-3xl bg-white border border-slate-200/80 p-6 shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between gap-5 group">
+        <div class="space-y-4">
+          <!-- Thumbnail Graphic Placeholder -->
+          <div class="h-44 rounded-2xl bg-gradient-to-tr from-purple-50 to-indigo-50 border border-slate-200/80 flex items-center justify-center p-4 relative overflow-hidden">
+            <div class="text-center space-y-1">
+              <div class="w-10 h-10 rounded-xl bg-white border border-purple-200 mx-auto flex items-center justify-center text-purple-700 shadow-xs">
+                <span class="material-symbols-outlined text-[22px]">school</span>
+              </div>
+              <span class="font-mono text-[11px] text-purple-800 font-bold block">MIT-WPU Deployment</span>
+            </div>
+            <span class="absolute top-3 right-3 px-2.5 py-0.5 rounded-full bg-white text-purple-700 text-[10px] font-bold border border-purple-200 shadow-2xs font-label">
+              5 min read
+            </span>
+          </div>
+
+          <div class="space-y-2">
+            <span class="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 text-[11px] font-bold border border-purple-200 font-label">
+              Case Studies
+            </span>
+            <h3 class="font-headline font-bold text-title-lg text-slate-900 group-hover:text-purple-700 transition-colors leading-snug">
+              Why MIT-WPU Switched from Google Classroom to Colforms
+            </h3>
+            <p class="font-body text-body-sm text-slate-600 leading-relaxed">
+              Automating 8,400 monthly programming evaluations, eliminating paper sheets, and reducing faculty grading turnaround from 14 days to 3 seconds.
+            </p>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-body-sm text-slate-500 font-medium">
+          <span>Campus Partner • Oct 14</span>
+          <span class="text-purple-700 font-bold text-label-sm inline-flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+            Read →
+          </span>
+        </div>
+      </article>
+
+      <!-- BENTO-STYLE HIGHLIGHT BOX: 'Founder Log' card with dark background & Supabase/Cloudflare stack snippets -->
+      <article class="rounded-3xl bg-light-on-surface text-white border border-slate-800 p-6 shadow-xl flex flex-col justify-between gap-5 relative overflow-hidden group">
+        
+        <!-- Glowing Ambient Accent -->
+        <div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-teal-500/20 blur-2xl pointer-events-none"></div>
+
+        <div class="space-y-4 relative z-10">
+          <div class="flex items-center justify-between">
+            <span class="px-3 py-0.5 rounded-full bg-teal-400/20 text-teal-300 font-headline font-bold text-[11px] border border-teal-400/40">
+              Founder Log #14
+            </span>
+            <span class="font-mono text-[11px] text-slate-400">Behind The Stack</span>
+          </div>
+
+          <h3 class="font-headline font-bold text-title-lg text-white leading-snug text-balance">
+            Rewriting Our Real-time State from WebSockets to Cloudflare DO
+          </h3>
+
+          <!-- Mock Code / Metrics Terminal Snippet -->
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 text-[11px] font-mono space-y-1 text-slate-300">
+            <div class="text-slate-400">// Durable Object atomic counter</div>
+            <div class="text-teal-400">export class ExamRoom {</div>
+            <div class="pl-3 text-slate-300">async broadcast(event: State) {</div>
+            <div class="pl-6 text-emerald-400">latency: 14ms (P99)</div>
+            <div class="pl-6 text-purple-300">sync_nodes: 64 POPs</div>
+            <div class="pl-3 text-slate-300">}</div>
+            <div class="text-teal-400">}</div>
+          </div>
+
+          <p class="font-body text-body-sm text-slate-300 leading-relaxed">
+            How Durable Objects eliminated Postgres connection bottlenecks during 9:00 AM nationwide exam rush hours.
+          </p>
+        </div>
+
+        <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-body-sm text-slate-400 relative z-10">
+          <span class="font-medium text-slate-300">Aayush K. • Nov 02</span>
+          <span class="text-teal-300 font-bold text-label-sm inline-flex items-center gap-1 group-hover:text-teal-200">
+            <span>Read Log</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </span>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- FOOTER SECTION: Minimalist Newsletter Signup Box -->
+    <!-- ========================================================================= -->
+    <footer class="rounded-3xl bg-white border border-slate-200/80 p-8 sm:p-12 shadow-xs text-center flex flex-col items-center gap-6 max-w-4xl mx-auto w-full">
+      <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary shadow-xs">
+        <span class="material-symbols-outlined text-[24px]">mark_email_read</span>
+      </div>
+
+      <div class="space-y-1.5 max-w-lg">
+        <h3 class="font-headline font-bold text-headline-sm sm:text-headline-md text-slate-900 tracking-tight">
+          Stay on the cutting edge of EdTech engineering
+        </h3>
+        <p class="font-body text-body-md text-slate-600">
+          Get weekly engineering logs delivered to your inbox. No marketing spam, just pure architectural deep-dives and benchmark reports.
+        </p>
+      </div>
+
+      <!-- Pill-shaped Input & Primary Action Button Form -->
+      <form onsubmit="handleNewsletterSubmit(event)" class="w-full max-w-md flex flex-col sm:flex-row items-center gap-2.5">
+        <div class="relative w-full">
+          <span class="material-symbols-outlined text-[18px] text-slate-400 absolute left-4 top-3.5">mail</span>
+          <input type="email" id="newsletter-email" required placeholder="Enter your work email (e.g. alex@mit.edu)" class="w-full pl-11 pr-4 py-3 rounded-full bg-slate-50 border border-slate-200 text-slate-900 text-body-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-light-primary/20 focus:border-light-primary">
+        </div>
+
+        <button type="submit" id="newsletter-btn" class="w-full sm:w-auto px-7 py-3 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-headline font-bold text-label-md shadow-xs active:scale-95 transition-all whitespace-nowrap shrink-0">
+          Subscribe
+        </button>
+      </form>
+
+      <span id="newsletter-feedback" class="text-body-sm text-emerald-800 font-semibold hidden">
+        Thanks for joining 2,400+ EdTech engineers! Check your inbox for confirmation.
+      </span>
+
+      <div class="pt-6 border-t border-slate-100 w-full flex flex-col sm:flex-row items-center justify-between text-body-sm text-slate-500 gap-3">
+        <span>© 2026 Colforms Technologies Inc. All rights reserved.</span>
+        <div class="flex items-center gap-4 font-label text-label-sm font-semibold">
+          <a href="../landing-page/LandingPage.html" class="hover:text-light-primary">Home</a>
+          <a href="#privacy" class="hover:text-light-primary">Privacy</a>
+          <a href="#terms" class="hover:text-light-primary">Terms</a>
+          <a href="https://github.com" target="_blank" class="hover:text-light-primary">GitHub</a>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- Interactive Filter & Newsletter Feedback Scripts -->
+  <script>
+    function filterCategory(cat) {
+      const buttons = [
+        { id: 'filter-all', label: 'All' },
+        { id: 'filter-engineering', label: 'Engineering' },
+        { id: 'filter-founder', label: 'Founder Logs' },
+        { id: 'filter-cases', label: 'Case Studies' }
+      ];
+
+      buttons.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (b.label === cat) {
+          el.className = 'px-5 py-2 rounded-full bg-light-primary text-white font-headline font-bold text-label-sm shadow-sm transition-all';
+        } else {
+          el.className = 'px-5 py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 font-headline font-semibold text-label-sm border border-slate-200 transition-colors';
+        }
+      });
+    }
+
+    function handleNewsletterSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('newsletter-email').value;
+      const feedback = document.getElementById('newsletter-feedback');
+      const btn = document.getElementById('newsletter-btn');
+      
+      btn.innerText = "Subscribed!";
+      btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+      feedback.classList.remove('hidden');
+    }
+  </script>
+
+
+
+</body></html>

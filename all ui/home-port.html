@@ -1,0 +1,621 @@
+<!DOCTYPE html><html lang="en" class="scroll-smooth"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova SaaS — Modern Minimalist Platform</title>
+  <!-- Tailwind CSS CDN with forms and container-queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-on-primary': '#042F2E',
+        'dark-primary-container': '#134E4A',
+        'dark-on-primary-container': '#CCFBF1',
+        'dark-surface': '#0B1120',
+        'dark-on-surface': '#F8FAFC',
+        'dark-surface-variant': '#1E293B',
+        'dark-on-surface-variant': '#94A3B8',
+        'dark-outline': '#334155',
+        'dark-outline-variant': '#1E293B',
+        'cream-bg': '#FAF9F5',
+      },
+      borderRadius: {
+        'sm': '4px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section-sm': '48px',
+        'section': '80px',
+        'section-lg': '112px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'headline': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'title': ['"Plus Jakarta Sans"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Plus Jakarta Sans"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['56px', { lineHeight: '64px', letterSpacing: '-1.2px', fontWeight: '700' }],
+        'display-lg-mobile': ['32px', { lineHeight: '38px', letterSpacing: '-0.6px', fontWeight: '700' }],
+        'display-md': ['44px', { lineHeight: '52px', letterSpacing: '-0.8px', fontWeight: '700' }],
+        'display-md-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.4px', fontWeight: '700' }],
+        'headline-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.6px', fontWeight: '600' }],
+        'headline-lg-mobile': ['24px', { lineHeight: '32px', letterSpacing: '-0.3px', fontWeight: '600' }],
+        'headline-md': ['28px', { lineHeight: '36px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        'headline-md-mobile': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'headline-sm': ['20px', { lineHeight: '28px', letterSpacing: '-0.2px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '26px', letterSpacing: '-0.1px', fontWeight: '600' }],
+        'title-md': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.1px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-float': '300ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-float': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-float': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans, Instrument Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Instrument+Sans:wght@400;500;600&amp;family=Red+Hat+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-light-surface text-light-on-surface font-body antialiased min-h-[1024px] selection:bg-teal-soft selection:text-light-primary" data-stitch-vh="min-h-[1024px]===min-h-screen">
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING DETACHED PILL TOP NAVIGATION BAR -->
+  <!-- Detached from ceiling, floats on scroll, rounded-full, frosted glass bg-white/70 backdrop-blur-md -->
+  <!-- ========================================================================= -->
+  <header class="fixed top-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+    <nav data-component-id="navbar-floating-pill" data-component-type="navbar" data-component-variant="floating-pill" aria-label="Main Navigation" class="pointer-events-auto w-full max-w-4xl px-5 py-2.5 rounded-full bg-white/70 backdrop-blur-md border border-slate-200/70 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center justify-between transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-full bg-light-primary text-light-on-primary flex items-center justify-center font-headline font-bold text-label-lg shadow-sm group-hover:scale-105 transition-transform duration-state-change">
+          <span class="material-symbols-outlined text-[18px]">interests</span>
+        </div>
+        <span class="font-headline font-semibold text-title-lg tracking-tight text-light-on-surface" data-design-text-token="title-lg">
+          Nova
+        </span>
+      </a>
+
+      <!-- Center Navigation Links -->
+      <ul class="hidden md:flex items-center gap-8">
+        <li>
+          <a href="#features" class="font-body text-body-md text-light-on-surface-variant hover:text-light-primary transition-colors duration-state-change" data-design-text-token="body-md">Features</a>
+        </li>
+        <li>
+          <a href="#dashboard-preview" class="font-body text-body-md text-light-on-surface-variant hover:text-light-primary transition-colors duration-state-change" data-design-text-token="body-md">Platform</a>
+        </li>
+        <li>
+          <a href="#workflow" class="font-body text-body-md text-light-on-surface-variant hover:text-light-primary transition-colors duration-state-change" data-design-text-token="body-md">Solutions</a>
+        </li>
+        <li>
+          <a href="#pricing" class="font-body text-body-md text-light-on-surface-variant hover:text-light-primary transition-colors duration-state-change" data-design-text-token="body-md">Pricing</a>
+        </li>
+      </ul>
+
+      <!-- CTA Actions -->
+      <div class="flex items-center gap-3">
+        <a href="#signin" class="hidden sm:inline-flex font-label text-label-lg text-slate-700 hover:text-light-on-surface transition-colors px-3 py-1.5" data-design-text-token="label-lg">
+          Sign In
+        </a>
+        <a href="#signup" data-component-id="button-nav-cta" data-component-type="button" data-component-variant="primary" class="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-light-primary text-light-on-primary font-label text-label-lg shadow-sm hover:bg-[#0d6e66] transition-all duration-state-change hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-light-primary focus:ring-offset-2">
+          <span data-design-text-token="label-lg">Get Started</span>
+          <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN LANDING CONTENT -->
+  <!-- ========================================================================= -->
+  <main class="relative pt-32 pb-24 overflow-hidden flex flex-col gap-12">
+
+    <!-- Atmospheric Backdrop glow -->
+    <div class="absolute top-0 inset-x-0 h-[640px] bg-gradient-to-b from-teal-50/50 via-slate-50/20 to-transparent pointer-events-none -z-10"></div>
+    <div class="absolute top-20 left-1/2 -translate-x-1/2 w-[900px] h-[350px] bg-teal-100/30 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+
+    <!-- HERO SECTION -->
+    <section class="max-w-6xl mx-auto px-6 text-center pt-8 md:pt-16 pb-8">
+      
+      <!-- Subtle Pill Eyebrow -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-soft border border-teal-300 text-light-on-primary-container mb-8 shadow-xs">
+        <span class="w-2 h-2 rounded-full bg-light-primary animate-pulse"></span>
+        <span class="font-label text-label-md font-semibold tracking-wide" data-design-text-token="label-md">Nova v2.4 Platform Release</span>
+        <span class="text-light-on-primary-container font-bold text-label-sm">•</span>
+        <span class="font-label text-label-md text-light-on-primary-container font-semibold flex items-center hover:underline cursor-pointer" data-design-text-token="label-md">Explore what&#39;s new <span class="material-symbols-outlined text-[14px] ml-0.5">chevron_right</span></span>
+      </div>
+
+      <!-- Hero Heading -->
+      <h1 class="font-display text-display-md md:text-display-lg font-bold tracking-tight text-light-on-surface max-w-4xl mx-auto mb-6 text-balance">
+        The minimalist operating system for modern software teams
+      </h1>
+
+      <!-- Subtitle -->
+      <p class="font-body text-body-lg text-slate-700 max-w-2xl mx-auto leading-relaxed mb-10 text-pretty">
+        Unify your engineering metrics, deployments, and customer telemetry inside an ultra-clean, high-velocity workspace designed for zero distraction.
+      </p>
+
+      <!-- Primary & Secondary CTA Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+        <a href="#signup" data-component-id="button-primary" data-component-type="button" data-component-variant="primary" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-light-primary text-light-on-primary font-label text-label-lg shadow-sm hover:bg-[#0d6e66] transition-all duration-state-change hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-light-primary focus:ring-offset-2">
+          <span data-design-text-token="label-lg">Start 14-Day Free Trial</span>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">arrow_forward</span>
+        </a>
+
+        <a href="#demo" data-component-id="button-secondary" data-component-type="button" data-component-variant="secondary" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-white text-slate-900 border border-slate-300 font-label text-label-lg shadow-xs hover:bg-slate-50 transition-all duration-state-change hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400">
+          <span class="material-symbols-outlined text-[20px] text-slate-700" aria-hidden="true">play_circle</span>
+          <span data-design-text-token="label-lg">Live Interactive Demo</span>
+        </a>
+      </div>
+
+      <!-- Trust Badges / Social Proof Stats -->
+      <div class="flex flex-wrap items-center justify-center gap-y-3 gap-x-8 text-slate-700 font-body text-body-sm pb-8">
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-light-primary text-[18px]">check_circle</span>
+          <span>No credit card required</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-light-primary text-[18px]">check_circle</span>
+          <span>Instant 5-minute setup</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-light-primary text-[18px]">check_circle</span>
+          <span>SOC2 Type II certified</span>
+        </div>
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- FLOATING DASHBOARD MOCKUP -->
+      <!-- Clean, soft, floating aesthetic with ambient shadow and integrated UI elements -->
+      <!-- ========================================================================= -->
+      <div id="dashboard-preview" class="relative mt-4 max-w-5xl mx-auto transition-transform duration-500 ease-out hover:-translate-y-1">
+        
+        <!-- Ambient Shadow Glow Under Mockup -->
+        <div class="absolute -inset-1.5 bg-gradient-to-r from-teal-400/20 via-teal-200/20 to-teal-400/20 rounded-3xl blur-xl opacity-60 pointer-events-none"></div>
+
+        <!-- Main Dashboard Container -->
+        <div class="relative rounded-2xl md:rounded-3xl bg-white border border-slate-200/80 shadow-[0_24px_50px_-12px_rgba(15,23,42,0.12),0_4px_16px_-4px_rgba(15,23,42,0.04)] overflow-hidden text-left">
+          
+          <!-- Mockup Header Bar -->
+          <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-slate-300"></span>
+              <span class="w-3 h-3 rounded-full bg-slate-300"></span>
+              <span class="w-3 h-3 rounded-full bg-slate-300"></span>
+              <span class="ml-4 font-headline text-label-sm text-slate-700 font-medium hidden sm:inline">app.novasaas.io/workspace/metrics</span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-light-primary text-label-sm font-semibold border border-teal-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>
+                Production Live
+              </span>
+              <div class="w-7 h-7 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-[12px] font-bold text-slate-700">
+                JD
+              </div>
+            </div>
+          </div>
+
+          <!-- Mockup Inner Workspace Grid -->
+          <div class="p-6 md:p-8 bg-gradient-to-b from-white to-slate-50/40">
+            
+            <!-- Dashboard Metric KPI Strip -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              
+              <!-- Metric 1 -->
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between text-slate-700 mb-2">
+                  <span class="font-body text-body-sm font-medium">Active Deployments</span>
+                  <span class="material-symbols-outlined text-[18px] text-light-primary">rocket_launch</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">1,429</span>
+                  <span class="text-light-primary font-label text-label-sm font-semibold flex items-center">
+                    <span class="material-symbols-outlined text-[14px]">arrow_upward</span> +18.4%
+                  </span>
+                </div>
+              </div>
+
+              <!-- Metric 2 -->
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between text-slate-700 mb-2">
+                  <span class="font-body text-body-sm font-medium">P99 Latency</span>
+                  <span class="material-symbols-outlined text-[18px] text-light-primary">timer</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">24.6 ms</span>
+                  <span class="text-light-primary font-label text-label-sm font-semibold flex items-center">
+                    <span class="material-symbols-outlined text-[14px]">arrow_downward</span> -4.1 ms
+                  </span>
+                </div>
+              </div>
+
+              <!-- Metric 3 -->
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between text-slate-700 mb-2">
+                  <span class="font-body text-body-sm font-medium">System Uptime</span>
+                  <span class="material-symbols-outlined text-[18px] text-light-primary">verified</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">99.994%</span>
+                  <span class="text-slate-600 font-label text-label-sm font-medium">30d trailing</span>
+                </div>
+              </div>
+
+              <!-- Metric 4 -->
+              <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between text-slate-700 mb-2">
+                  <span class="font-body text-body-sm font-medium">Telemetry Ingestion</span>
+                  <span class="material-symbols-outlined text-[18px] text-light-primary">dataset</span>
+                </div>
+                <div class="flex items-baseline gap-2">
+                  <span class="font-headline font-bold text-headline-sm text-slate-900 tabular-nums">8.2B/day</span>
+                  <span class="text-light-primary font-label text-label-sm font-semibold flex items-center">
+                    <span class="material-symbols-outlined text-[14px]">arrow_upward</span> +22%
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Two-Column Visual Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              
+              <!-- Left Chart & Flow (2 cols) -->
+              <div class="lg:col-span-2 p-5 rounded-xl bg-white border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 class="font-headline font-semibold text-title-md text-slate-900">Throughput &amp; Global Edge Distribution</h4>
+                    <p class="font-body text-body-sm text-slate-600">Continuous streaming data across 36 regional nodes</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-label text-label-sm font-medium">
+                    Live Stream
+                  </span>
+                </div>
+
+                <!-- Minimal SVG Line Chart with Soft Teal Fill -->
+                <div class="h-44 w-full relative flex items-end">
+                  <svg class="w-full h-full overflow-visible" viewBox="0 0 500 160" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="tealGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#0F766E" stop-opacity="0.25"></stop>
+                        <stop offset="100%" stop-color="#0F766E" stop-opacity="0.0"></stop>
+                      </linearGradient>
+                    </defs>
+                    <!-- Grid horizontal lines -->
+                    <line x1="0" y1="40" x2="500" y2="40" stroke="#E2E8F0" stroke-width="1"></line>
+                    <line x1="0" y1="80" x2="500" y2="80" stroke="#E2E8F0" stroke-width="1"></line>
+                    <line x1="0" y1="120" x2="500" y2="120" stroke="#E2E8F0" stroke-width="1"></line>
+                    <!-- Area fill -->
+                    <path d="M 0 130 Q 80 110, 140 70 T 260 80 T 360 40 T 500 20 L 500 160 L 0 160 Z" fill="url(#tealGrad)"></path>
+                    <!-- Line stroke -->
+                    <path d="M 0 130 Q 80 110, 140 70 T 260 80 T 360 40 T 500 20" fill="none" stroke="#0F766E" stroke-width="2.5" stroke-linecap="round"></path>
+                    <!-- Highlight dot -->
+                    <circle cx="360" cy="40" r="4.5" fill="#0F766E"></circle>
+                    <circle cx="360" cy="40" r="8" fill="#0F766E" fill-opacity="0.2"></circle>
+                  </svg>
+                </div>
+
+                <!-- Chart Axis Tags -->
+                <div class="flex items-center justify-between text-slate-600 font-label text-label-sm pt-3 border-t border-slate-100">
+                  <span>00:00 UTC</span>
+                  <span>06:00 UTC</span>
+                  <span>12:00 UTC</span>
+                  <span>18:00 UTC</span>
+                  <span class="font-medium text-slate-800">Peak 48.2k req/s</span>
+                </div>
+              </div>
+
+              <!-- Right Feed & Micro-status (1 col) -->
+              <div class="p-5 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-4">
+                    <h4 class="font-headline font-semibold text-title-md text-slate-900">Recent Automated Events</h4>
+                    <span class="material-symbols-outlined text-slate-500 text-[18px]">more_horiz</span>
+                  </div>
+
+                  <div class="space-y-3.5">
+                    <div class="flex items-start gap-3">
+                      <div class="w-6 h-6 rounded-full bg-teal-50 text-light-primary flex items-center justify-center shrink-0 mt-0.5 border border-teal-100">
+                        <span class="material-symbols-outlined text-[14px]">done_all</span>
+                      </div>
+                      <div class="text-left">
+                        <div class="font-headline text-label-md text-slate-900 font-semibold">Edge cache optimized</div>
+                        <div class="font-body text-body-sm text-slate-600">us-east-1 deployed • 2m ago</div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                      <div class="w-6 h-6 rounded-full bg-teal-50 text-light-primary flex items-center justify-center shrink-0 mt-0.5 border border-teal-100">
+                        <span class="material-symbols-outlined text-[14px]">security</span>
+                      </div>
+                      <div class="text-left">
+                        <div class="font-headline text-label-md text-slate-900 font-semibold">TLS Cert auto-renewed</div>
+                        <div class="font-body text-body-sm text-slate-600">Zero downtime switch • 14m ago</div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                      <div class="w-6 h-6 rounded-full bg-teal-50 text-light-primary flex items-center justify-center shrink-0 mt-0.5 border border-teal-100">
+                        <span class="material-symbols-outlined text-[14px]">sync</span>
+                      </div>
+                      <div class="text-left">
+                        <div class="font-headline text-label-md text-slate-900 font-semibold">Schema migration synced</div>
+                        <div class="font-body text-body-sm text-slate-600">Cluster v3.12 active • 42m ago</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 mt-4">
+                  <a href="#console" class="text-light-primary font-label text-label-sm font-semibold hover:underline inline-flex items-center gap-1">
+                    Open Telemetry Console <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                  </a>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- LOGO STRIP / SOCIAL PROOF -->
+    <section class="max-w-6xl mx-auto px-6 py-8 border-y border-slate-100 w-full">
+      <p class="text-center font-label text-label-sm text-slate-600 font-medium uppercase tracking-widest mb-6">
+        Trusted by engineering leaders at progressive tech companies
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-10 md:gap-16 opacity-75">
+        <div class="flex items-center gap-2 font-headline font-semibold text-slate-800 text-title-lg">
+          <span class="material-symbols-outlined text-slate-600">token</span> Hyperflow
+        </div>
+        <div class="flex items-center gap-2 font-headline font-semibold text-slate-800 text-title-lg">
+          <span class="material-symbols-outlined text-slate-600">cyclone</span> Vortex
+        </div>
+        <div class="flex items-center gap-2 font-headline font-semibold text-slate-800 text-title-lg">
+          <span class="material-symbols-outlined text-slate-600">grid_view</span> Mosaic Data
+        </div>
+        <div class="flex items-center gap-2 font-headline font-semibold text-slate-800 text-title-lg">
+          <span class="material-symbols-outlined text-slate-600">bolt</span> PulseScale
+        </div>
+        <div class="flex items-center gap-2 font-headline font-semibold text-slate-800 text-title-lg">
+          <span class="material-symbols-outlined text-slate-600">hub</span> OrbitStack
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 3-COLUMN FEATURE GRID -->
+    <!-- Minimal line-art icons, soft shadows, high whitespace, clean typography -->
+    <!-- ========================================================================= -->
+    <section id="features" class="max-w-6xl mx-auto px-6 py-12">
+      
+      <!-- Section Header with High Whitespace -->
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <span class="font-label text-label-sm text-light-primary uppercase tracking-wider font-semibold mb-2 block" data-design-text-token="label-sm">
+          Core Capabilities
+        </span>
+        <h2 class="font-headline text-headline-md md:text-headline-lg font-bold text-light-on-surface tracking-tight mb-4 text-balance">
+          Engineered for focus. Built for scale.
+        </h2>
+        <p class="font-body text-body-lg text-slate-700 text-pretty">
+          Every component and feature is designed to reduce cognitive friction, accelerate cycle times, and preserve clarity.
+        </p>
+      </div>
+
+      <!-- 3-Column Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        
+        <!-- Feature Card 1 -->
+        <article data-component-id="card-elevated" data-component-type="card" data-component-variant="elevated" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-6px_rgba(15,23,42,0.08)] hover:border-teal-200/80 transition-all duration-300 group flex flex-col justify-between">
+          <div>
+            <!-- Minimal Line-art Icon Container -->
+            <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary mb-6 group-hover:scale-105 group-hover:bg-teal-soft transition-all duration-300 shadow-xs">
+              <span class="material-symbols-outlined text-[24px]">instant_mix</span>
+            </div>
+
+            <!-- Title -->
+            <h3 class="font-headline font-semibold text-title-lg text-light-on-surface mb-3 tracking-tight" data-design-text-token="title-lg">
+              Instant Edge Deployments
+            </h3>
+
+            <!-- Description -->
+            <p class="font-body text-body-md text-slate-700 leading-relaxed mb-6" data-design-text-token="body-md">
+              Ship updates globally in under 200 milliseconds. Automated container provisioning with zero cold starts and instant rollbacks on any commit failure.
+            </p>
+          </div>
+
+          <!-- Card Subtle Action Link -->
+          <div class="pt-4 border-t border-slate-100">
+            <span class="font-label text-label-md text-light-primary font-semibold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform duration-state-change">
+              Explore Edge Engine <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </span>
+          </div>
+        </article>
+
+        <!-- Feature Card 2 -->
+        <article data-component-id="card-elevated" data-component-type="card" data-component-variant="elevated" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-6px_rgba(15,23,42,0.08)] hover:border-teal-200/80 transition-all duration-300 group flex flex-col justify-between">
+          <div>
+            <!-- Minimal Line-art Icon Container -->
+            <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary mb-6 group-hover:scale-105 group-hover:bg-teal-soft transition-all duration-300 shadow-xs">
+              <span class="material-symbols-outlined text-[24px]">query_stats</span>
+            </div>
+
+            <!-- Title -->
+            <h3 class="font-headline font-semibold text-title-lg text-light-on-surface mb-3 tracking-tight" data-design-text-token="title-lg">
+              Precision Telemetry
+            </h3>
+
+            <!-- Description -->
+            <p class="font-body text-body-md text-slate-700 leading-relaxed mb-6" data-design-text-token="body-md">
+              High-resolution traces, real-time memory heatmaps, and request logs correlated down to the exact line of code without agent overhead.
+            </p>
+          </div>
+
+          <!-- Card Subtle Action Link -->
+          <div class="pt-4 border-t border-slate-100">
+            <span class="font-label text-label-md text-light-primary font-semibold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform duration-state-change">
+              Learn about Telemetry <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </span>
+          </div>
+        </article>
+
+        <!-- Feature Card 3 -->
+        <article data-component-id="card-elevated" data-component-type="card" data-component-variant="elevated" class="bg-white rounded-2xl p-8 border border-slate-200 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.05)] hover:shadow-[0_12px_32px_-6px_rgba(15,23,42,0.08)] hover:border-teal-200/80 transition-all duration-300 group flex flex-col justify-between">
+          <div>
+            <!-- Minimal Line-art Icon Container -->
+            <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary mb-6 group-hover:scale-105 group-hover:bg-teal-soft transition-all duration-300 shadow-xs">
+              <span class="material-symbols-outlined text-[24px]">shield_lock</span>
+            </div>
+
+            <!-- Title -->
+            <h3 class="font-headline font-semibold text-title-lg text-light-on-surface mb-3 tracking-tight" data-design-text-token="title-lg">
+              Zero-Trust Security Mesh
+            </h3>
+
+            <!-- Description -->
+            <p class="font-body text-body-md text-slate-700 leading-relaxed mb-6" data-design-text-token="body-md">
+              End-to-end mTLS encryption, hardware key authentication, and strict compliance automation configured in one declarative configuration file.
+            </p>
+          </div>
+
+          <!-- Card Subtle Action Link -->
+          <div class="pt-4 border-t border-slate-100">
+            <span class="font-label text-label-md text-light-primary font-semibold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform duration-state-change">
+              View Security Standards <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </span>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- CALL TO ACTION BANNER -->
+    <!-- Minimalist, high contrast, clean soft teal theme -->
+    <!-- ========================================================================= -->
+    <section class="max-w-5xl mx-auto px-6 py-8 w-full">
+      <div class="rounded-3xl bg-gradient-to-b from-teal-50/70 to-slate-50/90 border border-teal-200/80 p-10 md:p-14 text-center relative overflow-hidden shadow-xs">
+        
+        <!-- Decorative subtle background ring -->
+        <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full border border-teal-200/40 pointer-events-none"></div>
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 rounded-full border border-teal-200/40 pointer-events-none"></div>
+
+        <h2 class="font-headline text-headline-md md:text-headline-lg font-bold text-light-on-surface tracking-tight mb-4">
+          Ready to simplify your engineering workflow?
+        </h2>
+        <p class="font-body text-body-lg text-slate-700 max-w-xl mx-auto mb-8">
+          Join thousands of developers shipping faster with Nova&#39;s ultra-clean platform. Start your 14-day free trial today.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#signup" data-component-id="button-primary" data-component-type="button" data-component-variant="primary" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-light-primary text-light-on-primary font-label text-label-lg shadow-sm hover:bg-[#0d6e66] transition-all duration-state-change hover:-translate-y-0.5">
+            <span data-design-text-token="label-lg">Get Started Free</span>
+            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          </a>
+
+          <a href="#talk-to-team" class="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white text-slate-800 border border-slate-300 font-label text-label-lg hover:bg-slate-50 transition-colors">
+            Schedule Founder Call
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MINIMAL CLEAN FOOTER -->
+  <!-- ========================================================================= -->
+  <footer class="border-t border-slate-200 bg-white py-12 px-6">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <!-- Brand & Copyright -->
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-full bg-light-primary text-light-on-primary flex items-center justify-center font-headline font-bold text-label-sm">
+          <span class="material-symbols-outlined text-[15px]">interests</span>
+        </div>
+        <span class="font-headline font-semibold text-slate-900 text-label-lg">Nova SaaS Inc.</span>
+        <span class="text-slate-600 text-label-sm">•</span>
+        <span class="font-body text-body-sm text-slate-600">© 2026 Nova. All rights reserved.</span>
+      </div>
+
+      <!-- Footer Quick Links -->
+      <div class="flex items-center gap-6 font-body text-body-sm text-slate-700">
+        <a href="#privacy" class="hover:text-light-primary transition-colors">Privacy Policy</a>
+        <a href="#terms" class="hover:text-light-primary transition-colors">Terms of Service</a>
+        <a href="#status" class="hover:text-light-primary transition-colors flex items-center gap-1.5 font-medium text-slate-800">
+          <span class="w-2 h-2 rounded-full bg-teal-600"></span>
+          Systems Operational
+        </a>
+      </div>
+
+    </div>
+  </footer>
+
+
+
+</body></html>
