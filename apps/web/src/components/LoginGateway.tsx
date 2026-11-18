@@ -83,7 +83,11 @@ export default function LoginGateway() {
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <a
-              href={authedUser.role === 'SUPER_ADMIN' ? 'http://localhost:5174' : 'http://localhost:5173'}
+              href={
+                authedUser.role === 'SUPER_ADMIN'
+                  ? import.meta.env.VITE_SUPER_ADMIN_URL || 'https://colformly-super-admin.pages.dev'
+                  : import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev'
+              }
               className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-label text-sm font-semibold transition-colors"
             >
               <span>
