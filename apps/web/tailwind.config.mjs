@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     './src/**/*.{astro,html,js,jsx,ts,tsx}',
     '../../packages/ui/src/**/*.{js,jsx,ts,tsx}',
@@ -7,18 +8,44 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: 'var(--color-primary, #6366f1)',
-        secondary: 'var(--color-secondary, #8b5cf6)',
-        accent: 'var(--color-accent, #06b6d4)',
-        surface: 'var(--color-surface, #ffffff)',
-        muted: 'var(--color-muted, #f1f5f9)',
+        primary: 'var(--color-primary, #0F766E)',
+        secondary: 'var(--color-secondary, #14B8A6)',
+        accent: 'var(--color-accent, #0D9488)',
+        surface: 'var(--color-surface, #FFFFFF)',
+        muted: 'var(--color-muted, #F8FAFC)',
+        'teal-accent': '#14B8A6',
+        'teal-soft': '#CCFBF1',
+        'light-primary': '#0F766E',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#E6FFFA',
+        'light-on-primary-container': '#115E59',
+        'light-surface': '#FFFFFF',
+        'light-on-surface': '#0F172A',
+        'light-surface-variant': '#F8FAFC',
+        'light-on-surface-variant': '#64748B',
+        'light-outline': '#E2E8F0',
+        'light-outline-variant': '#F1F5F9',
+        'dark-primary': '#2DD4BF',
+        'dark-surface': '#0B1120',
+        'cream-bg': '#FAF9F5',
       },
       fontFamily: {
-        main: ['var(--font-main, "Inter", sans-serif)'],
-        display: ['var(--font-display, "Cal Sans", sans-serif)'],
+        main: ['"Instrument Sans"', 'system-ui', 'sans-serif'],
+        body: ['"Instrument Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        headline: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        label: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"Red Hat Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         theme: 'var(--radius-theme, 0.75rem)',
+      },
+      boxShadow: {
+        'floating-nav': '0 12px 36px -6px rgba(15, 23, 42, 0.08)',
+        'floating-mockup':
+          '0 24px 50px -12px rgba(15, 23, 42, 0.12), 0 4px 16px -4px rgba(15, 23, 42, 0.04)',
+        'card-soft': '0 4px 20px -4px rgba(15, 23, 42, 0.05)',
+        'card-hover': '0 12px 32px -6px rgba(15, 23, 42, 0.08)',
       },
     },
   },

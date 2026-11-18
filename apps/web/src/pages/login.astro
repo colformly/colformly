@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LoginGateway from '../components/LoginGateway';
+---
+
+<Layout
+  title="Sign In"
+  description="Sign in to your Colformly College Portal or Super Admin Dashboard via Google OAuth or Email."
+  surfaceClass="bg-light-surface-variant"
+>
+  <main class="relative pt-28 md:pt-36 pb-20 px-4 sm:px-6 min-h-[82vh] flex items-center justify-center">
+    <div
+      class="fixed top-10 left-1/2 -translate-x-1/2 w-[720px] h-[300px] bg-teal-100/40 blur-[120px] rounded-full pointer-events-none -z-10"
+    >
+    </div>
+
+    <LoginGateway client:load />
+  </main>
+</Layout>

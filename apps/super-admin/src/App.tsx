@@ -1,19 +1,22 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from '@colformly/auth';
+import { ThemeProvider } from '@colformly/theme';
 
-function Dashboard() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-950">
-      <h1 className="text-4xl font-display font-bold text-indigo-400">
-        Colformly &mdash; Super Admin
-      </h1>
-    </div>
-  );
-}
+import Dashboard from './pages/Dashboard';
+import Clients from './pages/Clients';
+import SystemLogs from './pages/SystemLogs';
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/*" element={<Dashboard />} />
-    </Routes>
+    <AuthProvider>
+      <ThemeProvider preset="superAdmin">
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/system-logs" element={<SystemLogs />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

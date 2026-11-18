@@ -1,0 +1,61 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ContactForm from '../components/ContactForm';
+---
+
+<Layout
+  title="Contact & Campus Pilot"
+  description="Book a founder-led Colformly pilot for your college. 15-minute setup with CSV student import and BYOS support."
+  surfaceClass="bg-light-surface-variant"
+>
+  <main class="relative pt-28 md:pt-36 pb-20 px-4 sm:px-6 max-w-6xl mx-auto">
+    <div
+      class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-teal-100/35 blur-[120px] rounded-full pointer-events-none -z-10"
+    >
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      <!-- Left: Campus Onboarding Highlights -->
+      <div class="lg:col-span-5 space-y-6">
+        <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-50 border border-teal-200 text-light-primary font-label text-xs font-bold">
+          Direct Founder Engineering
+        </span>
+
+        <h1 class="font-headline font-extrabold text-4xl text-slate-900 tracking-tight leading-tight">
+          Deploy Colformly on your campus this week.
+        </h1>
+
+        <p class="font-body text-base text-slate-600 leading-relaxed">
+          Skip months of ERP procurement. We provision your college&apos;s isolated tenant, import
+          your CSV roster, and configure custom structural branding on a single call.
+        </p>
+
+        <div class="space-y-3.5 pt-2">
+          <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-card-soft">
+            <p class="font-headline font-bold text-sm text-slate-900">1. Isolated Tenant Provisioned</p>
+            <p class="text-xs text-slate-600 mt-0.5">
+              Strict PostgreSQL RLS scoped to your <code class="font-mono text-light-primary">org_id</code>.
+            </p>
+          </div>
+          <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-card-soft">
+            <p class="font-headline font-bold text-sm text-slate-900">2. CSV Roster &amp; Courses Loaded</p>
+            <p class="text-xs text-slate-600 mt-0.5">
+              Course → Year → Section hierarchy mapped in under 5 minutes.
+            </p>
+          </div>
+          <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-card-soft">
+            <p class="font-headline font-bold text-sm text-slate-900">3. First Cheat-Proof Test Live</p>
+            <p class="text-xs text-slate-600 mt-0.5">
+              Proven at Aravali College with 1,850+ students and ₹0 cloud burn.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Interactive Lead-Gen Form -->
+      <div class="lg:col-span-7">
+        <ContactForm client:load />
+      </div>
+    </div>
+  </main>
+</Layout>

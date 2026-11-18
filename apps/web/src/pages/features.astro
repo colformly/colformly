@@ -1,0 +1,145 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const features = [
+  {
+    tag: 'BYOS Zero-Cost Engine',
+    title: 'Bring Your Own Supabase & Edge',
+    desc: 'Every college owns its PostgreSQL database and Cloudflare Worker AI router. Zero vendor lock-in, zero surprise cloud bills even during 10,000-student exam peaks.',
+    highlight: '0ms cold-start Workers + RLS',
+  },
+  {
+    tag: 'Anti-Cheat Viewport',
+    title: 'Browser-Native Exam Lockdown',
+    desc: 'Monitors Document.visibilityState for tab switching, enforces the Fullscreen API, disables right-click & DevTools shortcuts, and logs every violation directly to student_results.',
+    highlight: 'No invasive desktop spyware',
+  },
+  {
+    tag: 'Structural Theming',
+    title: 'Adaptive Org Branding Engine',
+    desc: 'Themes control more than colors: switch between floating glassmorphism vs solid institutional layouts, animation intensity, and gamified rounded-3xl vs enterprise rounded-md UI.',
+    highlight: 'Live-preview in /org/branding',
+  },
+  {
+    tag: 'Faculty Studio',
+    title: 'Notion-Style Block Test Studio',
+    desc: 'Compose MCQ, True/False, and structured tests with slash-style blocks, generate question banks via BYOC AI modal, and stamp results with your handwritten signature.',
+    highlight: 'Custom grading blessings included',
+  },
+  {
+    tag: 'Student Engagement',
+    title: 'Gamified Leaderboards & SVG Paper',
+    desc: 'Students experience instant SVG red/green ink grading animations, class podiums, subject master badges, and one-click AI “Real Life” and “Summarize” explainers for wrong answers.',
+    highlight: 'Privacy-preserving RPC ranking',
+  },
+  {
+    tag: 'Campus Administration',
+    title: 'CSV Directory & Course Hierarchy',
+    desc: 'Drag-and-drop CSV onboarding for thousands of students and faculty mapped cleanly into Course > Year > Section accordions with strict org_id RLS isolation.',
+    highlight: '5-minute semester rollover',
+  },
+];
+---
+
+<Layout
+  title="Features — Built for Cheat-Proof Campus Scale"
+  description="Explore Colformly's 3-column feature architecture: BYOS zero-cost stack, anti-cheat exam lock, structural theming, and instant AI grading."
+  surfaceClass="bg-light-surface-variant"
+>
+  <main class="relative pt-28 md:pt-36 pb-20 px-6 max-w-6xl mx-auto flex flex-col gap-16">
+    <div
+      class="fixed top-0 left-1/2 -translate-x-1/2 w-[820px] h-[300px] bg-teal-100/35 blur-[120px] rounded-full pointer-events-none -z-10"
+    >
+    </div>
+
+    <!-- Header -->
+    <header class="text-center max-w-3xl mx-auto space-y-4">
+      <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-teal-50 border border-teal-200 text-light-primary font-label text-xs font-bold">
+        Platform Capabilities
+      </span>
+      <h1 class="font-headline font-extrabold text-4xl sm:text-5xl text-slate-900 tracking-tight">
+        Everything a college exam cell needs. Nothing that slows it down.
+      </h1>
+      <p class="font-body text-lg text-slate-600">
+        Architected from day one for strict multi-tenant PostgreSQL security, instant grading UX,
+        and zero-cost scalability.
+      </p>
+    </header>
+
+    <!-- 3-COLUMN FEATURE GRID -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-7 items-stretch">
+      {features.map((f, idx) => (
+        <article class="bg-white rounded-3xl p-7 border border-slate-200/90 shadow-card-soft hover:shadow-card-hover hover:border-teal-200 transition-all flex flex-col justify-between gap-6">
+          <div class="space-y-3.5">
+            <div class="flex items-center justify-between">
+              <span class="px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-light-primary font-label text-[11px] font-bold">
+                {f.tag}
+              </span>
+              <span class="font-mono text-xs text-slate-400 font-semibold">0{idx + 1}</span>
+            </div>
+            <h2 class="font-headline font-bold text-xl text-slate-900 tracking-tight">
+              {f.title}
+            </h2>
+            <p class="font-body text-sm text-slate-600 leading-relaxed">
+              {f.desc}
+            </p>
+          </div>
+          <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-mono font-semibold text-light-primary">
+            <span>{f.highlight}</span>
+            <span>✓</span>
+          </div>
+        </article>
+      ))}
+    </section>
+
+    <!-- Comparison Matrix -->
+    <section class="rounded-3xl bg-white border border-slate-200/90 shadow-card-soft overflow-hidden">
+      <div class="p-7 sm:p-8 border-b border-slate-100">
+        <h2 class="font-headline font-bold text-2xl text-slate-900">
+          Why Colleges Switch from Google Forms &amp; Legacy LMS
+        </h2>
+        <p class="text-sm text-slate-600 mt-1">
+          Side-by-side comparison across security, cost, and academic workflows.
+        </p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 font-label text-xs uppercase tracking-wider text-slate-500">
+              <th class="py-4 px-6">Capability</th>
+              <th class="py-4 px-6 text-light-primary font-bold">Colformly</th>
+              <th class="py-4 px-6">Google Forms</th>
+              <th class="py-4 px-6">Legacy Per-Seat LMS</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr>
+              <td class="py-4 px-6 font-semibold text-slate-900">Tab-Switch &amp; Fullscreen Anti-Cheat</td>
+              <td class="py-4 px-6 text-light-primary font-bold">Built-in + Logged</td>
+              <td class="py-4 px-6 text-slate-500">None</td>
+              <td class="py-4 px-6 text-slate-600">Paid add-on</td>
+            </tr>
+            <tr>
+              <td class="py-4 px-6 font-semibold text-slate-900">Cheat-Proof Answer Keys (DB RLS)</td>
+              <td class="py-4 px-6 text-light-primary font-bold">Enforced in Postgres</td>
+              <td class="py-4 px-6 text-slate-500">Client-side risks</td>
+              <td class="py-4 px-6 text-slate-600">App-layer only</td>
+            </tr>
+            <tr>
+              <td class="py-4 px-6 font-semibold text-slate-900">Pricing Model</td>
+              <td class="py-4 px-6 text-light-primary font-bold">Flat Campus License</td>
+              <td class="py-4 px-6 text-slate-500">Free (No exam controls)</td>
+              <td class="py-4 px-6 text-slate-600">₹300–₹800 / student</td>
+            </tr>
+            <tr>
+              <td class="py-4 px-6 font-semibold text-slate-900">Topic Autopsy &amp; BYOC AI Review</td>
+              <td class="py-4 px-6 text-light-primary font-bold">Instant &amp; Automated</td>
+              <td class="py-4 px-6 text-slate-500">Manual spreadsheets</td>
+              <td class="py-4 px-6 text-slate-600">Basic CSV export</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</Layout>

@@ -1,23 +1,27 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
     '../../packages/ui/src/**/*.{js,jsx,ts,tsx}',
+    '../../packages/theme/src/**/*.{js,jsx,ts,tsx}',
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        primary: 'var(--color-primary, #6366f1)',
-        secondary: 'var(--color-secondary, #8b5cf6)',
-        accent: 'var(--color-accent, #06b6d4)',
-        surface: 'var(--color-surface, #0a0a0f)',
-        muted: 'var(--color-muted, #1e1e2e)',
+        primary: 'var(--color-primary, #14B8A6)',
+        secondary: 'var(--color-secondary, #2DD4BF)',
+        accent: 'var(--color-accent, #34D399)',
+        surface: 'var(--color-surface, #09090B)',
+        muted: 'var(--color-muted, #18181B)',
       },
       fontFamily: {
-        main: ['var(--font-main, "Inter", sans-serif)'],
-        display: ['var(--font-display, "Cal Sans", sans-serif)'],
+        main: ['"Instrument Sans"', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        headline: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        label: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"Red Hat Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         theme: 'var(--radius-theme, 0.75rem)',

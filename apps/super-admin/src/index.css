@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-primary: #14B8A6;
+  --color-secondary: #2DD4BF;
+  --color-accent: #34D399;
+  --color-surface: #09090B;
+  --color-muted: #18181B;
+  --font-main: 'Instrument Sans', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius-theme: 0.75rem;
+}
+
+.terminal-grid {
+  background-image: linear-gradient(rgba(20, 184, 166, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 184, 166, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}

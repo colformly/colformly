@@ -1,3 +1,39 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-primary: #0F766E;
+  --color-secondary: #14B8A6;
+  --color-accent: #0D9488;
+  --color-surface: #FFFFFF;
+  --color-muted: #F8FAFC;
+  --font-main: 'Instrument Sans', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius-theme: 1rem;
+}
+
+@keyframes drawStroke {
+  0% {
+    stroke-dashoffset: 400;
+    opacity: 0.2;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.animate-ink-stroke {
+  stroke-dasharray: 400;
+  animation: drawStroke 1.25s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.font-signature {
+  font-family: 'Caveat', cursive;
+}
+
+.paper-grid {
+  background-image: radial-gradient(rgba(15, 118, 110, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}

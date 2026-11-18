@@ -1,24 +1,52 @@
 ---
 import '../styles/global.css';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
 
 interface Props {
   title: string;
   description?: string;
+  surfaceClass?: string;
 }
 
-const { title, description = 'Colformly - Instant Grading for Colleges' } = Astro.props;
+const {
+  title,
+  description = 'Colformly — Zero-cost, cheat-proof B2B EdTech assessment & instant grading platform for colleges.',
+  surfaceClass = 'bg-light-surface',
+} = Astro.props;
+
+const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.workers.dev; base-uri 'self'; form-action 'self'; object-src 'none';"
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Red+Hat+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <title>{title} | Colformly</title>
   </head>
-  <body class="min-h-screen bg-surface text-gray-900 font-main antialiased">
-    <slot />
+  <body
+    class:list={[
+      surfaceClass,
+      'text-light-on-surface font-body antialiased min-h-screen flex flex-col selection:bg-teal-soft selection:text-light-primary',
+    ]}
+  >
+    <Navbar currentPath={currentPath} />
+    <div class="flex-1">
+      <slot />
+    </div>
+    <Footer />
   </body>
 </html>

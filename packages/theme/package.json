@@ -9,10 +9,8 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "@colformly/types": "workspace:*",
     "react": "^19.1.0"
-  },
-  "peerDependencies": {
-    "@colformly/types": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.8.0",
