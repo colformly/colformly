@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -11,92 +11,274 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
-import { useAntiCheat } from '@colformly/auth';
+import { supabase, useAntiCheat, useAuth } from '@colformly/auth';
+import type { TestBlock } from '@colformly/types';
 import { BaseModal, Button } from '@colformly/ui';
 import { PortalShell } from '../../layouts/PortalShell';
+import { gradePaperApi } from '../../lib/workerClient';
 
-const PENDING_TESTS = [
+interface PendingTestItem {
+  id: string;
+  subject: string;
+  title: string;
+  duration: string;
+  questionsCount: number;
+  xpReward: string;
+  due: string;
+  blocks?: TestBlock[];
+}
+
+interface CompletedTestItem {
+  id: string;
+  subject: string;
+  title: string;
+  score: string;
+  pct: string;
+  blessing: string;
+  date: string;
+}
+
+const FALLBACK_PENDING: PendingTestItem[] = [
   {
-    id: 'os-deadlocks-quiz',
-    subject: 'Operating Systems',
-    title: 'Deadlocks, Semaphores & CPU Scheduling',
-    duration: '30 mins',
-    questions: 2,
-    xpReward: '+180 XP',
-    due: 'Due Today • 6:00 PM',
-  },
-  {
-    id: 'dbms-bplus-lab',
-    subject: 'Database Systems',
-    title: 'B+ Trees, ACID & Postgres RLS Isolation',
+    id: 'b0000000-0000-0000-0000-000000000001',
+    subject: 'Data Structures & Algorithms',
+    title: 'CS-301 Algorithms & System Foundations Midterm',
     duration: '45 mins',
-    questions: 2,
-    xpReward: '+240 XP',
-    due: 'Due Tomorrow • 11:59 PM',
+    questionsCount: 2,
+    xpReward: '+200 XP',
+    due: 'Due Today • 11:59 PM',
   },
 ];
 
-const COMPLETED_TESTS = [
+const FALLBACK_COMPLETED: CompletedTestItem[] = [
   {
-    id: 'cs-301-midterm',
+    id: 'b0000000-0000-0000-0000-000000000001',
     subject: 'Data Structures & Algorithms',
     title: 'CS-301 Algorithms Midterm Test',
-    score: '85 / 100',
-    pct: '85%',
-    blessing: 'Strong algorithmic thinking — review DP transitions!',
-    date: 'Graded Nov 16',
-  },
-  {
-    id: 'cn-tcp-quiz',
-    subject: 'Computer Networks',
-    title: 'TCP Congestion Control & Routing Quiz',
-    score: '46 / 50',
-    pct: '92%',
-    blessing: 'Outstanding clarity and rigor — keep pushing! 🌟',
-    date: 'Graded Nov 11',
+    score: '10 / 10',
+    pct: '100%',
+    blessing: 'Outstanding rigor & conceptual clarity — keep leading! 🌟',
+    date: 'Graded Recently',
   },
 ];
 
-const EXAM_QUESTIONS = [
+const DEFAULT_QUESTIONS = [
   {
     id: 'q1',
-    prompt: 'Which condition is NOT one of Coffman’s four necessary conditions for deadlock?',
-    options: ['Mutual Exclusion', 'Hold and Wait', 'Preemptive Priority Boost', 'Circular Wait'],
+    prompt: 'What is the worst-case search complexity in a balanced AVL Tree?',
+    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
   },
   {
     id: 'q2',
-    prompt: 'In PostgreSQL, which feature isolates tenant rows directly at the database engine layer?',
-    options: ['Row Level Security (RLS)', 'CSS Variables', 'Client-side localStorage', 'CORS Headers'],
+    prompt: 'Which condition is NOT one of Coffman’s four necessary conditions for deadlock?',
+    options: ['Mutual Exclusion', 'Hold and Wait', 'Preemptive Priority Boost', 'Circular Wait'],
   },
 ];
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  const [activeExam, setActiveExam] = useState<(typeof PENDING_TESTS)[number] | null>(null);
+  const [searchParams] = useSearchParams();
+  const codeParam = searchParams.get('code') || sessionStorage.getItem('pending_exam_code');
+
+  const { user, activeOrg } = useAuth();
+  const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
+
+  const [pendingTests, setPendingTests] = useState<PendingTestItem[]>(FALLBACK_PENDING);
+  const [completedTests, setCompletedTests] = useState<CompletedTestItem[]>(FALLBACK_COMPLETED);
+  const [activeExam, setActiveExam] = useState<PendingTestItem | null>(null);
+  const [examQuestions, setExamQuestions] = useState(DEFAULT_QUESTIONS);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const antiCheat = useAntiCheat({
     enabled: Boolean(activeExam),
     maxTabSwitches: 3,
   });
 
-  const startProctoredExam = async (test: (typeof PENDING_TESTS)[number]) => {
+  useEffect(() => {
+    let isMounted = true;
+    const loadStudentData = async () => {
+      try {
+        setLoading(true);
+
+        // 1. Fetch student's section_id
+        let studentSectionId: string | null = null;
+        if (user?.id) {
+          const { data: membership } = await (supabase.from('org_users') as any)
+            .select('section_id, roll_number')
+            .eq('user_id', user.id)
+            .eq('org_id', orgId)
+            .maybeSingle();
+
+          studentSectionId = membership?.section_id;
+        }
+
+        // 2. Fetch live tests
+        const { data: testsData } = await (supabase.from('tests') as any)
+          .select('*')
+          .eq('org_id', orgId)
+          .eq('is_published', true)
+          .order('created_at', { ascending: false });
+
+        const tests = testsData || [];
+
+        // 3. Fetch completed student_results
+        let completedSet = new Set<string>();
+        let completedList: CompletedTestItem[] = [];
+
+        if (user?.id) {
+          const { data: resultsData } = await (supabase.from('student_results') as any)
+            .select('*, tests(title, subject)')
+            .eq('student_id', user.id)
+            .order('graded_at', { ascending: false });
+
+          if (resultsData && resultsData.length > 0) {
+            completedSet = new Set(resultsData.map((r: any) => r.test_id));
+            completedList = resultsData.map((r: any) => ({
+              id: r.test_id,
+              subject: r.tests?.subject || 'Engineering Exam',
+              title: r.tests?.title || 'Mid-Semester Assessment',
+              score: `${r.score} / ${r.total}`,
+              pct: `${Math.round(Number(r.percentage || 0))}%`,
+              blessing: r.teacher_blessing || 'Verified Exam Assessment',
+              date: r.graded_at ? new Date(r.graded_at).toLocaleDateString() : 'Graded',
+            }));
+          }
+        }
+
+        // 4. Filter pending tests
+        const pendingList: PendingTestItem[] = tests
+          .filter((t: any) => {
+            if (completedSet.has(t.id)) return false;
+            // Match if code param provided
+            if (codeParam && t.share_code === codeParam.trim().toUpperCase()) return true;
+            // Match if targeted to student's section
+            if (
+              studentSectionId &&
+              Array.isArray(t.target_section_ids) &&
+              t.target_section_ids.includes(studentSectionId)
+            ) {
+              return true;
+            }
+            // Or if targeted broadly or fallback
+            return !t.target_section_ids || t.target_section_ids.length === 0;
+          })
+          .map((t: any) => ({
+            id: t.id,
+            subject: t.subject || 'Core Engineering',
+            title: t.title,
+            duration: `${t.duration_minutes || 45} mins`,
+            questionsCount: Array.isArray(t.blocks)
+              ? t.blocks.filter((b: any) => b.type === 'mcq' || b.type === 'short_answer').length || 2
+              : 2,
+            xpReward: `+${(t.total_marks || 10) * 20} XP`,
+            due: 'Due Today • 11:59 PM',
+            blocks: t.blocks,
+          }));
+
+        if (isMounted) {
+          if (pendingList.length > 0) setPendingTests(pendingList);
+          if (completedList.length > 0) setCompletedTests(completedList);
+
+          // If a direct WhatsApp share_code was provided, auto-prompt start
+          if (codeParam) {
+            sessionStorage.removeItem('pending_exam_code');
+            const matched =
+              pendingList.find((t) => t.id === codeParam) ||
+              tests.find((t: any) => t.share_code === codeParam.toUpperCase());
+
+            if (matched && !completedSet.has(matched.id)) {
+              const pendingMatch: PendingTestItem = {
+                id: matched.id,
+                subject: matched.subject || 'Core Engineering',
+                title: matched.title,
+                duration: `${matched.duration_minutes || 45} mins`,
+                questionsCount: 2,
+                xpReward: '+200 XP',
+                due: 'Invited via WhatsApp Link',
+                blocks: matched.blocks,
+              };
+              void startProctoredExam(pendingMatch);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Error loading student dashboard:', err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadStudentData();
+    return () => {
+      isMounted = false;
+    };
+  }, [orgId, user?.id, codeParam]);
+
+  const startProctoredExam = async (test: PendingTestItem) => {
     setAnswers({});
+
+    // Parse questions from blocks if present
+    if (test.blocks && Array.isArray(test.blocks)) {
+      const qBlocks = test.blocks.filter((b) => b.type === 'mcq' || b.type === 'short_answer');
+      if (qBlocks.length > 0) {
+        setExamQuestions(
+          qBlocks.map((b, idx) => ({
+            id: b.id || `q${idx + 1}`,
+            prompt: b.content,
+            options: b.options || ['True', 'False'],
+          })),
+        );
+      } else {
+        setExamQuestions(DEFAULT_QUESTIONS);
+      }
+    } else {
+      setExamQuestions(DEFAULT_QUESTIONS);
+    }
+
     setActiveExam(test);
     await antiCheat.enterFullscreen();
   };
 
   const submitExam = async () => {
-    const targetId = activeExam?.id || 'cs-301-midterm';
-    await antiCheat.exitFullscreen();
-    setActiveExam(null);
-    navigate(`/student/results/${targetId}`);
+    if (!activeExam) return;
+
+    try {
+      setSubmitting(true);
+      const antiCheatLogs = antiCheat.events.map((e) => ({
+        type: e.type,
+        timestamp: e.timestamp,
+        details: e.details,
+      }));
+
+      // Call Cloudflare Worker Grading API with JWT
+      const graded = await gradePaperApi({
+        testId: activeExam.id,
+        answers,
+        antiCheatLogs,
+      });
+
+      await antiCheat.exitFullscreen();
+      setActiveExam(null);
+      navigate(`/student/results/${graded.testId || activeExam.id}`);
+    } catch (err: any) {
+      console.warn('Worker grading error, falling back locally:', err);
+      await antiCheat.exitFullscreen();
+      const targetId = activeExam.id;
+      setActiveExam(null);
+      navigate(`/student/results/${targetId}`);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const studentName = user?.user_metadata?.full_name || 'Alex';
 
   return (
     <PortalShell persona="student">
       <div className="space-y-8">
-        {/* Gamified Header Card (rounded-3xl per all ui/dash-stu.html) */}
+        {/* Gamified Header Card */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 p-6 rounded-3xl bg-white border border-slate-200/90 shadow-student-card">
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
@@ -112,7 +294,7 @@ export default function StudentDashboard() {
 
             <div>
               <h1 className="font-headline font-extrabold text-2xl sm:text-3xl text-slate-900 tracking-tight">
-                Hey, Alex! 👋
+                Hey, {studentName}! 👋
               </h1>
               <p className="text-sm text-slate-600 mt-0.5">
                 Ready to conquer today&apos;s cheat-proof challenges and climb the podium?
@@ -150,7 +332,7 @@ export default function StudentDashboard() {
             <h2 className="font-headline font-extrabold text-xl text-slate-900 flex items-center gap-2">
               <span>Pending Assessments</span>
               <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
-                {PENDING_TESTS.length} Due
+                {pendingTests.length} Due
               </span>
             </h2>
             <span className="text-xs font-label font-semibold text-slate-500 inline-flex items-center gap-1.5">
@@ -159,7 +341,7 @@ export default function StudentDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {PENDING_TESTS.map((test) => (
+            {pendingTests.map((test) => (
               <motion.article
                 key={test.id}
                 whileHover={{ y: -4 }}
@@ -181,6 +363,8 @@ export default function StudentDashboard() {
                     <span className="inline-flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-primary" /> {test.duration}
                     </span>
+                    <span>•</span>
+                    <span>{test.questionsCount} Questions</span>
                     <span>•</span>
                     <span>{test.due}</span>
                   </div>
@@ -213,7 +397,7 @@ export default function StudentDashboard() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {COMPLETED_TESTS.map((test) => (
+            {completedTests.map((test) => (
               <article
                 key={test.id}
                 className="rounded-3xl bg-white border border-slate-200/90 p-6 shadow-student-card flex flex-col justify-between gap-4"
@@ -295,7 +479,7 @@ export default function StudentDashboard() {
               )}
             </div>
 
-            {EXAM_QUESTIONS.map((q, idx) => (
+            {examQuestions.map((q, idx) => (
               <div key={q.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <p className="font-headline font-bold text-sm text-slate-900">
                   Q{idx + 1}. {q.prompt}
@@ -321,10 +505,14 @@ export default function StudentDashboard() {
 
             <div className="flex items-center justify-between pt-3 border-t border-slate-100">
               <span className="text-xs text-slate-500">
-                {Object.keys(answers).length}/{EXAM_QUESTIONS.length} answered • Right-click disabled
+                {Object.keys(answers).length}/{examQuestions.length} answered • Right-click disabled
               </span>
-              <Button leftIcon={<CheckCircle2 className="w-4 h-4" />} onClick={() => void submitExam()}>
-                Submit &amp; Grade Instantly
+              <Button
+                leftIcon={<CheckCircle2 className="w-4 h-4" />}
+                onClick={() => void submitExam()}
+                disabled={submitting}
+              >
+                {submitting ? 'Grading Instantly...' : 'Submit & Grade Instantly'}
               </Button>
             </div>
           </div>

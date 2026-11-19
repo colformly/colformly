@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Eraser, PenTool, Plus, Sparkles, X } from 'lucide-react';
+import { supabase, useAuth } from '@colformly/auth';
 import { useTheme } from '@colformly/theme';
 import { Button } from '@colformly/ui';
 import { PortalShell } from '../../layouts/PortalShell';
@@ -12,12 +13,45 @@ const INITIAL_BLESSINGS = [
 
 export default function TeacherSettings() {
   const { classes, cardRadius } = useTheme();
+  const { user } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawing, setDrawing] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
   const [blessings, setBlessings] = useState<string[]>(INITIAL_BLESSINGS);
   const [newBlessing, setNewBlessing] = useState('');
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Load existing profile settings from Supabase
+  useEffect(() => {
+    let isMounted = true;
+    const loadTeacherProfile = async () => {
+      if (!user?.id) return;
+      try {
+        const { data, error } = await (supabase.from('users') as any)
+          .select('signature_url, grading_blessings, full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (data && isMounted) {
+          if (data.signature_url) {
+            setSignatureData(data.signature_url);
+          }
+          if (Array.isArray(data.grading_blessings) && data.grading_blessings.length > 0) {
+            setBlessings(data.grading_blessings as string[]);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not load user profile settings:', err);
+      }
+    };
+
+    void loadTeacherProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
 
   const getCoords = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -68,13 +102,37 @@ export default function TeacherSettings() {
     setNewBlessing('');
   };
 
+  const saveFacultyPreferences = async () => {
+    try {
+      setSaving(true);
+      if (user?.id) {
+        const { error } = await (supabase.from('users') as any)
+          .update({
+            signature_url: signatureData,
+            grading_blessings: blessings,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2400);
+    } catch (err: any) {
+      console.error('Error saving faculty preferences:', err);
+      alert(`Error saving preferences: ${err.message || 'Check database permissions'}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <PortalShell persona="teacher">
       <div className="space-y-7">
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <p className="font-label text-xs text-primary font-bold uppercase tracking-wider mb-1">
-              Human Touch in Automated Grading
+              Human Touch in Automated Grading • Live Supabase Profile
             </p>
             <h1 className="font-headline font-bold text-2xl sm:text-3xl text-slate-900">
               Handwriting Signature &amp; Grading Blessings
@@ -84,12 +142,10 @@ export default function TeacherSettings() {
           <Button
             size="sm"
             leftIcon={<Check className="w-4 h-4" />}
-            onClick={() => {
-              setSaved(true);
-              setTimeout(() => setSaved(false), 2400);
-            }}
+            onClick={() => void saveFacultyPreferences()}
+            disabled={saving}
           >
-            {saved ? 'Saved to Profile!' : 'Save Faculty Preferences'}
+            {saving ? 'Saving...' : saved ? 'Saved to Profile!' : 'Save Faculty Preferences'}
           </Button>
         </header>
 
@@ -111,7 +167,7 @@ export default function TeacherSettings() {
             </div>
 
             <p className="text-xs text-slate-500">
-              Draw your signature below. It automatically stamps onto student SVG graded scorecards.
+              Draw your signature below. It automatically stamps onto student SVG graded scorecards via the Cloudflare Worker.
             </p>
 
             <div className={`border-2 border-dashed border-slate-300 bg-cream-bg paper-grid overflow-hidden ${cardRadius}`}>
@@ -136,7 +192,9 @@ export default function TeacherSettings() {
                 {signatureData ? (
                   <img src={signatureData} alt="Drawn faculty signature" className="h-12 mt-1" />
                 ) : (
-                  <p className="font-signature text-3xl text-primary mt-1">Prof. Sarah Mitchell</p>
+                  <p className="font-signature text-3xl text-primary mt-1">
+                    {user?.user_metadata?.full_name || 'Prof. Sarah Mitchell'}
+                  </p>
                 )}
               </div>
               <span className="px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-primary font-mono text-xs font-bold">

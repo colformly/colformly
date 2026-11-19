@@ -1,0 +1,21 @@
+{
+  "name": "@colformly/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@colformly/types": "workspace:*",
+    "@supabase/supabase-js": "^2.119.0",
+    "hono": "^4.6.10"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241112.0",
+    "typescript": "^5.6.3",
+    "wrangler": "^3.88.0"
+  }
+}

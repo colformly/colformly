@@ -74,8 +74,8 @@ const NAV_CONFIG: Record<
 export function PortalShell({ persona, children }: PortalShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { layoutMode, applyPreset, classes } = useTheme();
-  const { profile, role, memberships, orgId, refreshProfile, signOut } = useAuth();
+  const { layoutMode, classes } = useTheme();
+  const { user, profile, role, memberships, orgId, refreshProfile, signOut } = useAuth();
   const cfg = NAV_CONFIG[persona];
 
   // Student Onboarding State
@@ -145,9 +145,14 @@ export function PortalShell({ persona, children }: PortalShellProps) {
     }
   }, [sectionOptions, selectedSectionId]);
 
+  // Clean roll number (alphanumeric uppercase only)
+  const formatRollNumber = (raw: string) => raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const formattedRollPreview = formatRollNumber(rollNumber);
+
   const handleStudentOnboardingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rollNumber.trim()) {
+    const cleanedRoll = formatRollNumber(rollNumber);
+    if (!cleanedRoll) {
       setOnboardingError('Please enter your university/college Roll Number.');
       return;
     }
@@ -163,7 +168,7 @@ export function PortalShell({ persona, children }: PortalShellProps) {
       if (activeMembership) {
         const { error: updateErr } = await (supabase.from('org_users') as any)
           .update({
-            roll_number: rollNumber.trim().toUpperCase(),
+            roll_number: cleanedRoll,
             section_id: selectedSectionId,
             onboarding_completed: true,
           })
@@ -179,6 +184,13 @@ export function PortalShell({ persona, children }: PortalShellProps) {
       }
       setDemoOnboarded(true);
       setSubmittingOnboarding(false);
+
+      // Check if student had a pending exam link
+      const pendingCode = sessionStorage.getItem('pending_exam_code');
+      if (pendingCode) {
+        sessionStorage.removeItem('pending_exam_code');
+        navigate(`/student/dashboard?code=${encodeURIComponent(pendingCode)}`, { replace: true });
+      }
     } catch (err) {
       setOnboardingError(err instanceof Error ? err.message : 'Failed to save student profile.');
       setSubmittingOnboarding(false);
@@ -192,17 +204,13 @@ export function PortalShell({ persona, children }: PortalShellProps) {
       (item.id === 's-res' && location.pathname.startsWith('/student/results')),
   }));
 
-  const switchPersona = (next: PortalPersona) => {
-    if (next === 'student') {
-      applyPreset('gamified');
-      navigate('/student/dashboard');
-    } else if (next === 'teacher') {
-      applyPreset('default');
-      navigate('/teacher/dashboard');
-    } else {
-      applyPreset('default');
-      navigate('/org/dashboard');
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.warn('Sign out warning:', err);
     }
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -227,8 +235,8 @@ export function PortalShell({ persona, children }: PortalShellProps) {
                 <span className="font-headline font-bold text-sm text-slate-900 truncate">
                   {cfg.brandTitle}
                 </span>
-                <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold tracking-wider">
-                  {cfg.badge}
+                <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-bold tracking-wider uppercase">
+                  {role || cfg.badge}
                 </span>
               </div>
               <p className="text-xs text-slate-500 truncate">{cfg.brandSub}</p>
@@ -242,54 +250,28 @@ export function PortalShell({ persona, children }: PortalShellProps) {
           </Link>
         )}
         footer={
-          <div className="space-y-3">
-            {/* Quick Role Portal Switcher */}
-            <div className="p-1.5 rounded-xl bg-slate-100/90 border border-slate-200/80 grid grid-cols-3 gap-1">
-              {(
-                [
-                  { id: 'org', label: 'Admin' },
-                  { id: 'teacher', label: 'Teacher' },
-                  { id: 'student', label: 'Student' },
-                ] as const
-              ).map((r) => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => switchPersona(r.id)}
-                  className={`py-1.5 rounded-lg text-[11px] font-label font-bold transition-all ${
-                    persona === r.id
-                      ? 'bg-white text-primary shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between gap-2 px-1">
-              <div className="min-w-0">
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 px-1">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
                 <p className="text-xs font-headline font-bold text-slate-900 truncate">
-                  {profile?.full_name ||
-                    (persona === 'org'
-                      ? 'Admin Principal'
-                      : persona === 'teacher'
-                        ? 'Prof. Sarah Mitchell'
-                        : 'Alex Verma')}
+                  {profile?.full_name || user?.user_metadata?.full_name || 'Campus Member'}
                 </p>
-                <p className="text-[11px] text-slate-500 truncate">
-                  {profile?.email || `${persona}@aravali.edu.in`}
-                </p>
+                <span className="px-1.5 py-0.5 rounded-full bg-slate-100 text-[9px] font-mono font-bold text-slate-600 uppercase">
+                  {role || persona}
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => void signOut()}
-                title="Sign Out"
-                className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <p className="text-[11px] text-slate-500 truncate">
+                {profile?.email || user?.email || `${persona}@aravali.edu.in`}
+              </p>
             </div>
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              title="Sign Out"
+              className="p-2 rounded-xl text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         }
       />
@@ -300,27 +282,6 @@ export function PortalShell({ persona, children }: PortalShellProps) {
           isFloating ? 'md:ml-[280px]' : ''
         }`}
       >
-        {/* Mobile Role Switcher Strip */}
-        <div className="md:hidden mb-4 flex items-center justify-between gap-2 p-2 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          <span className="text-xs font-headline font-bold text-slate-900 pl-2">
-            {cfg.brandTitle}
-          </span>
-          <div className="flex gap-1">
-            {(['org', 'teacher', 'student'] as const).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => switchPersona(r)}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-label font-bold ${
-                  persona === r ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                {r === 'org' ? 'Admin' : r === 'teacher' ? 'Teacher' : 'Student'}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="max-w-6xl mx-auto">{children}</div>
       </main>
 
@@ -354,17 +315,32 @@ export function PortalShell({ persona, children }: PortalShellProps) {
 
           <form onSubmit={handleStudentOnboardingSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-label font-bold text-slate-700 mb-1.5">
-                Roll Number / Student ID
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-label font-bold text-slate-700">
+                  Roll Number / Student ID
+                </label>
+                {formattedRollPreview && (
+                  <span className="text-[11px] font-mono text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/80">
+                    Preview: {formattedRollPreview}
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 required
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
-                placeholder="e.g. 24CSE041"
+                placeholder="e.g. 24-CSE-041"
                 className={`w-full px-4 py-3 text-sm font-mono uppercase ${classes.input}`}
               />
+              {rollNumber.trim() && formattedRollPreview !== rollNumber.trim() && (
+                <p className="mt-1.5 text-[11px] text-slate-500 font-mono flex items-center gap-1">
+                  <span>Normalized:</span>
+                  <span className="font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
+                    {formattedRollPreview}
+                  </span>
+                </p>
+              )}
             </div>
 
             {/* Cascading Dropdowns: Course -> Year -> Section */}

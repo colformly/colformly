@@ -11,9 +11,11 @@
     "dev:web": "turbo run dev --filter=@colformly/web",
     "dev:org": "turbo run dev --filter=@colformly/org-portal",
     "dev:admin": "turbo run dev --filter=@colformly/super-admin",
+    "dev:worker": "turbo run dev --filter=@colformly/worker",
     "build:web": "turbo run build --filter=@colformly/web",
     "build:org": "turbo run build --filter=@colformly/org-portal",
-    "build:admin": "turbo run build --filter=@colformly/super-admin"
+    "build:admin": "turbo run build --filter=@colformly/super-admin",
+    "build:worker": "turbo run build --filter=@colformly/worker"
   },
   "packageManager": "pnpm@10.21.0",
   "engines": {

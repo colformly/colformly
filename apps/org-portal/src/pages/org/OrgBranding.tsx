@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Palette, RotateCcw, Sparkles } from 'lucide-react';
+import { supabase, useAuth } from '@colformly/auth';
 import {
   useTheme,
   type ThemeAnimationIntensity,
@@ -19,12 +20,49 @@ const COLOR_SWATCHES = [
 
 export default function OrgBranding() {
   const { theme, updateTheme, applyPreset, resetTheme, classes } = useTheme();
-  const [collegeName, setCollegeName] = useState('Aravali College of Engineering');
+  const { activeOrg, setActiveOrg } = useAuth();
+
+  const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
+
+  const [collegeName, setCollegeName] = useState(
+    activeOrg?.name || 'Aravali College of Engineering',
+  );
+  const [saving, setSaving] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
 
-  const handleSave = () => {
-    setSavedToast(true);
-    setTimeout(() => setSavedToast(false), 2600);
+  useEffect(() => {
+    if (activeOrg?.name) {
+      setCollegeName(activeOrg.name);
+    }
+  }, [activeOrg?.name]);
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      // 1. Update live organization theme_config and name in Supabase
+      const { error } = await (supabase.from('organizations') as any)
+        .update({
+          theme_config: theme,
+          name: collegeName.trim(),
+        })
+        .eq('id', orgId);
+
+      if (error) throw error;
+
+      // 2. Synchronize ThemeProvider and AuthStore context
+      updateTheme(theme);
+      if (setActiveOrg) {
+        await setActiveOrg(orgId).catch(() => {});
+      }
+
+      setSavedToast(true);
+      setTimeout(() => setSavedToast(false), 2600);
+    } catch (err: any) {
+      console.error('Error saving branding config:', err);
+      alert(`Error saving theme: ${err.message || 'Database permission error'}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -35,7 +73,7 @@ export default function OrgBranding() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="font-label text-xs text-primary font-bold uppercase tracking-wider">
-                Structural Theming Engine
+                Structural Theming Engine • Live Supabase Sync
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-50 text-primary text-xs font-semibold border border-teal-200">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -56,8 +94,13 @@ export default function OrgBranding() {
             >
               Reset Defaults
             </Button>
-            <Button size="sm" leftIcon={<Check className="w-4 h-4" />} onClick={handleSave}>
-              {savedToast ? 'Saved to Org!' : 'Save Changes'}
+            <Button
+              size="sm"
+              leftIcon={<Check className="w-4 h-4" />}
+              onClick={() => void handleSave()}
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : savedToast ? 'Saved to Org!' : 'Save Changes'}
             </Button>
           </div>
         </header>

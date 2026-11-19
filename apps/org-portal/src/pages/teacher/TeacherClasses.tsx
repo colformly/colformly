@@ -63,6 +63,8 @@ export default function TeacherClasses() {
   const { user, activeOrg } = useAuth();
 
   const [cohort, setCohort] = useState('CSE Sec-A (Algorithms)');
+  const [topicAutopsy, setTopicAutopsy] = useState(TOPIC_AUTOPSY);
+  const [interventionList, setInterventionList] = useState(INTERVENTION_LIST);
   const [messageTarget, setMessageTarget] = useState<(typeof INTERVENTION_LIST)[number] | null>(null);
   const [messageBody, setMessageBody] = useState('');
   const [sentIds, setSentIds] = useState<Record<string, boolean>>({});
@@ -78,13 +80,20 @@ export default function TeacherClasses() {
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
 
-  // Load live assignments & courses
+  // Load live assignments, courses, and student results
   const loadData = async () => {
     try {
-      const [{ data: coursesData }, { data: assignData }] = await Promise.all([
-        (supabase.from('courses') as any).select('*').order('name'),
-        (supabase.from('teacher_assignments') as any).select('*').order('created_at', { ascending: false }),
-      ]);
+      const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
+      const [{ data: coursesData }, { data: assignData }, { data: resultsData }] =
+        await Promise.all([
+          (supabase.from('courses') as any).select('*').order('name'),
+          (supabase.from('teacher_assignments') as any)
+            .select('*')
+            .order('created_at', { ascending: false }),
+          (supabase.from('student_results') as any)
+            .select('*, users(full_name, email)')
+            .eq('org_id', orgId),
+        ]);
 
       const allCourses = (coursesData as Course[]) || [];
       if (allCourses.length > 0) {
@@ -107,6 +116,55 @@ export default function TeacherClasses() {
           };
         });
         setAssignments(formatted);
+      }
+
+      // Compute Live Topic Autopsy from question_breakdown
+      const results = resultsData || [];
+      if (results.length > 0) {
+        const topicMap: Record<string, { total: number; correct: number }> = {};
+        const lowScorers: any[] = [];
+
+        results.forEach((r: any) => {
+          const pct = Number(r.percentage || 0);
+          if (pct < 55) {
+            lowScorers.push({
+              id: r.id,
+              name: r.users?.full_name || 'Anonymous Student',
+              roll: r.student_id ? `STU-${r.student_id.slice(0, 5)}` : '24CSE041',
+              score: `${Math.round(pct)}%`,
+              weakTopic: r.question_breakdown?.[0]?.topic || 'Algorithm Logic',
+              tabSwitches: r.tab_switch_count || 0,
+            });
+          }
+
+          if (Array.isArray(r.question_breakdown)) {
+            r.question_breakdown.forEach((q: any) => {
+              const t = q.topic || 'General';
+              if (!topicMap[t]) topicMap[t] = { total: 0, correct: 0 };
+              topicMap[t].total += 1;
+              if (q.isCorrect) topicMap[t].correct += 1;
+            });
+          }
+        });
+
+        const computedAutopsy = Object.entries(topicMap).map(([topic, stat]) => {
+          const acc = stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 100;
+          const severity: 'critical' | 'warning' | 'moderate' | 'healthy' =
+            acc < 50 ? 'critical' : acc < 65 ? 'warning' : acc < 80 ? 'moderate' : 'healthy';
+          return {
+            topic,
+            accuracy: acc,
+            missedBy: stat.total - stat.correct,
+            severity,
+          };
+        });
+
+        if (computedAutopsy.length > 0) {
+          setTopicAutopsy(computedAutopsy);
+        }
+        if (lowScorers.length > 0) {
+          setInterventionList(lowScorers.slice(0, 5));
+        }
       }
     } catch (err) {
       console.warn('Error loading teacher classes:', err);
@@ -303,7 +361,7 @@ export default function TeacherClasses() {
             </div>
 
             <div className="space-y-4">
-              {TOPIC_AUTOPSY.map((item) => {
+              {topicAutopsy.map((item) => {
                 const barColor =
                   item.severity === 'critical'
                     ? 'bg-rose-500'
@@ -350,7 +408,7 @@ export default function TeacherClasses() {
             </div>
 
             <div className="space-y-3">
-              {INTERVENTION_LIST.map((s) => (
+              {interventionList.map((s) => (
                 <div
                   key={s.id}
                   className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3"

@@ -17,9 +17,10 @@ function readEnv(key: string): string {
 export function getSupabaseConfig() {
   const url = readEnv('VITE_SUPABASE_URL') || readEnv('PUBLIC_SUPABASE_URL');
   const key =
+    readEnv('VITE_SUPABASE_PUBLISHABLE_KEY') ||
+    readEnv('PUBLIC_SUPABASE_PUBLISHABLE_KEY') ||
     readEnv('VITE_SUPABASE_ANON_KEY') ||
-    readEnv('PUBLIC_SUPABASE_ANON_KEY') ||
-    readEnv('VITE_SUPABASE_PUBLISHABLE_KEY');
+    readEnv('PUBLIC_SUPABASE_ANON_KEY');
 
   return {
     url: url || 'https://placeholder.supabase.co',

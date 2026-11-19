@@ -12,10 +12,8 @@ export default function LoginGateway() {
   const [error, setError] = useState<string | null>(null);
   const [authedUser, setAuthedUser] = useState<{ email: string; role: string } | null>(null);
 
-  const resolveWorkspaceUrl = (role: string) => {
-    return role === 'SUPER_ADMIN'
-      ? import.meta.env.VITE_SUPER_ADMIN_URL || 'https://colformly-super-admin.pages.dev'
-      : import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
+  const resolveWorkspaceUrl = () => {
+    return import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
   };
 
   const syncUserSession = async (userEmail: string, explicitRole?: string) => {
@@ -39,12 +37,10 @@ export default function LoginGateway() {
     }
 
     // Auto-join college organization if domain matches allowed_domains
-    if (resolvedRole !== 'SUPER_ADMIN') {
-      try {
-        await supabase.rpc('auto_join_org_by_domain', { p_email: userEmail });
-      } catch (rpcErr) {
-        console.warn('Auto join by domain check:', rpcErr);
-      }
+    try {
+      await supabase.rpc('auto_join_org_by_domain', { p_email: userEmail });
+    } catch (rpcErr) {
+      console.warn('Auto join by domain check:', rpcErr);
     }
 
     setAuthedUser({
@@ -152,7 +148,7 @@ export default function LoginGateway() {
           Sign in to Colformly
         </h1>
         <p className="text-sm text-slate-600 mt-1.5">
-          Single gateway for Students, Faculty, Org Admins &amp; Founders.
+          Campus gateway for Students, Faculty &amp; College Administrators.
         </p>
       </div>
 
@@ -173,16 +169,14 @@ export default function LoginGateway() {
             </span>
           </div>
           <p className="text-xs text-slate-600">
-            Your PKCE session cookie is active. Launch your role workspace below.
+            Your PKCE session cookie is active. Launch your college portal below.
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <a
-              href={resolveWorkspaceUrl(authedUser.role)}
+              href={resolveWorkspaceUrl()}
               className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-label text-sm font-semibold transition-colors"
             >
-              <span>
-                Open {authedUser.role === 'SUPER_ADMIN' ? 'Super Admin Console' : 'Org Portal'}
-              </span>
+              <span>Open College Portal</span>
               <ArrowRight className="w-4 h-4" />
             </a>
             <button
@@ -286,7 +280,7 @@ export default function LoginGateway() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="core@edgecors.com"
+                    placeholder="prof@aravali.edu.in"
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary/25 focus:border-light-primary"
                   />
                 </div>

@@ -1,11 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import LoginGateway from '../components/LoginGateway';
+
+const orgPortalUrl = import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
 ---
 
 <Layout
-  title="Sign In"
-  description="Sign in to your Colformly College Portal or Super Admin Dashboard via Google OAuth or Email."
+  title="Sign In - Colformly"
+  description="Sign in to your Colformly College Portal via Google Workspace or Email."
   surfaceClass="bg-light-surface-variant"
 >
   <main class="relative pt-28 md:pt-36 pb-20 px-4 sm:px-6 min-h-[82vh] flex items-center justify-center">
