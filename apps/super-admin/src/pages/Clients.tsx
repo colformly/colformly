@@ -1129,7 +1129,7 @@ export default function Clients() {
 
         {/* ── PROVISION MODAL ──────────────────────────────────────── */}
         <BaseModal
-          isOpen={provisionOpen}
+          open={provisionOpen}
           onClose={() => setProvisionOpen(false)}
           title="Provision New Institution"
           description="Initialize isolated college workspace, generate temporary operator credentials, and prepare BYOS storage."
@@ -1275,7 +1275,7 @@ export default function Clients() {
 
         {/* ── EXECUTE CONTRACT MODAL ──────────────────────────────── */}
         <BaseModal
-          isOpen={contractModalOpen}
+          open={contractModalOpen}
           onClose={() => setContractModalOpen(false)}
           title="Execute Legal Service Contract"
           description="Generates an enforceable agreement with client-side SHA-256 seal and verified SVG signature."
@@ -1373,7 +1373,7 @@ export default function Clients() {
 
         {/* ── CREATE INVOICE MODAL ────────────────────────────────── */}
         <BaseModal
-          isOpen={invoiceModalOpen}
+          open={invoiceModalOpen}
           onClose={() => setInvoiceModalOpen(false)}
           title="Issue Tax Invoice"
           description="Generate a GST-compliant tax invoice for this institution's billing month."
