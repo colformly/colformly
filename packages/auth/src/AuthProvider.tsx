@@ -29,7 +29,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       setSession(session);
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'PASSWORD_RECOVERY') {
         void refreshProfile();
       }
     });

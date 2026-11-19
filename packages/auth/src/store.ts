@@ -23,6 +23,8 @@ export interface AuthState {
   setOrgId: (orgId: string | null) => void;
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: (redirectTo?: string) => Promise<{ error: string | null }>;
+  resetPasswordForEmail: (email: string, redirectTo?: string) => Promise<{ error: string | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   clear: () => void;
 }
@@ -278,6 +280,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (error) {
       set({ error: error.message, isLoading: false });
+      return { error: error.message };
+    }
+    return { error: null };
+  },
+
+  resetPasswordForEmail: async (email: string, redirectTo?: string) => {
+    set({ isLoading: true, error: null });
+    const target =
+      redirectTo ??
+      (typeof window !== 'undefined'
+        ? `${window.location.origin}${window.location.pathname}`
+        : undefined);
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: target,
+    });
+
+    set({ isLoading: false });
+    if (error) {
+      set({ error: error.message });
+      return { error: error.message };
+    }
+    return { error: null };
+  },
+
+  updatePassword: async (newPassword: string) => {
+    set({ isLoading: true, error: null });
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    set({ isLoading: false });
+    if (error) {
+      set({ error: error.message });
       return { error: error.message };
     }
     return { error: null };

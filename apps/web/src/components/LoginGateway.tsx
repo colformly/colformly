@@ -1,15 +1,29 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, ArrowRight, CheckCircle2, Lock, Mail, RefreshCw, ShieldCheck } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  KeyRound,
+  Lock,
+  Mail,
+  RefreshCw,
+  ShieldCheck,
+} from 'lucide-react';
 import { supabase } from '@colformly/auth';
 
 export default function LoginGateway() {
+  const [view, setView] = useState<'login' | 'forgot' | 'reset'>('login');
   const [mode, setMode] = useState<'google' | 'password'>('google');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [authedUser, setAuthedUser] = useState<{ email: string; role: string } | null>(null);
 
   const resolveWorkspaceUrl = () => {
@@ -51,13 +65,43 @@ export default function LoginGateway() {
     setCheckingSession(false);
   };
 
+  // Check URL params for recovery mode
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const isRecovery =
+      searchParams.get('type') === 'recovery' ||
+      hashParams.get('type') === 'recovery' ||
+      searchParams.get('reset') === 'true';
+
+    if (isRecovery) {
+      setView('reset');
+      setCheckingSession(false);
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
-    // 1. Initial session check on mount
+    // 1. Initial session check on mount (skip if resetting password)
     const checkInitialSession = async () => {
       try {
-        const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+        const searchParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+        if (
+          searchParams.get('type') === 'recovery' ||
+          hashParams.get('type') === 'recovery' ||
+          searchParams.get('reset') === 'true'
+        ) {
+          if (isMounted) setCheckingSession(false);
+          return;
+        }
+
+        const {
+          data: { session },
+          error: sessionErr,
+        } = await supabase.auth.getSession();
         if (sessionErr) {
           console.warn('Session retrieval error:', sessionErr);
         }
@@ -76,9 +120,19 @@ export default function LoginGateway() {
 
     void checkInitialSession();
 
-    // 2. Subscribe to Supabase Auth state changes (OAuth redirects, token refresh, sign-in)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user && isMounted) {
+    // 2. Subscribe to Supabase Auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        if (isMounted) {
+          setView('reset');
+          setCheckingSession(false);
+        }
+        return;
+      }
+
+      if (session?.user && isMounted && view !== 'reset') {
         const role =
           (session.user.app_metadata?.role as string) ||
           (session.user.user_metadata?.role as string);
@@ -93,11 +147,12 @@ export default function LoginGateway() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [view]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
     const { error: authErr } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -114,8 +169,9 @@ export default function LoginGateway() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
     const { data, error: authErr } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim().toLowerCase(),
       password,
     });
 
@@ -134,6 +190,74 @@ export default function LoginGateway() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setError('Please provide your registered work or campus email address.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const redirectUrl = `${window.location.origin}/login?reset=true`;
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: redirectUrl,
+      });
+
+      if (resetErr) throw resetErr;
+
+      setSuccessMsg(
+        `Password reset link dispatched to ${email.trim()}. Please check your email inbox and spam folder.`
+      );
+    } catch (err: any) {
+      console.error('Password reset request error:', err);
+      setError(err.message || 'Failed to dispatch reset email. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword || !confirmPassword) {
+      setError('Please enter and confirm your new password.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match. Please verify both fields.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const { error: updateErr } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateErr) throw updateErr;
+
+      setSuccessMsg('Your password has been successfully updated! You can now access your college portal.');
+      setTimeout(() => {
+        window.location.href = resolveWorkspaceUrl();
+      }, 1500);
+    } catch (err: any) {
+      console.error('Update password error:', err);
+      setError(err.message || 'Failed to update password. Recovery link may have expired.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -142,13 +266,27 @@ export default function LoginGateway() {
     >
       <div className="text-center mb-7">
         <div className="w-12 h-12 rounded-2xl bg-light-primary text-white font-headline font-extrabold text-xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-          C
+          {view === 'reset' ? (
+            <KeyRound className="w-6 h-6" />
+          ) : view === 'forgot' ? (
+            <Mail className="w-6 h-6" />
+          ) : (
+            'C'
+          )}
         </div>
         <h1 className="font-headline font-bold text-2xl text-slate-900 tracking-tight">
-          Sign in to Colformly
+          {view === 'reset'
+            ? 'Set New Password'
+            : view === 'forgot'
+            ? 'Reset Your Password'
+            : 'Sign in to Colformly'}
         </h1>
         <p className="text-sm text-slate-600 mt-1.5">
-          Campus gateway for Students, Faculty &amp; College Administrators.
+          {view === 'reset'
+            ? 'Choose a secure new password for your Colformly account.'
+            : view === 'forgot'
+            ? 'Enter your campus or work email to receive password reset instructions.'
+            : 'Campus gateway for Students, Faculty & College Administrators.'}
         </p>
       </div>
 
@@ -157,6 +295,135 @@ export default function LoginGateway() {
           <RefreshCw className="w-6 h-6 text-light-primary animate-spin mx-auto" />
           <p className="text-xs text-slate-600 font-medium">Verifying active session credentials...</p>
         </div>
+      ) : view === 'reset' ? (
+        /* VIEW: RESET PASSWORD */
+        <form onSubmit={handleUpdatePassword} className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
+              New Password
+            </label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <input
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min. 6 characters"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary/25 focus:border-light-primary"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
+              Confirm New Password
+            </label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-type new password"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary/25 focus:border-light-primary"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-label font-bold text-sm shadow-sm transition-all active:scale-[0.98] disabled:opacity-60"
+          >
+            <KeyRound className="w-4 h-4" />
+            <span>{loading ? 'Saving Password...' : 'Save New Password'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setView('login');
+              setError(null);
+              setSuccessMsg(null);
+            }}
+            className="w-full inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-medium py-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Sign In</span>
+          </button>
+        </form>
+      ) : view === 'forgot' ? (
+        /* VIEW: FORGOT PASSWORD REQUEST */
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
+              Work or Campus Email
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="prof@aravali.edu.in"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-light-primary/25 focus:border-light-primary"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-label font-bold text-sm shadow-sm transition-all active:scale-[0.98] disabled:opacity-60"
+          >
+            <Mail className="w-4 h-4" />
+            <span>{loading ? 'Sending Reset Link...' : 'Send Password Reset Link'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setView('login');
+              setError(null);
+              setSuccessMsg(null);
+            }}
+            className="w-full inline-flex items-center justify-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-medium py-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Sign In</span>
+          </button>
+        </form>
       ) : authedUser ? (
         <div className="p-5 rounded-2xl bg-teal-50/80 border border-teal-200 text-center space-y-3">
           <CheckCircle2 className="w-8 h-8 text-light-primary mx-auto" />
@@ -200,6 +467,7 @@ export default function LoginGateway() {
               onClick={() => {
                 setMode('google');
                 setError(null);
+                setSuccessMsg(null);
               }}
               className={`py-2 rounded-full text-xs font-label font-bold transition-all ${
                 mode === 'google'
@@ -214,6 +482,7 @@ export default function LoginGateway() {
               onClick={() => {
                 setMode('password');
                 setError(null);
+                setSuccessMsg(null);
               }}
               className={`py-2 rounded-full text-xs font-label font-bold transition-all ${
                 mode === 'password'
@@ -229,6 +498,13 @@ export default function LoginGateway() {
             <div className="mb-5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+              <span>{successMsg}</span>
             </div>
           )}
 
@@ -287,9 +563,22 @@ export default function LoginGateway() {
               </div>
 
               <div>
-                <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
-                  Password
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-label font-semibold text-slate-700">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView('forgot');
+                      setError(null);
+                      setSuccessMsg(null);
+                    }}
+                    className="text-xs text-light-primary hover:underline font-medium"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
