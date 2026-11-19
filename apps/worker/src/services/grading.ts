@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 export interface GradingAnswerKey {
   id: string;
   test_id: string;
@@ -104,6 +102,30 @@ export function generateSvgSignatureStamp(
 `.trim();
 }
 
+async function querySupabase<T>(
+  supabaseUrl: string,
+  key: string,
+  path: string,
+  options: RequestInit = {}
+): Promise<T | null> {
+  const url = `${supabaseUrl.replace(/\/$/, '')}/rest/v1/${path.replace(/^\//, '')}`;
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    console.warn(`Supabase REST query error (${res.status}) on ${path}:`, errText);
+    return null;
+  }
+  return (await res.json().catch(() => null)) as T;
+}
+
 export async function gradeStudentPaper(
   testId: string,
   studentId: string,
@@ -118,26 +140,23 @@ export async function gradeStudentPaper(
     env.SUPABASE_ANON_KEY ||
     'sb_publishable_t9dfV3HzxY50ZwkiumiD_w_RurnQuC4';
 
-  const supabase = createClient(env.SUPABASE_URL, supabaseKey, {
-    auth: { persistSession: false },
-  });
-
   // 1. Fetch test details
-  const { data: testData } = await supabase
-    .from('tests')
-    .select('id, org_id, title, total_marks, created_by, blocks')
-    .eq('id', testId)
-    .single();
+  const testsList = await querySupabase<Array<{ id: string; org_id: string; title: string; total_marks: number; created_by: string; blocks: unknown }>>(
+    env.SUPABASE_URL,
+    supabaseKey,
+    `tests?id=eq.${encodeURIComponent(testId)}&select=id,org_id,title,total_marks,created_by,blocks`
+  );
+  const testData = testsList?.[0];
 
   const orgId = testData?.org_id || 'a0000000-0000-0000-0000-000000000001';
   const teacherId = testData?.created_by;
 
   // 2. Fetch locked answer keys
-  const { data: answerKeysData } = await supabase
-    .from('test_answer_keys')
-    .select('*')
-    .eq('test_id', testId)
-    .order('question_number');
+  const answerKeysData = await querySupabase<GradingAnswerKey[]>(
+    env.SUPABASE_URL,
+    supabaseKey,
+    `test_answer_keys?test_id=eq.${encodeURIComponent(testId)}&select=*&order=question_number.asc`
+  );
 
   // If no answer keys row yet, extract from test blocks
   let keys: GradingAnswerKey[] = (answerKeysData as GradingAnswerKey[]) || [];
@@ -192,17 +211,18 @@ export async function gradeStudentPaper(
   let signatureUrl: string | null = null;
 
   if (teacherId) {
-    const { data: teacherProfile } = await supabase
-      .from('users')
-      .select('full_name, signature_url, grading_blessings')
-      .eq('id', teacherId)
-      .maybeSingle();
+    const teacherProfiles = await querySupabase<Array<{ full_name: string; signature_url: string | null; grading_blessings: string[] }>>(
+      env.SUPABASE_URL,
+      supabaseKey,
+      `users?id=eq.${encodeURIComponent(teacherId)}&select=full_name,signature_url,grading_blessings`
+    );
+    const teacherProfile = teacherProfiles?.[0];
 
     if (teacherProfile) {
       teacherName = teacherProfile.full_name || teacherName;
       signatureUrl = teacherProfile.signature_url;
       teacherBlessings = Array.isArray(teacherProfile.grading_blessings)
-        ? (teacherProfile.grading_blessings as string[])
+        ? teacherProfile.grading_blessings
         : [];
     }
   }
@@ -274,22 +294,30 @@ export async function gradeStudentPaper(
 
   // 5. Persist record into public.student_results
   try {
-    await supabase.from('student_results').upsert(
+    await querySupabase(
+      env.SUPABASE_URL,
+      supabaseKey,
+      'student_results?on_conflict=test_id,student_id',
       {
-        student_id: studentId,
-        org_id: orgId,
-        test_id: testId,
-        score: totalScore,
-        total: maxTotalScore,
-        status: 'GRADED',
-        answers,
-        question_breakdown: breakdown as unknown as Record<string, unknown>[],
-        anti_cheat_logs: antiCheatLogs as unknown as Record<string, unknown>[],
-        teacher_blessing: blessing,
-        graded_at: gradedAt,
-        submitted_at: gradedAt,
-      },
-      { onConflict: 'test_id,student_id' },
+        method: 'POST',
+        headers: {
+          Prefer: 'resolution=merge-duplicates,return=representation',
+        },
+        body: JSON.stringify({
+          student_id: studentId,
+          org_id: orgId,
+          test_id: testId,
+          score: totalScore,
+          total: maxTotalScore,
+          status: 'GRADED',
+          answers,
+          question_breakdown: breakdown,
+          anti_cheat_logs: antiCheatLogs,
+          teacher_blessing: blessing,
+          graded_at: gradedAt,
+          submitted_at: gradedAt,
+        }),
+      }
     );
   } catch (insertErr) {
     console.warn('Could not insert student_results record (proceeding with graded result):', insertErr);
