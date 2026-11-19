@@ -73,10 +73,26 @@ if (propertyId && clientEmail && privateKey) {
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({
     status: 'ok',
+    uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     service: 'colformly-ga4-service',
   });
 });
+
+// ── Self Keep-Alive Ping (Runs every 11 minutes while active) ─────
+const KEEP_ALIVE_INTERVAL_MS = 11 * 60 * 1000;
+const PING_TARGET_URL =
+  process.env.RENDER_EXTERNAL_URL ||
+  'https://colformly-ga4-service.onrender.com';
+
+setInterval(async () => {
+  try {
+    const res = await fetch(`${PING_TARGET_URL.replace(/\/$/, '')}/health`);
+    console.log(`[Keep-Alive] Pinged ${PING_TARGET_URL}/health -> HTTP ${res.status}`);
+  } catch (err: any) {
+    console.warn('[Keep-Alive] Ping warning:', err.message);
+  }
+}, KEEP_ALIVE_INTERVAL_MS);
 
 // ── Auth Verification Middleware (Supabase JWT + SUPER_ADMIN) ───
 async function verifySuperAdmin(req: Request, res: Response, next: () => void) {

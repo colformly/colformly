@@ -28,7 +28,8 @@ import type { DemoLead, Organization, GlobalBroadcast } from '@colformly/types';
 import { Button, MetricCard } from '@colformly/ui';
 import { SuperAdminShell } from '../layouts/SuperAdminShell';
 
-const GA4_SERVICE_URL = import.meta.env.VITE_GA4_SERVICE_URL || 'https://colformly-ga4.onrender.com';
+const GA4_SERVICE_URL =
+  import.meta.env.VITE_GA4_SERVICE_URL || 'https://colformly-ga4-service.onrender.com';
 
 interface Ga4ReportData {
   activeUsers24h: number;

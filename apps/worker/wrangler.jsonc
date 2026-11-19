@@ -4,6 +4,9 @@
   "main": "src/index.ts",
   "compatibility_date": "2024-11-12",
   "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
   "vars": {
     "SUPABASE_URL": "https://crprffwlfngyiyztwgwb.supabase.co"
   }

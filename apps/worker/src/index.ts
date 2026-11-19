@@ -76,6 +76,26 @@ app.get('/health', (c) => {
   });
 });
 
+app.get('/health/keep-alive', async (c) => {
+  const targetUrls = [
+    'https://colformly-ga4-service.onrender.com/health',
+    'https://colformly-ga4.onrender.com/health',
+  ];
+  const results = await Promise.allSettled(
+    targetUrls.map(async (url) => {
+      const start = Date.now();
+      const res = await fetch(url, { headers: { 'User-Agent': 'Colformly-Worker-Keeper/1.0' } });
+      const text = await res.text();
+      return { url, status: res.status, durationMs: Date.now() - start, response: text };
+    }),
+  );
+  return c.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    results: results.map((r) => (r.status === 'fulfilled' ? r.value : { error: String(r.reason) })),
+  });
+});
+
 // ── Protected API Routes ────────────────────────────────────────
 app.use('/api/*', supabaseAuthMiddleware);
 
@@ -440,4 +460,22 @@ app.post('/api/super-admin/handover-org', async (c) => {
   }
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  async scheduled(_event: any, _env: Bindings, ctx: any) {
+    const urls = [
+      'https://colformly-ga4-service.onrender.com/health',
+      'https://colformly-ga4.onrender.com/health',
+    ];
+    ctx.waitUntil(
+      Promise.allSettled(
+        urls.map((url) =>
+          fetch(url, { headers: { 'User-Agent': 'Colformly-Worker-Cron/1.0' } })
+            .then((r) => r.text())
+            .then((t) => console.log(`[Worker Cron] Keep-alive ping ${url} ->`, t))
+            .catch((err) => console.warn(`[Worker Cron] Keep-alive ping ${url} failed:`, err.message)),
+        ),
+      ),
+    );
+  },
+};
