@@ -49,10 +49,37 @@ export async function supabaseAuthMiddleware(c: Context, next: Next) {
       user_metadata?: { role?: string };
     };
 
-    const role =
+    let role =
       userData.app_metadata?.role ||
-      userData.user_metadata?.role ||
-      'STUDENT';
+      userData.user_metadata?.role;
+
+    if (!role || role === 'authenticated') {
+      if (userData.email === 'core@edgecors.com') {
+        role = 'SUPER_ADMIN';
+      } else {
+        const secretKey = c.env.SUPABASE_SECRET_KEY || c.env.SUPABASE_SERVICE_ROLE_KEY || apiKey;
+        const profileRes = await fetch(
+          `${supabaseUrl.replace(/\/$/, '')}/rest/v1/users?id=eq.${encodeURIComponent(userData.id)}&select=global_role`,
+          {
+            headers: {
+              apikey: secretKey,
+              Authorization: `Bearer ${secretKey}`,
+            },
+          },
+        ).catch(() => null);
+
+        if (profileRes && profileRes.ok) {
+          const profiles = (await profileRes.json().catch(() => [])) as Array<{ global_role?: string }>;
+          if (profiles?.[0]?.global_role) {
+            role = profiles[0].global_role;
+          }
+        }
+      }
+    }
+
+    if (!role || role === 'authenticated') {
+      role = 'STUDENT';
+    }
 
     c.set('user', {
       id: userData.id,

@@ -3,21 +3,27 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Activity,
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   Building2,
   CheckCircle2,
+  CreditCard,
   ExternalLink,
   KeyRound,
   Lock,
   LogOut,
   Mail,
+  Palette,
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
-  Terminal,
+  Sliders,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuth, supabase } from '@colformly/auth';
+import type { SystemIncident } from '@colformly/types';
 import { Button, FloatingNav, type NavItem } from '@colformly/ui';
+import { useThemeStore } from '../lib/themeStore';
 
 interface SuperAdminShellProps {
   children: ReactNode;
@@ -38,6 +44,8 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
     signOut,
   } = useAuth();
 
+  const { theme, toggleTheme } = useThemeStore();
+
   const [authView, setAuthView] = useState<'login' | 'forgot' | 'reset'>('login');
   const [authMode, setAuthMode] = useState<'password' | 'google'>('password');
   const [email, setEmail] = useState('core@edgecors.com');
@@ -47,6 +55,9 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
   const [authError, setAuthError] = useState<string | null>(null);
   const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Dynamic Island active critical incident
+  const [activeAlert, setActiveAlert] = useState<SystemIncident | null>(null);
 
   // Check for password recovery params in search or hash
   useEffect(() => {
@@ -76,6 +87,44 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
     };
   }, []);
 
+  // Fetch and subscribe to unresolved critical/warning incidents for Dynamic Island
+  useEffect(() => {
+    if (!user || role !== 'SUPER_ADMIN') return;
+
+    const fetchLatestIncident = async () => {
+      const { data } = await supabase
+        .from('system_incidents')
+        .select('*')
+        .eq('resolved', false)
+        .in('severity', ['CRITICAL', 'WARNING'])
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (data && data.length > 0) {
+        setActiveAlert(data[0] as unknown as SystemIncident);
+      } else {
+        setActiveAlert(null);
+      }
+    };
+
+    void fetchLatestIncident();
+
+    const channel = supabase
+      .channel('dynamic-island-incidents')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'system_incidents' },
+        () => {
+          void fetchLatestIncident();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [user, role]);
+
   // 1. Loading State
   if (isLoading || !isInitialized) {
     return (
@@ -90,7 +139,7 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
     );
   }
 
-  // 2. Recovery Mode (Render Set New Master Password even if session is in recovery state)
+  // 2. Recovery Mode (Render Set New Master Password)
   if (authView === 'reset') {
     const handleUpdateMasterPassword = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -98,12 +147,10 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
         setAuthError('Please provide and confirm your new master key.');
         return;
       }
-
       if (newPassword !== confirmPassword) {
         setAuthError('Keys do not match. Please verify both fields.');
         return;
       }
-
       if (newPassword.length < 6) {
         setAuthError('Key must be at least 6 characters long.');
         return;
@@ -122,7 +169,6 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
           setAuthView('login');
         }, 1200);
       } catch (err: any) {
-        console.error('Update master password error:', err);
         setAuthError(err.message || 'Failed to update master password. Recovery link may have expired.');
       } finally {
         setSubmitting(false);
@@ -136,14 +182,9 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
             <div className="w-14 h-14 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center mx-auto shadow-inner">
               <KeyRound className="w-7 h-7" />
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <h1 className="font-headline font-bold text-xl text-white tracking-tight">
-                Set New Master Key
-              </h1>
-              <span className="px-1.5 py-0.5 rounded bg-teal-500/20 border border-teal-500/40 font-mono text-[9px] font-bold text-teal-300 uppercase">
-                RECOVERY
-              </span>
-            </div>
+            <h1 className="font-headline font-bold text-xl text-white tracking-tight">
+              Set New Master Key
+            </h1>
             <p className="font-mono text-xs text-zinc-400">
               Update root operator access credentials for Colformly infrastructure.
             </p>
@@ -226,10 +267,9 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
     );
   }
 
-  // 3. Access Denied State (Authenticated as student/teacher/org admin instead of super admin)
+  // 3. Access Denied State (Not SUPER_ADMIN)
   if (user && role !== 'SUPER_ADMIN') {
-    const orgPortalUrl =
-      import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
+    const orgPortalUrl = import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
 
     return (
       <div className="min-h-screen bg-[#09090B] text-zinc-100 flex items-center justify-center p-4 terminal-grid">
@@ -275,7 +315,7 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
     );
   }
 
-  // 4. Unauthenticated State (Hard Auth Wall Gate)
+  // 4. Unauthenticated State
   if (!user) {
     const handlePasswordSignIn = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -319,7 +359,6 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
           `Master recovery link dispatched to ${email.trim()}. Follow the instructions in the email to set a new key.`
         );
       } catch (err: any) {
-        console.error('Password reset request error:', err);
         setAuthError(err.message || 'Failed to dispatch reset email. Please try again.');
       } finally {
         setSubmitting(false);
@@ -470,7 +509,6 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
                     </svg>
                     <span>{submitting ? 'Redirecting to OAuth...' : 'Sign In with Operator Google'}</span>
                   </button>
-
                   <p className="text-center font-mono text-[11px] text-zinc-500">
                     Authorizes via Google OAuth for core@edgecors.com root administrator profile.
                   </p>
@@ -547,30 +585,50 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
     );
   }
 
-  // 5. Authenticated Root Operator View
+  // 5. Authenticated Super Admin Shell
   const items: NavItem[] = [
     {
       id: 'dashboard',
       label: 'Command Center',
       href: '/dashboard',
       icon: <Activity className="w-4 h-4" />,
-      active: location.pathname === '/dashboard',
+      active: location.pathname === '/' || location.pathname === '/dashboard',
     },
     {
       id: 'clients',
-      label: 'College Clients',
+      label: 'Institutions',
       href: '/clients',
       icon: <Building2 className="w-4 h-4" />,
-      badge: 34,
-      active: location.pathname === '/clients',
+      active: location.pathname.startsWith('/clients'),
     },
     {
-      id: 'logs',
-      label: 'System Logs',
-      href: '/system-logs',
-      icon: <Terminal className="w-4 h-4" />,
-      badge: 'LIVE',
-      active: location.pathname === '/system-logs',
+      id: 'billing',
+      label: 'Billing & Rates',
+      href: '/billing',
+      icon: <CreditCard className="w-4 h-4" />,
+      active: location.pathname === '/billing',
+    },
+    {
+      id: 'incidents',
+      label: 'Telemetry & Alerts',
+      href: '/incidents',
+      icon: <AlertTriangle className="w-4 h-4" />,
+      badge: activeAlert ? '!' : undefined,
+      active: location.pathname === '/incidents',
+    },
+    {
+      id: 'leads',
+      label: 'GA4 & Leads CRM',
+      href: '/leads',
+      icon: <TrendingUp className="w-4 h-4" />,
+      active: location.pathname === '/leads',
+    },
+    {
+      id: 'settings',
+      label: 'Settings & Themes',
+      href: '/settings',
+      icon: <Sliders className="w-4 h-4" />,
+      active: location.pathname === '/settings',
     },
   ];
 
@@ -590,10 +648,10 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
                   Super Admin
                 </span>
                 <span className="px-1.5 py-0.5 rounded bg-teal-500/20 border border-teal-500/40 font-mono text-[9px] font-bold text-teal-300 uppercase">
-                  ROOT
+                  PRIME
                 </span>
               </div>
-              <p className="font-mono text-[11px] text-zinc-400 truncate">Colformly Core v2.4</p>
+              <p className="font-mono text-[11px] text-zinc-400 truncate">Colformly Core v3.0</p>
             </div>
           </div>
         }
@@ -605,13 +663,18 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
         )}
         footer={
           <div className="space-y-3">
-            <div className="p-3 rounded-xl bg-zinc-900/90 border border-zinc-800 flex items-center justify-between text-xs">
+            {/* Quick Theme Switch Pill */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="w-full p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-between text-xs transition-colors"
+            >
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-mono text-zinc-300">ap-south-1</span>
+                <Palette className="w-3.5 h-3.5 text-teal-400" />
+                <span className="font-mono text-zinc-300 capitalize">{theme.replace('-', ' ')}</span>
               </div>
-              <span className="font-mono font-bold text-teal-400">99.98%</span>
-            </div>
+              <span className="text-[10px] font-mono text-zinc-500">SWITCH</span>
+            </button>
 
             <div className="flex items-center justify-between gap-2 px-1">
               <div className="min-w-0">
@@ -632,7 +695,35 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
       />
 
       <main className="flex-1 min-w-0 md:ml-[280px] p-4 sm:p-6 md:p-8 pb-24 md:pb-10">
-        <div className="max-w-6xl mx-auto">{children}</div>
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Dynamic Island Global Realtime Alert Bar */}
+          {activeAlert && location.pathname !== '/incidents' && (
+            <Link
+              to="/incidents"
+              className="block spring-hover p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-rose-950/80 via-zinc-950 to-rose-950/60 border border-rose-500/40 text-xs shadow-xl"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="relative flex h-3 w-3 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500" />
+                  </span>
+                  <div className="min-w-0 truncate">
+                    <span className="font-mono font-bold text-rose-400 uppercase mr-2">
+                      [{activeAlert.severity}] {activeAlert.category}:
+                    </span>
+                    <span className="text-zinc-200">{activeAlert.message}</span>
+                  </div>
+                </div>
+                <span className="shrink-0 font-mono text-[11px] text-rose-300 font-semibold underline">
+                  Inspect Incident →
+                </span>
+              </div>
+            </Link>
+          )}
+
+          {children}
+        </div>
       </main>
     </div>
   );

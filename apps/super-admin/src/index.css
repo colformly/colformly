@@ -3,18 +3,67 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #14B8A6;
-  --color-secondary: #2DD4BF;
-  --color-accent: #34D399;
-  --color-surface: #09090B;
-  --color-muted: #18181B;
+  --color-primary: #14b8a6;
+  --color-secondary: #2dd4bf;
+  --color-accent: #34d399;
+  --color-surface: #09090b;
+  --color-surface-card: #121215;
+  --color-border: rgba(39, 39, 42, 0.9);
   --font-main: 'Instrument Sans', system-ui, sans-serif;
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
-  --radius-theme: 0.75rem;
+  --radius-theme: 0.875rem;
+}
+
+[data-admin-theme='apple-glass'] {
+  --color-primary: #0a84ff;
+  --color-secondary: #5e5ce6;
+  --color-accent: #64d2ff;
+  --color-surface: #121316;
+  --color-surface-card: rgba(28, 29, 33, 0.75);
+  --color-border: rgba(255, 255, 255, 0.12);
+  --radius-theme: 1.25rem;
+}
+
+[data-admin-theme='obsidian-stealth'] {
+  --color-primary: #14b8a6;
+  --color-secondary: #2dd4bf;
+  --color-accent: #34d399;
+  --color-surface: #09090b;
+  --color-surface-card: #121215;
+  --color-border: rgba(39, 39, 42, 0.9);
+  --radius-theme: 0.875rem;
+}
+
+[data-admin-theme='spatial-midnight'] {
+  --color-primary: #8b5cf6;
+  --color-secondary: #ec4899;
+  --color-accent: #f43f5e;
+  --color-surface: #080714;
+  --color-surface-card: #121026;
+  --color-border: rgba(139, 92, 246, 0.25);
+  --radius-theme: 1rem;
+}
+
+[data-admin-theme='neo-brutal'] {
+  --color-primary: #ffde59;
+  --color-secondary: #ff5757;
+  --color-accent: #00f0ff;
+  --color-surface: #050505;
+  --color-surface-card: #141414;
+  --color-border: #ffde59;
+  --radius-theme: 0rem;
 }
 
 .terminal-grid {
   background-image: linear-gradient(rgba(20, 184, 166, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(20, 184, 166, 0.04) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+/* Apple-grade spring transition curves */
+.spring-hover {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+.spring-hover:hover {
+  transform: translateY(-2px);
 }

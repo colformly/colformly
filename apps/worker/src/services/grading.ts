@@ -26,6 +26,7 @@ export interface QuestionBreakdown {
 export interface GradedResult {
   testId: string;
   studentId: string;
+  orgId: string;
   score: number;
   total: number;
   percentage: number;
@@ -326,6 +327,7 @@ export async function gradeStudentPaper(
   return {
     testId,
     studentId,
+    orgId,
     score: totalScore,
     total: maxTotalScore,
     percentage,

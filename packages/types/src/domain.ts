@@ -9,6 +9,26 @@ export type CourseLevel = Enums<'course_level'>;
 export type QuestionType = 'MCQ' | 'SHORT_ANSWER' | 'LONG_ANSWER' | 'TRUE_FALSE';
 export type ResultStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'GRADED' | 'FLAGGED';
 
+export type OrgType = 'COLLEGE' | 'UNIVERSITY' | 'COACHING' | 'SCHOOL';
+export type OnboardingStatus = 'SETUP_MODE' | 'HANDED_OVER' | 'SUSPENDED';
+export type AuthPolicy = 'HYBRID' | 'GOOGLE_ONLY';
+
+export interface FeatureFlags {
+  ai_generator: boolean;
+  byoc_explainer: boolean;
+  strict_pwa: boolean;
+  [key: string]: boolean | undefined;
+}
+
+export interface GlobalBroadcast {
+  active: boolean;
+  message: string;
+  audience?: 'ALL' | 'STUDENTS' | 'TEACHERS' | 'ADMINS';
+  type?: 'info' | 'warning' | 'urgent';
+  updated_at?: string | null;
+  created_at?: string | null;
+}
+
 // ── Structural Theming Engine Types ────────────────────────────
 export type ThemeLayout = 'floating' | 'solid';
 export type ThemeAnimationIntensity = 'high' | 'minimal';
@@ -38,8 +58,100 @@ export interface ThemeConfig {
 }
 
 // ── Core Domain Interfaces (mapped to Supabase tables) ─────────
-export interface Organization extends Omit<Tables<'organizations'>, 'theme_config'> {
+export interface Organization extends Omit<Tables<'organizations'>, 'theme_config' | 'feature_flags' | 'global_broadcast' | 'org_type' | 'onboarding_status' | 'auth_policy'> {
   theme_config: ThemeConfig;
+  org_type?: OrgType;
+  institute_code?: string | null;
+  onboarding_status?: OnboardingStatus;
+  setup_admin_id?: string | null;
+  auth_policy?: AuthPolicy;
+  feature_flags?: FeatureFlags;
+  global_broadcast?: GlobalBroadcast | null;
+}
+
+export interface ServiceRate {
+  service_key: string;
+  display_name: string;
+  unit_label: string;
+  unit_cost_inr: number;
+  monthly_fixed_inr: number;
+  free_tier_quota: number;
+  updated_at: string;
+}
+
+export interface OrgUsageMonthly {
+  id: string;
+  org_id: string;
+  billing_month: string;
+  ai_requests_count: number;
+  groq_tokens_used: number;
+  gemini_tokens_used: number;
+  tests_graded_count: number;
+  emails_sent_count: number;
+  updated_at: string;
+}
+
+export interface OrgInvoice {
+  id: string;
+  invoice_number: string;
+  org_id: string;
+  billing_month: string;
+  plan_name: string;
+  subtotal_inr: number;
+  gst_inr: number;
+  total_inr: number;
+  status: 'PAID' | 'DUE' | 'OVERDUE';
+  due_date: string | null;
+  paid_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface OrgContract {
+  id: string;
+  contract_number: string;
+  org_id: string;
+  legal_entity_name: string;
+  registered_address: string;
+  gstin?: string | null;
+  signatory_name: string;
+  signatory_designation: string;
+  signatory_email: string;
+  plan_tier: string;
+  fee_inr: number;
+  billing_cycle: string;
+  effective_date: string;
+  expiry_date?: string | null;
+  signed_at: string;
+  signer_ip?: string | null;
+  signature_svg?: string | null;
+  document_sha256: string;
+  created_at: string;
+}
+
+export interface SystemIncident {
+  id: string;
+  severity: 'CRITICAL' | 'WARNING' | 'INFO';
+  category: 'SUPABASE_DB' | 'AUTH_SECURITY' | 'RATE_LIMIT' | 'AI_ROUTER' | 'WORKER_CRASH' | 'ANTI_CHEAT';
+  org_id?: string | null;
+  error_code?: string | null;
+  message: string;
+  payload: Record<string, unknown>;
+  resolved: boolean;
+  created_at: string;
+}
+
+export interface DemoLead {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  college_name: string;
+  designation?: string | null;
+  student_count: number;
+  notes?: string | null;
+  status: 'NEW' | 'CONTACTED' | 'CONVERTED' | 'ARCHIVED';
+  created_at: string;
 }
 
 export interface UserProfile extends Omit<Tables<'users'>, 'grading_blessings'> {

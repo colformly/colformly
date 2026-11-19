@@ -35,7 +35,7 @@ export function getSupabaseConfig() {
  */
 export function createColformlyBrowserClient() {
   const { url, key } = getSupabaseConfig();
-  return createBrowserClient<Database>(url, key, {
+  return createBrowserClient<any>(url, key, {
     auth: {
       flowType: 'pkce',
       autoRefreshToken: true,

@@ -1,10 +1,11 @@
-import { type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@colformly/auth';
 import { ThemeProvider } from '@colformly/theme';
 import type { UserRole } from '@colformly/types';
 import { ToastContainer } from './components/ToastContainer';
 import { triggerToast } from './lib/toast';
+import { initGA4, trackPageView } from './lib/analytics';
 
 import Login from './pages/Login';
 import OrgDashboard from './pages/org/OrgDashboard';
@@ -128,6 +129,15 @@ function DefaultRedirect() {
 
 function ThemedPortalRoutes() {
   const { activeOrg } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    initGA4();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
   return (
     <ThemeProvider orgTheme={activeOrg?.theme_config}>

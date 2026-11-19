@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Building2, CheckCircle2, Mail, Users } from 'lucide-react';
+import { supabase } from '@colformly/auth';
 
 export default function ContactForm() {
+  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
+    phone: '',
     college: '',
     role: 'Dean / Principal',
     studentCount: '1,000 - 5,000',
@@ -14,9 +17,38 @@ export default function ContactForm() {
     notes: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+
+    // 1. Fire GA4 generate_lead event
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'generate_lead', {
+        event_category: 'engagement',
+        event_label: 'demo_inquiry',
+        value: 1,
+      });
+    }
+
+    // 2. Persist to public.demo_leads table
+    try {
+      const approxStudents = parseInt(form.studentCount.replace(/[^0-9]/g, '') || '1000', 10);
+      await supabase.from('demo_leads').insert({
+        full_name: form.fullName.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone.trim() || null,
+        college_name: form.college.trim(),
+        designation: form.role,
+        student_count: approxStudents,
+        notes: `BYOS: ${form.byos ? 'Yes' : 'No'} | ${form.notes}`,
+        status: 'NEW',
+      });
+    } catch (err) {
+      console.warn('Demo lead DB insertion warning:', err);
+    } finally {
+      setSubmitting(false);
+      setSubmitted(true);
+    }
   };
 
   if (submitted) {
