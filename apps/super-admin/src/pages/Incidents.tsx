@@ -93,6 +93,9 @@ export default function Incidents() {
         supabase.from('organizations').select('id, name, slug, institute_code'),
       ]);
 
+      if (incRes.error) console.warn('Fetch incidents warning:', incRes.error.message);
+      if (orgRes.error) console.warn('Fetch orgs warning:', orgRes.error.message);
+
       if (incRes.data) {
         setIncidents(incRes.data as unknown as SystemIncident[]);
       }

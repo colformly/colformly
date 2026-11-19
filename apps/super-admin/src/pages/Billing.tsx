@@ -98,6 +98,12 @@ export default function Billing() {
         supabase.from('org_contracts').select('*').order('created_at', { ascending: false }),
       ]);
 
+      if (orgsRes.error) console.warn('Fetch orgs warning:', orgsRes.error.message);
+      if (ratesRes.error) console.warn('Fetch rates warning:', ratesRes.error.message);
+      if (usageRes.error) console.warn('Fetch usage warning:', usageRes.error.message);
+      if (invoicesRes.error) console.warn('Fetch invoices warning:', invoicesRes.error.message);
+      if (contractsRes.error) console.warn('Fetch contracts warning:', contractsRes.error.message);
+
       if (orgsRes.data) setOrgs(orgsRes.data as unknown as Organization[]);
       if (ratesRes.data) setServiceRates(ratesRes.data as ServiceRate[]);
       if (usageRes.data) setMonthlyUsage(usageRes.data as OrgUsageMonthly[]);

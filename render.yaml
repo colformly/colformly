@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: colformly-ga4-service
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: pnpm install && pnpm --filter @colformly/ga4-service run build
+    startCommand: pnpm --filter @colformly/ga4-service run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: GA4_PROPERTY_ID
+        sync: false
+      - key: GA4_CLIENT_EMAIL
+        sync: false
+      - key: GA4_PRIVATE_KEY
+        sync: false
+      - key: SUPABASE_URL
+        value: https://crprffwlfngyiyztwgwb.supabase.co
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        value: sb_publishable_t9dfV3HzxY50ZwkiumiD_w_RurnQuC4

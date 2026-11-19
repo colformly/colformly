@@ -393,7 +393,20 @@ app.post('/api/super-admin/provision-org', async (c) => {
     return c.json(result);
   } catch (err: any) {
     console.error('Super Admin Provision Error:', err);
-    return c.json({ error: err.message || 'Failed to provision organization' }, 500);
+
+    c.executionCtx.waitUntil(
+      reportSystemIncidentAsync(telemetryEnv, {
+        severity: 'CRITICAL',
+        category: 'SUPABASE_DB',
+        message: `Provision organization failed: ${err.message}`,
+        payload: { error: String(err) },
+      }),
+    );
+
+    return c.json(
+      { success: false, error: err.message || 'Failed to provision organization' },
+      400,
+    );
   }
 });
 

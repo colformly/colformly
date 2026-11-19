@@ -21,7 +21,7 @@ export function buildCspHeader(options?: {
     options?.allowInlineStyles !== false ? "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com" : "style-src 'self' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     `img-src 'self' data: blob: ${supabaseOrigin} https://lh3.googleusercontent.com`,
-    `connect-src 'self' ${supabaseOrigin} ${supabaseWs} ${workerOrigin}`,
+    `connect-src 'self' ${supabaseOrigin} ${supabaseWs} ${workerOrigin} https://*.onrender.com https://colformly-ga4.onrender.com`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

@@ -8,7 +8,7 @@ export interface ProvisionOrgParams {
   instituteCode?: string;
   setupEmail: string;
   setupPassword?: string;
-  tier?: 'FREE' | 'PILOT' | 'PRO' | 'CAMPUS_EXPANSION';
+  tier?: 'FREE' | 'PILOT' | 'PRO' | 'CAMPUS_EXPANSION' | 'CAMPUS' | 'ENTERPRISE';
   mrrCents?: number;
 }
 
@@ -36,6 +36,20 @@ function slugify(text: string): string {
     .replace(/\s+/g, '-');
 }
 
+async function rollbackOrg(supabaseUrl: string, secretKey: string, orgId: string) {
+  try {
+    await fetch(`${supabaseUrl}/rest/v1/organizations?id=eq.${encodeURIComponent(orgId)}`, {
+      method: 'DELETE',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+      },
+    });
+  } catch (err) {
+    console.warn(`Rollback of organization ${orgId} failed:`, err);
+  }
+}
+
 export async function provisionOrganization(
   env: TelemetryEnv,
   params: ProvisionOrgParams,
@@ -48,17 +62,28 @@ export async function provisionOrganization(
     ? params.domains.map((d) => d.trim().toLowerCase()).filter(Boolean)
     : [];
 
+  // Map tier strictly to PostgreSQL enum org_tier ('FREE' | 'CAMPUS' | 'ENTERPRISE')
+  const rawTier = (params.tier || 'CAMPUS').toUpperCase();
+  const dbTier: 'FREE' | 'CAMPUS' | 'ENTERPRISE' =
+    rawTier === 'ENTERPRISE'
+      ? 'ENTERPRISE'
+      : rawTier === 'FREE'
+      ? 'FREE'
+      : 'CAMPUS'; // Safely maps PILOT, PRO, CAMPUS_EXPANSION to CAMPUS
+
+  const instituteCode = params.instituteCode?.trim() || null;
+
   // 1. Create Organization in public.organizations
   const orgPayload = {
     name: params.name.trim(),
     slug,
     org_type: params.orgType || 'COLLEGE',
     allowed_domains: domains,
-    institute_code: params.instituteCode?.trim() || null,
+    institute_code: instituteCode,
     onboarding_status: 'SETUP_MODE',
     auth_policy: 'HYBRID',
-    tier: params.tier || 'PILOT',
-    mrr_cents: params.mrrCents || 0,
+    tier: dbTier,
+    mrr_cents: Math.max(0, params.mrrCents || 0),
     is_active: true,
     feature_flags: { ai_generator: true, byoc_explainer: true, strict_pwa: false },
     global_broadcast: { active: false, message: '', audience: 'ALL', updated_at: null },
@@ -77,14 +102,24 @@ export async function provisionOrganization(
 
   if (!createOrgRes.ok) {
     const errText = await createOrgRes.text();
-    throw new Error(`Failed to create organization: ${errText}`);
+    let parsedErr = errText;
+    try {
+      const j = JSON.parse(errText);
+      parsedErr = j.message || j.error || errText;
+    } catch {}
+    throw new Error(`Failed to create organization: ${parsedErr}`);
   }
 
   const createdOrgs = (await createOrgRes.json()) as any[];
   const org = createdOrgs[0];
 
-  // 2. Create Temporary Setup Admin in Supabase Auth via Admin API
-  const setupPassword = params.setupPassword || `Colformly@${Math.random().toString(36).slice(2, 8).toUpperCase()}!`;
+  // 2. Create or reuse Setup Admin in Supabase Auth via Admin API
+  const setupEmail = params.setupEmail.trim().toLowerCase();
+  const setupPassword =
+    params.setupPassword || `Colformly@${Math.random().toString(36).slice(2, 8).toUpperCase()}!`;
+
+  let setupUser: { id: string; email: string };
+
   const adminCreateRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
     method: 'POST',
     headers: {
@@ -93,7 +128,7 @@ export async function provisionOrganization(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      email: params.setupEmail.trim().toLowerCase(),
+      email: setupEmail,
       password: setupPassword,
       email_confirm: true,
       user_metadata: {
@@ -105,18 +140,67 @@ export async function provisionOrganization(
 
   if (!adminCreateRes.ok) {
     const errText = await adminCreateRes.text();
-    // Rollback org creation if user creation fails
-    await fetch(`${supabaseUrl}/rest/v1/organizations?id=eq.${org.id}`, {
-      method: 'DELETE',
-      headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
-    });
-    throw new Error(`Failed to create setup admin auth user: ${errText}`);
+    let errJson: any = null;
+    try {
+      errJson = JSON.parse(errText);
+    } catch {}
+
+    // Check if the user already exists in Supabase Auth
+    const isEmailRegistered =
+      adminCreateRes.status === 422 ||
+      errText.includes('already been registered') ||
+      errJson?.code === 'email_exists' ||
+      errJson?.message?.includes('already been registered');
+
+    if (isEmailRegistered) {
+      // Lookup existing user ID in public.users or auth
+      const userLookupRes = await fetch(
+        `${supabaseUrl}/rest/v1/users?email=eq.${encodeURIComponent(setupEmail)}&select=id,email`,
+        {
+          headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
+        },
+      );
+      const existingUsers = (await userLookupRes.json().catch(() => [])) as Array<{
+        id: string;
+        email: string;
+      }>;
+
+      if (existingUsers?.[0]?.id) {
+        setupUser = { id: existingUsers[0].id, email: existingUsers[0].email };
+      } else {
+        // Query auth admin users list
+        const authListRes = await fetch(
+          `${supabaseUrl}/auth/v1/admin/users?page=1&per_page=50`,
+          {
+            headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
+          },
+        );
+        const authData = (await authListRes.json().catch(() => ({}))) as {
+          users?: Array<{ id: string; email: string }>;
+        };
+        const found = authData.users?.find((u) => u.email?.toLowerCase() === setupEmail);
+
+        if (found) {
+          setupUser = { id: found.id, email: found.email };
+        } else {
+          await rollbackOrg(supabaseUrl, secretKey, org.id);
+          throw new Error(
+            `Setup email "${setupEmail}" is already registered in another tenant, but user ID could not be resolved. Please use a distinct setup email.`,
+          );
+        }
+      }
+    } else {
+      await rollbackOrg(supabaseUrl, secretKey, org.id);
+      throw new Error(
+        `Failed to create setup operator in Supabase Auth: ${errJson?.msg || errJson?.message || errText}`,
+      );
+    }
+  } else {
+    setupUser = (await adminCreateRes.json()) as { id: string; email: string };
   }
 
-  const setupUser = (await adminCreateRes.json()) as { id: string; email: string };
-
   // 3. Upsert into public.users with global_role ORG_ADMIN
-  await fetch(`${supabaseUrl}/rest/v1/users`, {
+  const upsertUserRes = await fetch(`${supabaseUrl}/rest/v1/users`, {
     method: 'POST',
     headers: {
       apikey: secretKey,
@@ -132,13 +216,19 @@ export async function provisionOrganization(
     }),
   });
 
+  if (!upsertUserRes.ok) {
+    const errText = await upsertUserRes.text();
+    console.warn('Upsert into public.users warning:', errText);
+  }
+
   // 4. Assign membership in public.org_users
-  await fetch(`${supabaseUrl}/rest/v1/org_users`, {
+  const assignOrgUserRes = await fetch(`${supabaseUrl}/rest/v1/org_users`, {
     method: 'POST',
     headers: {
       apikey: secretKey,
       Authorization: `Bearer ${secretKey}`,
       'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates',
     },
     body: JSON.stringify({
       org_id: org.id,
@@ -147,6 +237,11 @@ export async function provisionOrganization(
       onboarding_completed: true,
     }),
   });
+
+  if (!assignOrgUserRes.ok) {
+    const errText = await assignOrgUserRes.text();
+    console.warn('Assignment in public.org_users warning:', errText);
+  }
 
   // 5. Update setup_admin_id on public.organizations
   await fetch(`${supabaseUrl}/rest/v1/organizations?id=eq.${org.id}`, {
@@ -163,7 +258,7 @@ export async function provisionOrganization(
 
   return {
     success: true,
-    org: { ...org, setup_admin_id: setupUser.id },
+    org: { ...org, tier: dbTier, setup_admin_id: setupUser.id },
     setupAdmin: { id: setupUser.id, email: setupUser.email },
   };
 }

@@ -88,6 +88,9 @@ export default function Leads() {
         supabase.from('organizations').select('*').limit(50),
       ]);
 
+      if (leadsRes.error) console.warn('Fetch demo_leads warning:', leadsRes.error.message);
+      if (orgsRes.error) console.warn('Fetch orgs warning:', orgsRes.error.message);
+
       if (leadsRes.data) {
         setLeads(leadsRes.data as unknown as DemoLead[]);
       }
@@ -107,8 +110,14 @@ export default function Leads() {
 
       // Try fetching live GA4 report from microservice
       try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData?.session?.access_token;
+
         const gaRes = await fetch(`${GA4_SERVICE_URL}/api/ga4/overview`, {
-          headers: { Accept: 'application/json' },
+          headers: {
+            Accept: 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
         });
         if (gaRes.ok) {
           const json = await gaRes.json();

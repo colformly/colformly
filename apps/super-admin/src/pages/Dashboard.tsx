@@ -105,12 +105,13 @@ export default function Dashboard() {
       });
 
       // 4. Fetch Live Ongoing Tests
-      let testsQuery = supabase.from('tests').select('id, org_id, is_active');
+      let testsQuery = supabase.from('tests').select('id, org_id, is_published');
       if (selectedOrgId !== 'ALL') {
         testsQuery = testsQuery.eq('org_id', selectedOrgId);
       }
-      const { data: testsData } = await testsQuery;
-      const ongoingTests = (testsData || []).filter((t) => t.is_active).length;
+      const { data: testsData, error: testsErr } = await testsQuery;
+      if (testsErr) console.warn('Tests query warning:', testsErr.message);
+      const ongoingTests = (testsData || []).filter((t: any) => t.is_published).length;
 
       setStats({
         totalOrgs: allOrgs.length,

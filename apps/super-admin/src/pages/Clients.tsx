@@ -59,7 +59,7 @@ export default function Clients() {
   const [provCode, setProvCode] = useState('');
   const [provEmail, setProvEmail] = useState('');
   const [provPassword, setProvPassword] = useState('');
-  const [provTier, setProvTier] = useState<string>('PILOT');
+  const [provTier, setProvTier] = useState<string>('CAMPUS');
   const [provMrr, setProvMrr] = useState<number>(14999);
   const [provLoading, setProvLoading] = useState(false);
   const [provSuccess, setProvSuccess] = useState<any | null>(null);
@@ -124,46 +124,51 @@ export default function Clients() {
 
     const loadOrgDetails = async () => {
       // 1. Contracts
-      const { data: cData } = await supabase
+      const { data: cData, error: cErr } = await supabase
         .from('org_contracts')
         .select('*')
         .eq('org_id', selectedOrg.id)
         .order('created_at', { ascending: false });
+      if (cErr) console.warn('Contracts fetch warning:', cErr.message);
       setContracts((cData as unknown as OrgContract[]) || []);
 
       // 2. Invoices
-      const { data: iData } = await supabase
+      const { data: iData, error: iErr } = await supabase
         .from('org_invoices')
         .select('*')
         .eq('org_id', selectedOrg.id)
         .order('created_at', { ascending: false });
+      if (iErr) console.warn('Invoices fetch warning:', iErr.message);
       setInvoices((iData as unknown as OrgInvoice[]) || []);
 
       // 3. Incidents
-      const { data: incData } = await supabase
+      const { data: incData, error: incErr } = await supabase
         .from('system_incidents')
         .select('*')
         .eq('org_id', selectedOrg.id)
         .order('created_at', { ascending: false })
         .limit(10);
+      if (incErr) console.warn('Incidents fetch warning:', incErr.message);
       setOrgIncidents((incData as unknown as SystemIncident[]) || []);
 
       // 4. Usage
       const currentMonth = new Date().toISOString().slice(0, 7);
-      const { data: uData } = await supabase
+      const { data: uData, error: uErr } = await supabase
         .from('org_usage_monthly')
         .select('*')
         .eq('org_id', selectedOrg.id)
         .eq('billing_month', currentMonth)
         .maybeSingle();
+      if (uErr) console.warn('Usage fetch warning:', uErr.message);
       setOrgUsage(uData || null);
 
       // 5. Students count
-      const { count } = await supabase
+      const { count, error: countErr } = await supabase
         .from('org_users')
         .select('*', { count: 'exact', head: true })
         .eq('org_id', selectedOrg.id)
         .eq('role', 'STUDENT');
+      if (countErr) console.warn('Student count warning:', countErr.message);
       setOrgStudentCount(count || 0);
     };
 
@@ -1245,9 +1250,9 @@ export default function Clients() {
                     onChange={(e) => setProvTier(e.target.value)}
                     className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
                   >
-                    <option value="PILOT">Pilot Tier</option>
-                    <option value="PRO">Campus Pro</option>
-                    <option value="CAMPUS_EXPANSION">Campus Expansion</option>
+                    <option value="CAMPUS">Campus Tier</option>
+                    <option value="ENTERPRISE">Enterprise Tier</option>
+                    <option value="FREE">Free Tier</option>
                   </select>
                 </div>
                 <div>
