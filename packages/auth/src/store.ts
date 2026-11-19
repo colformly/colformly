@@ -73,6 +73,7 @@ function normalizeOrganization(row: {
   tier: Organization['tier'];
   mrr_cents: number;
   is_active: boolean;
+  allowed_domains?: string[];
   created_at: string;
   updated_at: string;
 }): Organization {
@@ -83,6 +84,7 @@ function normalizeOrganization(row: {
 
   return {
     ...row,
+    allowed_domains: row.allowed_domains || [],
     theme_config: {
       ...DEFAULT_THEME_FALLBACK,
       ...rawTheme,

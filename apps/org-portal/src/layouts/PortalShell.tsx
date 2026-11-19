@@ -1,21 +1,25 @@
-import { type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   BarChart3,
   BookOpen,
+  CheckCircle2,
   FileEdit,
   GraduationCap,
   Home,
   LayoutDashboard,
   LogOut,
   Palette,
+  Rocket,
   Settings,
+  Sparkles,
   Trophy,
   Users,
 } from 'lucide-react';
-import { useAuth } from '@colformly/auth';
+import { supabase, useAuth } from '@colformly/auth';
 import { useTheme } from '@colformly/theme';
-import { FloatingNav, type NavItem } from '@colformly/ui';
+import type { Course } from '@colformly/types';
+import { BaseModal, Button, FloatingNav, type NavItem } from '@colformly/ui';
 
 export type PortalPersona = 'org' | 'teacher' | 'student';
 
@@ -70,9 +74,116 @@ const NAV_CONFIG: Record<
 export function PortalShell({ persona, children }: PortalShellProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { layoutMode, applyPreset } = useTheme();
-  const { profile, signOut } = useAuth();
+  const { layoutMode, applyPreset, classes } = useTheme();
+  const { profile, role, memberships, orgId, refreshProfile, signOut } = useAuth();
   const cfg = NAV_CONFIG[persona];
+
+  // Student Onboarding State
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [rollNumber, setRollNumber] = useState('');
+  const [selectedCourseId, setSelectedCourseId] = useState('');
+  const [selectedYearId, setSelectedYearId] = useState('');
+  const [selectedSectionId, setSelectedSectionId] = useState('');
+  const [submittingOnboarding, setSubmittingOnboarding] = useState(false);
+  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const [demoOnboarded, setDemoOnboarded] = useState(false);
+
+  const activeMembership = memberships.find((m) => m.org_id === orgId) || memberships[0];
+  const isStudent = persona === 'student';
+  const isFloating = layoutMode === 'floating';
+
+  // Check if current student requires first-time onboarding
+  const requiresOnboarding =
+    isStudent &&
+    !demoOnboarded &&
+    Boolean(activeMembership && activeMembership.onboarding_completed === false);
+
+  // Fetch courses from Supabase for cascading dropdowns
+  useEffect(() => {
+    let isMounted = true;
+    const loadCourses = async () => {
+      try {
+        const { data, error } = await (supabase.from('courses') as any).select('*').order('name');
+        if (!error && data && data.length > 0 && isMounted) {
+          setCourses(data as Course[]);
+        }
+      } catch (err) {
+        console.warn('Error loading courses:', err);
+      }
+    };
+    void loadCourses();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filter cascading course levels
+  const courseOptions = courses.filter((c) => c.level === 'COURSE');
+  const yearOptions = courses.filter(
+    (c) => c.level === 'YEAR' && (!selectedCourseId || c.parent_id === selectedCourseId),
+  );
+  const sectionOptions = courses.filter(
+    (c) => c.level === 'SECTION' && (!selectedYearId || c.parent_id === selectedYearId),
+  );
+
+  // Auto-select cascading defaults if not set
+  useEffect(() => {
+    if (courseOptions.length > 0 && !selectedCourseId) {
+      setSelectedCourseId(courseOptions[0].id);
+    }
+  }, [courseOptions, selectedCourseId]);
+
+  useEffect(() => {
+    if (yearOptions.length > 0 && (!selectedYearId || !yearOptions.some((y) => y.id === selectedYearId))) {
+      setSelectedYearId(yearOptions[0].id);
+    }
+  }, [yearOptions, selectedYearId]);
+
+  useEffect(() => {
+    if (sectionOptions.length > 0 && (!selectedSectionId || !sectionOptions.some((s) => s.id === selectedSectionId))) {
+      setSelectedSectionId(sectionOptions[0].id);
+    }
+  }, [sectionOptions, selectedSectionId]);
+
+  const handleStudentOnboardingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rollNumber.trim()) {
+      setOnboardingError('Please enter your university/college Roll Number.');
+      return;
+    }
+    if (!selectedSectionId) {
+      setOnboardingError('Please select your assigned Class Section.');
+      return;
+    }
+
+    setSubmittingOnboarding(true);
+    setOnboardingError(null);
+
+    try {
+      if (activeMembership) {
+        const { error: updateErr } = await (supabase.from('org_users') as any)
+          .update({
+            roll_number: rollNumber.trim().toUpperCase(),
+            section_id: selectedSectionId,
+            onboarding_completed: true,
+          })
+          .eq('id', activeMembership.id);
+
+        if (updateErr) {
+          setOnboardingError(updateErr.message);
+          setSubmittingOnboarding(false);
+          return;
+        }
+
+        await refreshProfile();
+      }
+      setDemoOnboarded(true);
+      setSubmittingOnboarding(false);
+    } catch (err) {
+      setOnboardingError(err instanceof Error ? err.message : 'Failed to save student profile.');
+      setSubmittingOnboarding(false);
+    }
+  };
 
   const items: NavItem[] = cfg.items.map((item) => ({
     ...item,
@@ -80,9 +191,6 @@ export function PortalShell({ persona, children }: PortalShellProps) {
       location.pathname === item.href ||
       (item.id === 's-res' && location.pathname.startsWith('/student/results')),
   }));
-
-  const isStudent = persona === 'student';
-  const isFloating = layoutMode === 'floating';
 
   const switchPersona = (next: PortalPersona) => {
     if (next === 'student') {
@@ -215,6 +323,133 @@ export function PortalShell({ persona, children }: PortalShellProps) {
 
         <div className="max-w-6xl mx-auto">{children}</div>
       </main>
+
+      {/* STUDENT FIRST-TIME SELF-ONBOARDING MODAL */}
+      <BaseModal
+        open={requiresOnboarding}
+        onClose={() => {}}
+        hideCloseButton={true}
+        closeOnBackdrop={false}
+        size="md"
+        className="rounded-3xl border-2 border-teal-200 shadow-student-card p-2"
+      >
+        <div className="space-y-6 p-2">
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-3xl bg-teal-50 border-2 border-teal-200 text-primary flex items-center justify-center text-2xl mx-auto shadow-sm">
+              <Rocket className="w-7 h-7 text-primary animate-bounce" />
+            </div>
+            <h2 className="font-headline font-extrabold text-2xl text-slate-900 tracking-tight">
+              Welcome to Your Campus Portal! 🎓
+            </h2>
+            <p className="text-xs text-slate-600 max-w-sm mx-auto">
+              Please enter your campus roll number and select your enrolled section to link your exams, rankings &amp; diagnostic sheets.
+            </p>
+          </div>
+
+          {onboardingError && (
+            <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+              {onboardingError}
+            </div>
+          )}
+
+          <form onSubmit={handleStudentOnboardingSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-label font-bold text-slate-700 mb-1.5">
+                Roll Number / Student ID
+              </label>
+              <input
+                type="text"
+                required
+                value={rollNumber}
+                onChange={(e) => setRollNumber(e.target.value)}
+                placeholder="e.g. 24CSE041"
+                className={`w-full px-4 py-3 text-sm font-mono uppercase ${classes.input}`}
+              />
+            </div>
+
+            {/* Cascading Dropdowns: Course -> Year -> Section */}
+            <div className="space-y-3 pt-1">
+              <div>
+                <label className="block text-xs font-label font-bold text-slate-700 mb-1.5">
+                  1. Degree / Course
+                </label>
+                <select
+                  value={selectedCourseId}
+                  onChange={(e) => {
+                    setSelectedCourseId(e.target.value);
+                  }}
+                  className={`w-full px-4 py-2.5 text-xs font-semibold ${classes.input}`}
+                >
+                  {courseOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} {c.code ? `(${c.code})` : ''}
+                    </option>
+                  ))}
+                  {courseOptions.length === 0 && (
+                    <option value="demo-course">B.Tech Computer Science &amp; Engineering</option>
+                  )}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-label font-bold text-slate-700 mb-1.5">
+                    2. Academic Year
+                  </label>
+                  <select
+                    value={selectedYearId}
+                    onChange={(e) => {
+                      setSelectedYearId(e.target.value);
+                    }}
+                    className={`w-full px-4 py-2.5 text-xs font-semibold ${classes.input}`}
+                  >
+                    {yearOptions.map((y) => (
+                      <option key={y.id} value={y.id}>
+                        {y.name}
+                      </option>
+                    ))}
+                    {yearOptions.length === 0 && (
+                      <option value="demo-year">Year 2 (Sophomore)</option>
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-label font-bold text-slate-700 mb-1.5">
+                    3. Assigned Section
+                  </label>
+                  <select
+                    value={selectedSectionId}
+                    onChange={(e) => setSelectedSectionId(e.target.value)}
+                    className={`w-full px-4 py-2.5 text-xs font-semibold ${classes.input}`}
+                  >
+                    {sectionOptions.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                    {sectionOptions.length === 0 && (
+                      <option value="demo-sec">Section A</option>
+                    )}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-3">
+              <Button
+                type="submit"
+                size="lg"
+                isLoading={submittingOnboarding}
+                className="w-full justify-center rounded-2xl bg-primary text-white font-label font-bold text-sm shadow-md"
+                leftIcon={<Sparkles className="w-4 h-4" />}
+              >
+                Complete Campus Onboarding
+              </Button>
+            </div>
+          </form>
+        </div>
+      </BaseModal>
     </div>
   );
 }

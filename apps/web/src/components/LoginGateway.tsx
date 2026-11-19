@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, ArrowRight, CheckCircle2, Lock, Mail, ShieldCheck } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2, Lock, Mail, RefreshCw, ShieldCheck } from 'lucide-react';
 import { supabase } from '@colformly/auth';
 
 export default function LoginGateway() {
@@ -8,8 +8,96 @@ export default function LoginGateway() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authedUser, setAuthedUser] = useState<{ email: string; role: string } | null>(null);
+
+  const resolveWorkspaceUrl = (role: string) => {
+    return role === 'SUPER_ADMIN'
+      ? import.meta.env.VITE_SUPER_ADMIN_URL || 'https://colformly-super-admin.pages.dev'
+      : import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
+  };
+
+  const syncUserSession = async (userEmail: string, explicitRole?: string) => {
+    let resolvedRole = explicitRole;
+    if (!resolvedRole || resolvedRole === 'authenticated') {
+      try {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('global_role')
+          .eq('email', userEmail)
+          .maybeSingle();
+
+        if (profile?.global_role) {
+          resolvedRole = profile.global_role;
+        } else {
+          resolvedRole = 'STUDENT';
+        }
+      } catch {
+        resolvedRole = 'STUDENT';
+      }
+    }
+
+    // Auto-join college organization if domain matches allowed_domains
+    if (resolvedRole !== 'SUPER_ADMIN') {
+      try {
+        await supabase.rpc('auto_join_org_by_domain', { p_email: userEmail });
+      } catch (rpcErr) {
+        console.warn('Auto join by domain check:', rpcErr);
+      }
+    }
+
+    setAuthedUser({
+      email: userEmail,
+      role: resolvedRole,
+    });
+    setLoading(false);
+    setCheckingSession(false);
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    // 1. Initial session check on mount
+    const checkInitialSession = async () => {
+      try {
+        const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+        if (sessionErr) {
+          console.warn('Session retrieval error:', sessionErr);
+        }
+        if (session?.user && isMounted) {
+          const role =
+            (session.user.app_metadata?.role as string) ||
+            (session.user.user_metadata?.role as string);
+          await syncUserSession(session.user.email || '', role);
+        } else if (isMounted) {
+          setCheckingSession(false);
+        }
+      } catch {
+        if (isMounted) setCheckingSession(false);
+      }
+    };
+
+    void checkInitialSession();
+
+    // 2. Subscribe to Supabase Auth state changes (OAuth redirects, token refresh, sign-in)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user && isMounted) {
+        const role =
+          (session.user.app_metadata?.role as string) ||
+          (session.user.user_metadata?.role as string);
+        await syncUserSession(session.user.email || '', role);
+      } else if (event === 'SIGNED_OUT' && isMounted) {
+        setAuthedUser(null);
+        setCheckingSession(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -41,12 +129,13 @@ export default function LoginGateway() {
       return;
     }
 
-    const role = (data.user?.app_metadata?.role as string) || 'STUDENT';
-    setAuthedUser({
-      email: data.user?.email || email,
-      role,
-    });
-    setLoading(false);
+    if (data.user) {
+      const role =
+        (data.user.app_metadata?.role as string) ||
+        (data.user.user_metadata?.role as string) ||
+        'STUDENT';
+      await syncUserSession(data.user.email || email, role);
+    }
   };
 
   return (
@@ -67,7 +156,12 @@ export default function LoginGateway() {
         </p>
       </div>
 
-      {authedUser ? (
+      {checkingSession ? (
+        <div className="p-8 rounded-2xl bg-slate-50/80 border border-slate-200 text-center space-y-3">
+          <RefreshCw className="w-6 h-6 text-light-primary animate-spin mx-auto" />
+          <p className="text-xs text-slate-600 font-medium">Verifying active session credentials...</p>
+        </div>
+      ) : authedUser ? (
         <div className="p-5 rounded-2xl bg-teal-50/80 border border-teal-200 text-center space-y-3">
           <CheckCircle2 className="w-8 h-8 text-light-primary mx-auto" />
           <div>
@@ -83,11 +177,7 @@ export default function LoginGateway() {
           </p>
           <div className="pt-2 flex flex-col gap-2">
             <a
-              href={
-                authedUser.role === 'SUPER_ADMIN'
-                  ? import.meta.env.VITE_SUPER_ADMIN_URL || 'https://colformly-super-admin.pages.dev'
-                  : import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev'
-              }
+              href={resolveWorkspaceUrl(authedUser.role)}
               className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-label text-sm font-semibold transition-colors"
             >
               <span>

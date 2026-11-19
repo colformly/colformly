@@ -48,6 +48,14 @@ export interface UserProfile extends Omit<Tables<'users'>, 'grading_blessings'> 
 
 export type OrgUser = Tables<'org_users'>;
 
+export type TeacherAssignment = Tables<'teacher_assignments'>;
+
+export interface TeacherAssignmentWithCourse extends TeacherAssignment {
+  section?: Course;
+  year?: Course;
+  course?: Course;
+}
+
 export type Course = Tables<'courses'>;
 
 export interface CourseNode extends Course {
