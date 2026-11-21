@@ -4,12 +4,22 @@ import { reportSystemIncidentAsync } from './telemetry';
 export interface ProvisionOrgParams {
   name: string;
   orgType?: 'COLLEGE' | 'UNIVERSITY' | 'COACHING' | 'SCHOOL';
+  cityState?: string;
   domains?: string[];
   instituteCode?: string;
   setupEmail: string;
   setupPassword?: string;
   tier?: 'FREE' | 'PILOT' | 'PRO' | 'CAMPUS_EXPANSION' | 'CAMPUS' | 'ENTERPRISE';
   mrrCents?: number;
+  teacherAuthMode?: 'GOOGLE_ONLY' | 'EMAIL_PASSWORD' | 'BOTH';
+  studentAuthMode?: 'GOOGLE_ONLY' | 'EMAIL_PASSWORD' | 'BOTH';
+  studentAllowedDomains?: string[];
+  teacherAllowedDomains?: string[];
+  featureFlags?: Record<string, boolean>;
+  capacityLimits?: Record<string, any>;
+  examDefaults?: Record<string, any>;
+  billingConfig?: Record<string, any>;
+  delegationPolicy?: Record<string, any>;
 }
 
 export interface HandoverOrgParams {
@@ -58,9 +68,47 @@ export async function provisionOrganization(
   const secretKey = getSecretKey(env);
 
   const slug = `${slugify(params.name)}-${Math.random().toString(36).substring(2, 6)}`;
-  const domains = Array.isArray(params.domains)
+  
+  const studentDomains = Array.isArray(params.studentAllowedDomains)
+    ? params.studentAllowedDomains.map((d) => d.trim().toLowerCase()).filter(Boolean)
+    : Array.isArray(params.domains)
     ? params.domains.map((d) => d.trim().toLowerCase()).filter(Boolean)
     : [];
+
+  const teacherDomains = Array.isArray(params.teacherAllowedDomains)
+    ? params.teacherAllowedDomains.map((d) => d.trim().toLowerCase()).filter(Boolean)
+    : studentDomains;
+
+  // Student Domain Conflict Check: Verify student domains are unique across all active orgs
+  if (studentDomains.length > 0) {
+    const existingOrgsRes = await fetch(
+      `${supabaseUrl}/rest/v1/organizations?is_active=eq.true&select=id,name,student_allowed_domains`,
+      {
+        headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
+      },
+    );
+
+    if (existingOrgsRes.ok) {
+      const activeOrgs = (await existingOrgsRes.json().catch(() => [])) as Array<{
+        id: string;
+        name: string;
+        student_allowed_domains?: string[];
+      }>;
+
+      for (const domain of studentDomains) {
+        const conflictingOrg = activeOrgs.find((o) =>
+          Array.isArray(o.student_allowed_domains) && o.student_allowed_domains.includes(domain),
+        );
+        if (conflictingOrg) {
+          throw new Error(
+            `Domain Conflict: Domain "${domain}" is already claimed by active organization "${conflictingOrg.name}".`,
+          );
+        }
+      }
+    }
+  }
+
+  const allAllowedDomains = Array.from(new Set([...studentDomains, ...teacherDomains]));
 
   // Map tier strictly to PostgreSQL enum org_tier ('FREE' | 'CAMPUS' | 'ENTERPRISE')
   const rawTier = (params.tier || 'CAMPUS').toUpperCase();
@@ -72,20 +120,67 @@ export async function provisionOrganization(
       : 'CAMPUS'; // Safely maps PILOT, PRO, CAMPUS_EXPANSION to CAMPUS
 
   const instituteCode = params.instituteCode?.trim() || null;
+  const teacherAuthMode = params.teacherAuthMode || 'BOTH';
+  const studentAuthMode = params.studentAuthMode || 'GOOGLE_ONLY';
+  const authPolicy =
+    teacherAuthMode === 'GOOGLE_ONLY' && studentAuthMode === 'GOOGLE_ONLY'
+      ? 'GOOGLE_ONLY'
+      : 'HYBRID';
 
-  // 1. Create Organization in public.organizations
+  // 1. Create Organization in public.organizations with complete 5-section config
   const orgPayload = {
     name: params.name.trim(),
     slug,
     org_type: params.orgType || 'COLLEGE',
-    allowed_domains: domains,
+    city_state: params.cityState?.trim() || null,
+    allowed_domains: allAllowedDomains,
+    student_allowed_domains: studentDomains,
+    teacher_allowed_domains: teacherDomains,
+    teacher_auth_mode: teacherAuthMode,
+    student_auth_mode: studentAuthMode,
     institute_code: instituteCode,
     onboarding_status: 'SETUP_MODE',
-    auth_policy: 'HYBRID',
+    auth_policy: authPolicy,
     tier: dbTier,
     mrr_cents: Math.max(0, params.mrrCents || 0),
     is_active: true,
-    feature_flags: { ai_generator: true, byoc_explainer: true, strict_pwa: false },
+    feature_flags: {
+      ai_generator: true,
+      byoc_explainer: true,
+      wrong_answer_explainer: true,
+      csv_import: true,
+      anti_cheat: true,
+      ...(params.featureFlags || {}),
+    },
+    capacity_limits: {
+      student_seat_cap: 500,
+      monthly_ai_allowance: 2000,
+      max_active_tests: 50,
+      usage_alert_percent: 80,
+      ...(params.capacityLimits || {}),
+    },
+    exam_defaults: {
+      default_duration_mins: 45,
+      negative_marking_allowed: false,
+      result_visibility: 'IMMEDIATE',
+      ...(params.examDefaults || {}),
+    },
+    billing_config: {
+      plan_tier: dbTier,
+      billing_cycle: 'MONTHLY',
+      monthly_fee: Math.round(Math.max(0, params.mrrCents || 0) / 100),
+      contract_status: 'ACTIVE',
+      invoice_status: 'CURRENT',
+      ...(params.billingConfig || {}),
+    },
+    delegation_policy: {
+      allow_org_edit_teacher_domains: true,
+      lock_student_domains: true,
+      allow_org_edit_features: true,
+      allow_org_edit_exam_defaults: true,
+      lock_billing_and_limits: true,
+      ...(params.delegationPolicy || {}),
+    },
     global_broadcast: { active: false, message: '', audience: 'ALL', updated_at: null },
   };
 

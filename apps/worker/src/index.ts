@@ -96,10 +96,641 @@ app.get('/health/keep-alive', async (c) => {
   });
 });
 
+// ── Helper to resolve Supabase Admin Credentials ────────────────
+function getSupabaseAdmin(c: any) {
+  const supabaseUrl = (c.env.SUPABASE_URL || 'https://crprffwlfngyiyztwgwb.supabase.co').replace(/\/$/, '');
+  const secretKey =
+    c.env.SUPABASE_SECRET_KEY ||
+    c.env.SUPABASE_SERVICE_ROLE_KEY ||
+    c.env.SUPABASE_PUBLISHABLE_KEY ||
+    c.env.SUPABASE_ANON_KEY ||
+    'sb_publishable_t9dfV3HzxY50ZwkiumiD_w_RurnQuC4';
+  return { supabaseUrl, secretKey };
+}
+
 // ── Protected API Routes ────────────────────────────────────────
 app.use('/api/*', supabaseAuthMiddleware);
 
-// 1. POST /api/ai/generate-questions (Teacher / Admin only)
+// 0. POST /api/auth/resolve-session (Multi-Tenant Domain Gate & Auto-Enrollment)
+app.post('/api/auth/resolve-session', async (c) => {
+  const user = c.get('user');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  try {
+    const userEmail = (user.email || '').trim().toLowerCase();
+    if (!userEmail) {
+      return c.json({ authorized: false, reason: 'INVALID_SESSION' }, 400);
+    }
+
+    // 1. Check existing active membership in public.org_users
+    const orgUserRes = await fetch(
+      `${supabaseUrl}/rest/v1/org_users?user_id=eq.${encodeURIComponent(user.id)}&is_active=eq.true&select=id,org_id,role,onboarding_completed,organizations(id,name,slug,org_type,tier,is_active,onboarding_status,student_auth_mode,teacher_auth_mode,student_allowed_domains,teacher_allowed_domains,feature_flags)&order=created_at.desc&limit=1`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+
+    if (orgUserRes.ok) {
+      const orgUsers = (await orgUserRes.json().catch(() => [])) as any[];
+      if (orgUsers.length > 0) {
+        const row = orgUsers[0];
+        const org = row.organizations;
+        if (org) {
+          if (org.is_active === false || org.onboarding_status === 'SUSPENDED') {
+            return c.json({
+              authorized: false,
+              reason: 'WORKSPACE_SUSPENDED',
+              message: `The workspace for "${org.name}" is currently suspended. Please contact your institution administrator.`,
+            });
+          }
+          return c.json({
+            authorized: true,
+            role: row.role,
+            orgId: row.org_id,
+            org,
+            isNewMember: false,
+          });
+        }
+      }
+    }
+
+    // 2. Check for unclaimed invite in public.org_invites
+    const inviteRes = await fetch(
+      `${supabaseUrl}/rest/v1/org_invites?email=eq.${encodeURIComponent(userEmail)}&claimed_at=is.null&select=id,org_id,role,full_name,department,section_id,course_id,organizations(id,name,slug,org_type,tier,is_active,onboarding_status,student_auth_mode,teacher_auth_mode,feature_flags)&limit=1`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+
+    if (inviteRes.ok) {
+      const invites = (await inviteRes.json().catch(() => [])) as any[];
+      if (invites.length > 0) {
+        const invite = invites[0];
+        const org = invite.organizations;
+        if (org && (org.is_active === false || org.onboarding_status === 'SUSPENDED')) {
+          return c.json({
+            authorized: false,
+            reason: 'WORKSPACE_SUSPENDED',
+            message: `The workspace for "${org.name}" is currently suspended.`,
+          });
+        }
+
+        // Link invite to org_users
+        await fetch(`${supabaseUrl}/rest/v1/org_users`, {
+          method: 'POST',
+          headers: {
+            apikey: secretKey,
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates',
+          },
+          body: JSON.stringify({
+            org_id: invite.org_id,
+            user_id: user.id,
+            role: invite.role,
+            invited_email: userEmail,
+            invited_name: invite.full_name || userEmail.split('@')[0],
+            section_id: invite.section_id || null,
+            course_id: invite.course_id || null,
+            is_active: true,
+            onboarding_completed: true,
+          }),
+        });
+
+        // Mark invite claimed
+        await fetch(`${supabaseUrl}/rest/v1/org_invites?id=eq.${encodeURIComponent(invite.id)}`, {
+          method: 'PATCH',
+          headers: {
+            apikey: secretKey,
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ claimed_at: new Date().toISOString() }),
+        });
+
+        // Update public.users
+        await fetch(`${supabaseUrl}/rest/v1/users`, {
+          method: 'POST',
+          headers: {
+            apikey: secretKey,
+            Authorization: `Bearer ${secretKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'resolution=merge-duplicates',
+          },
+          body: JSON.stringify({
+            id: user.id,
+            email: userEmail,
+            full_name: invite.full_name || userEmail.split('@')[0],
+            global_role: invite.role,
+          }),
+        });
+
+        return c.json({
+          authorized: true,
+          role: invite.role,
+          orgId: invite.org_id,
+          org,
+          isNewMember: true,
+          source: 'INVITE',
+        });
+      }
+    }
+
+    // 3. Match email domain against student_allowed_domains
+    const domain = userEmail.split('@')[1];
+    if (domain) {
+      const activeOrgsRes = await fetch(
+        `${supabaseUrl}/rest/v1/organizations?is_active=eq.true&select=id,name,slug,org_type,tier,is_active,onboarding_status,student_auth_mode,teacher_auth_mode,student_allowed_domains,teacher_allowed_domains,feature_flags`,
+        { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+      );
+
+      if (activeOrgsRes.ok) {
+        const activeOrgs = (await activeOrgsRes.json().catch(() => [])) as any[];
+        const matchedOrg = activeOrgs.find((o) =>
+          Array.isArray(o.student_allowed_domains) && o.student_allowed_domains.includes(domain),
+        );
+
+        if (matchedOrg) {
+          if (matchedOrg.onboarding_status === 'SUSPENDED') {
+            return c.json({
+              authorized: false,
+              reason: 'WORKSPACE_SUSPENDED',
+              message: `The workspace for "${matchedOrg.name}" is currently suspended.`,
+            });
+          }
+
+          // Auto-join as STUDENT
+          await fetch(`${supabaseUrl}/rest/v1/org_users`, {
+            method: 'POST',
+            headers: {
+              apikey: secretKey,
+              Authorization: `Bearer ${secretKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'resolution=merge-duplicates',
+            },
+            body: JSON.stringify({
+              org_id: matchedOrg.id,
+              user_id: user.id,
+              role: 'STUDENT',
+              invited_email: userEmail,
+              invited_name: userEmail.split('@')[0],
+              is_active: true,
+              onboarding_completed: false,
+            }),
+          });
+
+          await fetch(`${supabaseUrl}/rest/v1/users`, {
+            method: 'POST',
+            headers: {
+              apikey: secretKey,
+              Authorization: `Bearer ${secretKey}`,
+              'Content-Type': 'application/json',
+              Prefer: 'resolution=merge-duplicates',
+            },
+            body: JSON.stringify({
+              id: user.id,
+              email: userEmail,
+              global_role: 'STUDENT',
+            }),
+          });
+
+          return c.json({
+            authorized: true,
+            role: 'STUDENT',
+            orgId: matchedOrg.id,
+            org: matchedOrg,
+            isNewMember: true,
+            source: 'DOMAIN_RULE',
+          });
+        }
+      }
+    }
+
+    // 4. Super Admin check
+    if (user.role === 'SUPER_ADMIN' || userEmail === 'core@edgecors.com') {
+      return c.json({
+        authorized: true,
+        role: 'SUPER_ADMIN',
+        orgId: null,
+        org: null,
+      });
+    }
+
+    // 5. Rejection: Domain not authorized
+    return c.json(
+      {
+        authorized: false,
+        reason: 'DOMAIN_NOT_AUTHORIZED',
+        email: userEmail,
+        domain: domain || '',
+        message: `Your email domain (@${domain || 'unknown'}) is not authorized for any active campus workspace.`,
+      },
+      403,
+    );
+  } catch (err: any) {
+    console.error('Error in /api/auth/resolve-session:', err);
+    return c.json({ authorized: false, error: err.message || 'Failed to resolve session' }, 500);
+  }
+});
+
+// 0b. POST /api/org/teachers/add (Faculty Provisioning via Invite or Password)
+app.post('/api/org/teachers/add', async (c) => {
+  const user = c.get('user');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  if (user.role !== 'ORG_ADMIN' && user.role !== 'SUPER_ADMIN') {
+    return c.json({ error: 'Forbidden: Organization Administrator or Super Admin privileges required' }, 403);
+  }
+
+  try {
+    const body = await c.req.json<{
+      orgId?: string;
+      email: string;
+      fullName?: string;
+      department?: string;
+      sectionId?: string;
+      authMode: 'GOOGLE' | 'PASSWORD';
+      password?: string;
+    }>();
+
+    const targetOrgId = (user.role === 'SUPER_ADMIN' && body.orgId) ? body.orgId : user.orgId;
+    if (!targetOrgId) {
+      return c.json({ error: 'Missing target organization ID' }, 400);
+    }
+
+    const email = (body.email || '').trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      return c.json({ error: 'A valid email address is required' }, 400);
+    }
+
+    // Fetch org details to enforce policy
+    const orgRes = await fetch(
+      `${supabaseUrl}/rest/v1/organizations?id=eq.${encodeURIComponent(targetOrgId)}&select=id,name,teacher_auth_mode,teacher_allowed_domains,is_active,onboarding_status`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+
+    if (!orgRes.ok) {
+      return c.json({ error: 'Failed to lookup organization' }, 500);
+    }
+
+    const orgs = (await orgRes.json().catch(() => [])) as any[];
+    const org = orgs[0];
+    if (!org) {
+      return c.json({ error: 'Organization not found' }, 404);
+    }
+
+    const teacherAuthMode = org.teacher_auth_mode || 'BOTH';
+    if (teacherAuthMode === 'GOOGLE_ONLY' && body.authMode === 'PASSWORD') {
+      return c.json({ error: 'Institution policy requires Google SSO for faculty accounts. Password creation is disabled.' }, 400);
+    }
+    if (teacherAuthMode === 'EMAIL_PASSWORD' && body.authMode === 'GOOGLE') {
+      return c.json({ error: 'Institution policy requires Email/Password authentication for faculty accounts. Google SSO is disabled.' }, 400);
+    }
+
+    // Check teacher domain restriction
+    const allowedTeacherDomains = Array.isArray(org.teacher_allowed_domains) ? org.teacher_allowed_domains : [];
+    const domain = email.split('@')[1];
+    if (allowedTeacherDomains.length > 0 && !allowedTeacherDomains.includes(domain)) {
+      return c.json({
+        error: `Domain @${domain} is not in the authorized teacher domains for this institution. Allowed domains: ${allowedTeacherDomains.join(', ')}`,
+      }, 400);
+    }
+
+    const fullName = (body.fullName || '').trim() || email.split('@')[0];
+
+    if (body.authMode === 'GOOGLE') {
+      // Upsert into org_invites
+      await fetch(`${supabaseUrl}/rest/v1/org_invites`, {
+        method: 'POST',
+        headers: {
+          apikey: secretKey,
+          Authorization: `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({
+          org_id: targetOrgId,
+          email,
+          role: 'TEACHER',
+          full_name: fullName,
+          department: body.department?.trim() || null,
+          section_id: body.sectionId || null,
+          invited_by: user.id,
+        }),
+      });
+
+      // Upsert into org_users as pending invite
+      await fetch(`${supabaseUrl}/rest/v1/org_users`, {
+        method: 'POST',
+        headers: {
+          apikey: secretKey,
+          Authorization: `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({
+          org_id: targetOrgId,
+          invited_email: email,
+          invited_name: fullName,
+          role: 'TEACHER',
+          section_id: body.sectionId || null,
+          is_active: true,
+          onboarding_completed: false,
+        }),
+      });
+
+      return c.json({
+        success: true,
+        mode: 'GOOGLE_INVITE',
+        message: `Faculty invite created for ${email}. Teacher can sign in with Google.`,
+        teacher: { email, fullName, role: 'TEACHER' },
+      });
+    }
+
+    // PASSWORD Auth Mode: Create user via Supabase Auth Admin API
+    if (!body.password || body.password.length < 6) {
+      return c.json({ error: 'Password must be at least 6 characters long' }, 400);
+    }
+
+    let teacherUserId: string;
+
+    const createAuthUserRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+      method: 'POST',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        password: body.password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          role: 'TEACHER',
+        },
+      }),
+    });
+
+    if (!createAuthUserRes.ok) {
+      const errText = await createAuthUserRes.text();
+      let isEmailRegistered = false;
+      try {
+        const j = JSON.parse(errText);
+        isEmailRegistered = j.code === 'email_exists' || errText.includes('already been registered');
+      } catch {}
+
+      if (isEmailRegistered) {
+        // Find existing user id
+        const userLookup = await fetch(`${supabaseUrl}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id`, {
+          headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
+        });
+        const users = (await userLookup.json().catch(() => [])) as any[];
+        if (users[0]?.id) {
+          teacherUserId = users[0].id;
+          // Update password for existing user
+          await fetch(`${supabaseUrl}/auth/v1/admin/users/${teacherUserId}`, {
+            method: 'PUT',
+            headers: {
+              apikey: secretKey,
+              Authorization: `Bearer ${secretKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ password: body.password }),
+          });
+        } else {
+          return c.json({ error: `User with email ${email} already registered in another workspace.` }, 400);
+        }
+      } else {
+        return c.json({ error: `Failed to create teacher account: ${errText}` }, 400);
+      }
+    } else {
+      const created = (await createAuthUserRes.json()) as { id: string };
+      teacherUserId = created.id;
+    }
+
+    // Upsert public.users
+    await fetch(`${supabaseUrl}/rest/v1/users`, {
+      method: 'POST',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        id: teacherUserId,
+        email,
+        full_name: fullName,
+        global_role: 'TEACHER',
+      }),
+    });
+
+    // Upsert public.org_users
+    await fetch(`${supabaseUrl}/rest/v1/org_users`, {
+      method: 'POST',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        org_id: targetOrgId,
+        user_id: teacherUserId,
+        role: 'TEACHER',
+        invited_email: email,
+        invited_name: fullName,
+        section_id: body.sectionId || null,
+        is_active: true,
+        onboarding_completed: true,
+      }),
+    });
+
+    // Upsert org_invites as claimed
+    await fetch(`${supabaseUrl}/rest/v1/org_invites`, {
+      method: 'POST',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        org_id: targetOrgId,
+        email,
+        role: 'TEACHER',
+        full_name: fullName,
+        claimed_at: new Date().toISOString(),
+        invited_by: user.id,
+      }),
+    });
+
+    return c.json({
+      success: true,
+      mode: 'PASSWORD_CREATED',
+      message: `Faculty account created with password auth for ${email}.`,
+      teacher: { id: teacherUserId, email, fullName, role: 'TEACHER' },
+    });
+  } catch (err: any) {
+    console.error('Error in /api/org/teachers/add:', err);
+    return c.json({ error: err.message || 'Failed to add faculty member' }, 500);
+  }
+});
+
+// 0c. PATCH /api/org/settings (Enforces Delegation Policy Locks)
+app.patch('/api/org/settings', async (c) => {
+  const user = c.get('user');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  if (user.role !== 'ORG_ADMIN' && user.role !== 'SUPER_ADMIN') {
+    return c.json({ error: 'Forbidden: Organization Administrator privileges required' }, 403);
+  }
+
+  try {
+    const body = await c.req.json<{
+      orgId?: string;
+      name?: string;
+      city_state?: string;
+      teacher_auth_mode?: string;
+      student_auth_mode?: string;
+      student_allowed_domains?: string[];
+      teacher_allowed_domains?: string[];
+      feature_flags?: Record<string, boolean>;
+      exam_defaults?: Record<string, any>;
+      capacity_limits?: Record<string, any>;
+      billing_config?: Record<string, any>;
+      delegation_policy?: Record<string, any>;
+    }>();
+
+    const targetOrgId = (user.role === 'SUPER_ADMIN' && body.orgId) ? body.orgId : user.orgId;
+    if (!targetOrgId) {
+      return c.json({ error: 'Missing target organization ID' }, 400);
+    }
+
+    // Fetch org and current delegation policy
+    const orgRes = await fetch(
+      `${supabaseUrl}/rest/v1/organizations?id=eq.${encodeURIComponent(targetOrgId)}&select=*`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+
+    if (!orgRes.ok) return c.json({ error: 'Failed to fetch organization' }, 500);
+    const orgs = (await orgRes.json().catch(() => [])) as any[];
+    const org = orgs[0];
+    if (!org) return c.json({ error: 'Organization not found' }, 404);
+
+    const delegation = org.delegation_policy || {};
+    const updates: Record<string, any> = {};
+
+    const isSuper = user.role === 'SUPER_ADMIN';
+
+    if (body.name !== undefined) {
+      updates.name = body.name.trim();
+    }
+    if (body.city_state !== undefined) {
+      updates.city_state = body.city_state.trim();
+    }
+    if (body.teacher_auth_mode !== undefined) {
+      updates.teacher_auth_mode = body.teacher_auth_mode;
+    }
+    if (body.student_auth_mode !== undefined) {
+      if (!isSuper && delegation.lock_student_domains) {
+        return c.json({ error: 'POLICY_LOCKED', message: 'Student authentication mode is locked by Super Admin policy.' }, 403);
+      }
+      updates.student_auth_mode = body.student_auth_mode;
+    }
+
+    if (body.student_allowed_domains !== undefined) {
+      if (!isSuper && delegation.lock_student_domains) {
+        return c.json({ error: 'POLICY_LOCKED', message: 'Student domains are locked by Super Admin policy.' }, 403);
+      }
+      const newStudentDomains = body.student_allowed_domains.map((d) => d.trim().toLowerCase()).filter(Boolean);
+
+      // Check conflict with other active orgs
+      const otherOrgsRes = await fetch(
+        `${supabaseUrl}/rest/v1/organizations?id=neq.${encodeURIComponent(targetOrgId)}&is_active=eq.true&select=id,name,student_allowed_domains`,
+        { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+      );
+      if (otherOrgsRes.ok) {
+        const otherOrgs = (await otherOrgsRes.json().catch(() => [])) as any[];
+        for (const dom of newStudentDomains) {
+          const conflicting = otherOrgs.find((o) => Array.isArray(o.student_allowed_domains) && o.student_allowed_domains.includes(dom));
+          if (conflicting) {
+            return c.json({
+              error: 'DOMAIN_CONFLICT',
+              message: `Domain "${dom}" is already claimed by active organization "${conflicting.name}".`,
+            }, 409);
+          }
+        }
+      }
+      updates.student_allowed_domains = newStudentDomains;
+    }
+
+    if (body.teacher_allowed_domains !== undefined) {
+      if (!isSuper && delegation.allow_org_edit_teacher_domains === false) {
+        return c.json({ error: 'POLICY_LOCKED', message: 'Teacher domains are locked by Super Admin policy.' }, 403);
+      }
+      updates.teacher_allowed_domains = body.teacher_allowed_domains.map((d) => d.trim().toLowerCase()).filter(Boolean);
+    }
+
+    // Keep allowed_domains in sync
+    const currentStudent = updates.student_allowed_domains || org.student_allowed_domains || [];
+    const currentTeacher = updates.teacher_allowed_domains || org.teacher_allowed_domains || [];
+    updates.allowed_domains = Array.from(new Set([...currentStudent, ...currentTeacher]));
+
+    if (body.feature_flags !== undefined) {
+      if (!isSuper && delegation.allow_org_edit_features === false) {
+        return c.json({ error: 'POLICY_LOCKED', message: 'Feature flags are locked by Super Admin policy.' }, 403);
+      }
+      updates.feature_flags = { ...(org.feature_flags || {}), ...body.feature_flags };
+    }
+
+    if (body.exam_defaults !== undefined) {
+      if (!isSuper && delegation.allow_org_edit_exam_defaults === false) {
+        return c.json({ error: 'POLICY_LOCKED', message: 'Exam defaults are locked by Super Admin policy.' }, 403);
+      }
+      updates.exam_defaults = { ...(org.exam_defaults || {}), ...body.exam_defaults };
+    }
+
+    if (body.capacity_limits !== undefined) {
+      if (!isSuper && delegation.lock_billing_and_limits) {
+        return c.json({ error: 'POLICY_LOCKED', message: 'Capacity limits are locked by Super Admin policy.' }, 403);
+      }
+      updates.capacity_limits = { ...(org.capacity_limits || {}), ...body.capacity_limits };
+    }
+
+    if (body.billing_config !== undefined) {
+      if (!isSuper && delegation.lock_billing_and_limits) {
+        return c.json({ error: 'POLICY_LOCKED', message: 'Billing configuration is locked by Super Admin policy.' }, 403);
+      }
+      updates.billing_config = { ...(org.billing_config || {}), ...body.billing_config };
+    }
+
+    if (body.delegation_policy !== undefined && isSuper) {
+      updates.delegation_policy = { ...(org.delegation_policy || {}), ...body.delegation_policy };
+    }
+
+    const patchRes = await fetch(`${supabaseUrl}/rest/v1/organizations?id=eq.${encodeURIComponent(targetOrgId)}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation',
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!patchRes.ok) {
+      const errText = await patchRes.text();
+      return c.json({ error: `Failed to update organization: ${errText}` }, 400);
+    }
+
+    const updated = (await patchRes.json().catch(() => [])) as any[];
+    return c.json({ success: true, org: updated[0] });
+  } catch (err: any) {
+    console.error('Error in PATCH /api/org/settings:', err);
+    return c.json({ error: err.message || 'Settings update failed' }, 500);
+  }
+});
+
+// 1. POST /api/ai/generate-questions (Teacher / Admin only with Quota & Feature check)
 app.post('/api/ai/generate-questions', async (c) => {
   const user = c.get('user');
 
@@ -139,6 +770,43 @@ app.post('/api/ai/generate-questions', async (c) => {
       return c.json({ error: 'Missing required field: "topic"' }, 400);
     }
 
+    const targetOrgId = user.orgId || body.orgId || 'a0000000-0000-0000-0000-000000000001';
+    const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+    // Verify feature flag and AI monthly quota
+    const orgRes = await fetch(
+      `${supabaseUrl}/rest/v1/organizations?id=eq.${encodeURIComponent(targetOrgId)}&select=id,name,feature_flags,capacity_limits`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+    if (orgRes.ok) {
+      const orgs = (await orgRes.json().catch(() => [])) as any[];
+      const org = orgs[0];
+      if (org) {
+        if (org.feature_flags?.ai_generator === false) {
+          return c.json({ error: 'AI Question Generator is disabled for your institution.' }, 403);
+        }
+
+        const monthlyAllowance = org.capacity_limits?.monthly_ai_allowance;
+        if (typeof monthlyAllowance === 'number' && monthlyAllowance > 0) {
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const usageRes = await fetch(
+            `${supabaseUrl}/rest/v1/org_usage_monthly?org_id=eq.${encodeURIComponent(targetOrgId)}&billing_month=eq.${currentMonth}&select=ai_requests_count`,
+            { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+          );
+          if (usageRes.ok) {
+            const usage = (await usageRes.json().catch(() => [])) as any[];
+            const reqCount = usage[0]?.ai_requests_count || 0;
+            if (reqCount >= monthlyAllowance) {
+              return c.json(
+                { error: `Monthly AI allowance (${monthlyAllowance} requests) has been exhausted for this organization.` },
+                429,
+              );
+            }
+          }
+        }
+      }
+    }
+
     const aiEnv: AiEnv = {
       GROQ_API_KEYS: c.env.GROQ_API_KEYS,
       GROQ_API_KEY: c.env.GROQ_API_KEY,
@@ -156,7 +824,6 @@ app.post('/api/ai/generate-questions', async (c) => {
     );
 
     // Async telemetry: Increment usage with ZERO exam latency
-    const targetOrgId = body.orgId || 'a0000000-0000-0000-0000-000000000001';
     c.executionCtx.waitUntil(
       incrementOrgUsageAsync(telemetryEnv, {
         orgId: targetOrgId,
@@ -278,8 +945,9 @@ app.post('/api/grade-paper', async (c) => {
   }
 });
 
-// 3. POST /api/ai/explain-answer (Student BYOC / Fallback explainer)
+// 3. POST /api/ai/explain-answer (Student BYOC / Fallback explainer with Quota & Feature check)
 app.post('/api/ai/explain-answer', async (c) => {
+  const user = c.get('user');
   const telemetryEnv: TelemetryEnv = {
     SUPABASE_URL: c.env.SUPABASE_URL || 'https://crprffwlfngyiyztwgwb.supabase.co',
     SUPABASE_SECRET_KEY: c.env.SUPABASE_SECRET_KEY || c.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -304,6 +972,43 @@ app.post('/api/ai/explain-answer', async (c) => {
       );
     }
 
+    const targetOrgId = user.orgId || body.orgId || 'a0000000-0000-0000-0000-000000000001';
+    const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+    // Verify feature flag and AI monthly quota
+    const orgRes = await fetch(
+      `${supabaseUrl}/rest/v1/organizations?id=eq.${encodeURIComponent(targetOrgId)}&select=id,name,feature_flags,capacity_limits`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+    if (orgRes.ok) {
+      const orgs = (await orgRes.json().catch(() => [])) as any[];
+      const org = orgs[0];
+      if (org) {
+        if (org.feature_flags?.wrong_answer_explainer === false && org.feature_flags?.byoc_explainer === false) {
+          return c.json({ error: 'AI Explainer is disabled for your institution.' }, 403);
+        }
+
+        const monthlyAllowance = org.capacity_limits?.monthly_ai_allowance;
+        if (typeof monthlyAllowance === 'number' && monthlyAllowance > 0) {
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const usageRes = await fetch(
+            `${supabaseUrl}/rest/v1/org_usage_monthly?org_id=eq.${encodeURIComponent(targetOrgId)}&billing_month=eq.${currentMonth}&select=ai_requests_count`,
+            { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+          );
+          if (usageRes.ok) {
+            const usage = (await usageRes.json().catch(() => [])) as any[];
+            const reqCount = usage[0]?.ai_requests_count || 0;
+            if (reqCount >= monthlyAllowance) {
+              return c.json(
+                { error: `Monthly AI allowance (${monthlyAllowance} requests) has been exhausted for this organization.` },
+                429,
+              );
+            }
+          }
+        }
+      }
+    }
+
     const aiEnv: AiEnv = {
       GROQ_API_KEYS: c.env.GROQ_API_KEYS,
       GROQ_API_KEY: c.env.GROQ_API_KEY,
@@ -319,7 +1024,6 @@ app.post('/api/ai/explain-answer', async (c) => {
       aiEnv,
     );
 
-    const targetOrgId = body.orgId || 'a0000000-0000-0000-0000-000000000001';
     c.executionCtx.waitUntil(
       incrementOrgUsageAsync(telemetryEnv, {
         orgId: targetOrgId,

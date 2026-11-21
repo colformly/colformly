@@ -51,16 +51,46 @@ export default function Clients() {
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [activeTab, setActiveTab] = useState<'pulse' | 'controls' | 'legal' | 'invoices'>('pulse');
 
-  // Provision modal state
+  // Provision modal 5-section state
   const [provisionOpen, setProvisionOpen] = useState(false);
+  const [provTab, setProvTab] = useState<'identity' | 'auth' | 'features' | 'billing' | 'delegation'>('identity');
   const [provName, setProvName] = useState('');
   const [provType, setProvType] = useState<OrgType>('COLLEGE');
-  const [provDomains, setProvDomains] = useState('');
   const [provCode, setProvCode] = useState('');
+  const [provCityState, setProvCityState] = useState('');
   const [provEmail, setProvEmail] = useState('');
   const [provPassword, setProvPassword] = useState('');
+
+  // 2. Auth & Domains
+  const [provStudentDomains, setProvStudentDomains] = useState('');
+  const [provTeacherDomains, setProvTeacherDomains] = useState('');
+  const [provStudentAuthMode, setProvStudentAuthMode] = useState<'GOOGLE_ONLY' | 'EMAIL_PASSWORD' | 'BOTH'>('GOOGLE_ONLY');
+  const [provTeacherAuthMode, setProvTeacherAuthMode] = useState<'GOOGLE_ONLY' | 'EMAIL_PASSWORD' | 'BOTH'>('BOTH');
+
+  // 3. Features & Exam Defaults
+  const [provAiGenerator, setProvAiGenerator] = useState(true);
+  const [provByocExplainer, setProvByocExplainer] = useState(true);
+  const [provWrongAnswerExplainer, setProvWrongAnswerExplainer] = useState(true);
+  const [provCsvImport, setProvCsvImport] = useState(true);
+  const [provAntiCheat, setProvAntiCheat] = useState(true);
+  const [provDefaultDuration, setProvDefaultDuration] = useState(45);
+  const [provNegativeMarking, setProvNegativeMarking] = useState(false);
+  const [provResultVisibility, setProvResultVisibility] = useState<'IMMEDIATE' | 'AFTER_CLOSE' | 'MANUAL_RELEASE'>('IMMEDIATE');
+
+  // 4. Billing & Capacity Limits
   const [provTier, setProvTier] = useState<string>('CAMPUS');
   const [provMrr, setProvMrr] = useState<number>(14999);
+  const [provStudentSeatCap, setProvStudentSeatCap] = useState<number>(500);
+  const [provMonthlyAiAllowance, setProvMonthlyAiAllowance] = useState<number>(2000);
+  const [provBillingCycle, setProvBillingCycle] = useState<'MONTHLY' | 'ANNUAL'>('MONTHLY');
+
+  // 5. Delegation Controls
+  const [provLockStudentDomains, setProvLockStudentDomains] = useState(true);
+  const [provAllowOrgEditTeacherDomains, setProvAllowOrgEditTeacherDomains] = useState(true);
+  const [provAllowOrgEditFeatures, setProvAllowOrgEditFeatures] = useState(true);
+  const [provAllowOrgEditExamDefaults, setProvAllowOrgEditExamDefaults] = useState(true);
+  const [provLockBillingAndLimits, setProvLockBillingAndLimits] = useState(true);
+
   const [provLoading, setProvLoading] = useState(false);
   const [provSuccess, setProvSuccess] = useState<any | null>(null);
 
@@ -178,7 +208,10 @@ export default function Clients() {
   // ── Provision Organization ──────────────────────────────────────
   const handleProvisionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!provName.trim() || !provEmail.trim()) return;
+    if (!provName.trim() || !provEmail.trim()) {
+      alert('Please provide Institution Name and Setup Operator Email.');
+      return;
+    }
 
     setProvLoading(true);
     setProvSuccess(null);
@@ -190,7 +223,12 @@ export default function Clients() {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
 
-      const domainsArray = provDomains
+      const studentDomainsArray = provStudentDomains
+        .split(',')
+        .map((d) => d.trim().toLowerCase())
+        .filter(Boolean);
+
+      const teacherDomainsArray = provTeacherDomains
         .split(',')
         .map((d) => d.trim().toLowerCase())
         .filter(Boolean);
@@ -204,17 +242,53 @@ export default function Clients() {
         body: JSON.stringify({
           name: provName.trim(),
           orgType: provType,
-          domains: domainsArray,
+          cityState: provCityState.trim() || undefined,
           instituteCode: provCode.trim() || undefined,
           setupEmail: provEmail.trim().toLowerCase(),
           setupPassword: provPassword.trim() || undefined,
           tier: provTier,
           mrrCents: provMrr * 100,
+          studentAllowedDomains: studentDomainsArray,
+          teacherAllowedDomains: teacherDomainsArray.length > 0 ? teacherDomainsArray : studentDomainsArray,
+          studentAuthMode: provStudentAuthMode,
+          teacherAuthMode: provTeacherAuthMode,
+          featureFlags: {
+            ai_generator: provAiGenerator,
+            byoc_explainer: provByocExplainer,
+            wrong_answer_explainer: provWrongAnswerExplainer,
+            csv_import: provCsvImport,
+            anti_cheat: provAntiCheat,
+          },
+          capacityLimits: {
+            student_seat_cap: Number(provStudentSeatCap) || 500,
+            monthly_ai_allowance: Number(provMonthlyAiAllowance) || 2000,
+            max_active_tests: 50,
+            usage_alert_percent: 80,
+          },
+          examDefaults: {
+            default_duration_mins: Number(provDefaultDuration) || 45,
+            negative_marking_allowed: provNegativeMarking,
+            result_visibility: provResultVisibility,
+          },
+          billingConfig: {
+            plan_tier: provTier,
+            billing_cycle: provBillingCycle,
+            monthly_fee: provMrr,
+            contract_status: 'ACTIVE',
+            invoice_status: 'CURRENT',
+          },
+          delegationPolicy: {
+            lock_student_domains: provLockStudentDomains,
+            allow_org_edit_teacher_domains: provAllowOrgEditTeacherDomains,
+            allow_org_edit_features: provAllowOrgEditFeatures,
+            allow_org_edit_exam_defaults: provAllowOrgEditExamDefaults,
+            lock_billing_and_limits: provLockBillingAndLimits,
+          },
         }),
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.error || 'Provisioning failed');
+      if (!res.ok) throw new Error(json.error || json.message || 'Provisioning failed');
 
       setProvSuccess(json);
       await fetchOrganizations();
@@ -1166,114 +1240,476 @@ export default function Clients() {
               </Button>
             </div>
           ) : (
-            <form onSubmit={handleProvisionSubmit} className="space-y-4 font-mono text-xs">
-              <div>
-                <label className="block text-zinc-300 mb-1">Institution Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={provName}
-                  onChange={(e) => setProvName(e.target.value)}
-                  placeholder="Aravali College of Engineering"
-                  className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
-                />
+            <form onSubmit={handleProvisionSubmit} className="space-y-5 font-mono text-xs">
+              {/* 5-Section Tab Selector */}
+              <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-xl overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setProvTab('identity')}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
+                    provTab === 'identity'
+                      ? 'bg-teal-500 text-zinc-950 shadow'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  1. Identity
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvTab('auth')}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
+                    provTab === 'auth'
+                      ? 'bg-teal-500 text-zinc-950 shadow'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  2. Auth &amp; Domains
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvTab('features')}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
+                    provTab === 'features'
+                      ? 'bg-teal-500 text-zinc-950 shadow'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  3. Features &amp; Exam
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvTab('billing')}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
+                    provTab === 'billing'
+                      ? 'bg-teal-500 text-zinc-950 shadow'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  4. Billing &amp; Quota
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProvTab('delegation')}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all whitespace-nowrap ${
+                    provTab === 'delegation'
+                      ? 'bg-teal-500 text-zinc-950 shadow'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  5. Delegation
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-zinc-300 mb-1">Type</label>
-                  <select
-                    value={provType}
-                    onChange={(e) => setProvType(e.target.value as OrgType)}
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+              {/* SECTION 1: IDENTITY & LIFECYCLE */}
+              {provTab === 'identity' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-zinc-300 mb-1">Institution Legal Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={provName}
+                      onChange={(e) => setProvName(e.target.value)}
+                      placeholder="Aravali College of Engineering and Management"
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Organization Type</label>
+                      <select
+                        value={provType}
+                        onChange={(e) => setProvType(e.target.value as OrgType)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      >
+                        <option value="COLLEGE">College</option>
+                        <option value="UNIVERSITY">University</option>
+                        <option value="COACHING">Coaching Institute</option>
+                        <option value="SCHOOL">School</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Institute Code</label>
+                      <input
+                        type="text"
+                        value={provCode}
+                        onChange={(e) => setProvCode(e.target.value)}
+                        placeholder="ACEM-01"
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-300 mb-1">City &amp; State</label>
+                    <input
+                      type="text"
+                      value={provCityState}
+                      onChange={(e) => setProvCityState(e.target.value)}
+                      placeholder="Faridabad, Haryana"
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-1 border-t border-zinc-800">
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Setup Operator Email *</label>
+                      <input
+                        type="email"
+                        required
+                        value={provEmail}
+                        onChange={(e) => setProvEmail(e.target.value)}
+                        placeholder="operator@colformly.internal"
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Operator Password</label>
+                      <input
+                        type="password"
+                        value={provPassword}
+                        onChange={(e) => setProvPassword(e.target.value)}
+                        placeholder="Auto-generated if blank"
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 2: AUTH & DOMAIN RULES */}
+              {provTab === 'auth' && (
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-300 text-[11px] leading-relaxed">
+                    Student email domains are checked against active organizations to guarantee strict tenant isolation.
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-300 mb-1">
+                      Student Allowed Domains (comma-separated) *
+                    </label>
+                    <input
+                      type="text"
+                      value={provStudentDomains}
+                      onChange={(e) => setProvStudentDomains(e.target.value)}
+                      placeholder="acem.edu.in, aravali.edu.in"
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">Students with these email domains can self-enroll into this campus.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-300 mb-1">Student Authentication Mode</label>
+                    <select
+                      value={provStudentAuthMode}
+                      onChange={(e) => setProvStudentAuthMode(e.target.value as any)}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                    >
+                      <option value="GOOGLE_ONLY">Google SSO Only (Recommended for Campuses)</option>
+                      <option value="BOTH">Hybrid (Google SSO + Password)</option>
+                      <option value="EMAIL_PASSWORD">Email &amp; Password Only</option>
+                    </select>
+                  </div>
+
+                  <div className="pt-2 border-t border-zinc-800">
+                    <label className="block text-zinc-300 mb-1">
+                      Teacher Allowed Domains (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={provTeacherDomains}
+                      onChange={(e) => setProvTeacherDomains(e.target.value)}
+                      placeholder="acem.edu.in, aravali.edu.in, gmail.com"
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                    />
+                    <p className="text-[10px] text-zinc-500 mt-1">Leave empty or include faculty/personal domains for faculty invites.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-300 mb-1">Teacher Authentication Mode</label>
+                    <select
+                      value={provTeacherAuthMode}
+                      onChange={(e) => setProvTeacherAuthMode(e.target.value as any)}
+                      className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                    >
+                      <option value="BOTH">Hybrid (Google SSO Invite + Direct Password)</option>
+                      <option value="GOOGLE_ONLY">Google SSO Only</option>
+                      <option value="EMAIL_PASSWORD">Email &amp; Password Only</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 3: FEATURES & EXAM DEFAULTS */}
+              {provTab === 'features' && (
+                <div className="space-y-4">
+                  <p className="text-zinc-400 font-bold text-[11px] uppercase tracking-wider">Feature Flags</p>
+                  <div className="space-y-2 bg-zinc-900 p-3.5 rounded-xl border border-zinc-800">
+                    <label className="flex items-center gap-2 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provAiGenerator}
+                        onChange={(e) => setProvAiGenerator(e.target.checked)}
+                        className="rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <span>AI Question Generator (Groq &amp; Gemini Pro)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provByocExplainer}
+                        onChange={(e) => setProvByocExplainer(e.target.checked)}
+                        className="rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <span>Student BYOC Mistake Explainer</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provWrongAnswerExplainer}
+                        onChange={(e) => setProvWrongAnswerExplainer(e.target.checked)}
+                        className="rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <span>Wrong Answer Deep-Dive Analysis</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provCsvImport}
+                        onChange={(e) => setProvCsvImport(e.target.checked)}
+                        className="rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <span>Bulk CSV Roster Ingestion</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provAntiCheat}
+                        onChange={(e) => setProvAntiCheat(e.target.checked)}
+                        className="rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <span>Anti-Cheat &amp; Fullscreen Lockdown Guard</span>
+                    </label>
+                  </div>
+
+                  <p className="text-zinc-400 font-bold text-[11px] uppercase tracking-wider pt-2">Exam Defaults</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Default Duration (mins)</label>
+                      <input
+                        type="number"
+                        min="5"
+                        max="360"
+                        value={provDefaultDuration}
+                        onChange={(e) => setProvDefaultDuration(parseInt(e.target.value, 10) || 45)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Result Visibility</label>
+                      <select
+                        value={provResultVisibility}
+                        onChange={(e) => setProvResultVisibility(e.target.value as any)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      >
+                        <option value="IMMEDIATE">Immediate on Submission</option>
+                        <option value="AFTER_CLOSE">After Exam Window Closes</option>
+                        <option value="MANUAL_RELEASE">Manual Teacher Release</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer text-zinc-300">
+                    <input
+                      type="checkbox"
+                      checked={provNegativeMarking}
+                      onChange={(e) => setProvNegativeMarking(e.target.checked)}
+                      className="rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                    />
+                    <span>Allow Negative Marking in Quizzes by default</span>
+                  </label>
+                </div>
+              )}
+
+              {/* SECTION 4: BILLING, QUOTA & CONTRACT */}
+              {provTab === 'billing' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Plan Tier</label>
+                      <select
+                        value={provTier}
+                        onChange={(e) => setProvTier(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      >
+                        <option value="CAMPUS">Campus Tier</option>
+                        <option value="ENTERPRISE">Enterprise Tier</option>
+                        <option value="FREE">Free Tier</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Billing Cycle</label>
+                      <select
+                        value={provBillingCycle}
+                        onChange={(e) => setProvBillingCycle(e.target.value as any)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      >
+                        <option value="MONTHLY">Monthly recurring</option>
+                        <option value="ANNUAL">Annual contract</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Monthly Fee (₹)</label>
+                      <input
+                        type="number"
+                        value={provMrr}
+                        onChange={(e) => setProvMrr(parseInt(e.target.value, 10) || 0)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Student Seat Cap</label>
+                      <input
+                        type="number"
+                        value={provStudentSeatCap}
+                        onChange={(e) => setProvStudentSeatCap(parseInt(e.target.value, 10) || 500)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-300 mb-1">Monthly AI Allowance</label>
+                      <input
+                        type="number"
+                        value={provMonthlyAiAllowance}
+                        onChange={(e) => setProvMonthlyAiAllowance(parseInt(e.target.value, 10) || 2000)}
+                        className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 5: DELEGATION CONTROLS */}
+              {provTab === 'delegation' && (
+                <div className="space-y-4">
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed">
+                    Delegation policy locks define which configurations Campus Org Admins can self-serve vs. which require Super Admin intervention.
+                  </div>
+
+                  <div className="space-y-3 bg-zinc-900 p-3.5 rounded-xl border border-zinc-800">
+                    <label className="flex items-start gap-2.5 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provLockStudentDomains}
+                        onChange={(e) => setProvLockStudentDomains(e.target.checked)}
+                        className="mt-0.5 rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <div>
+                        <span className="font-bold text-white block">Lock Student Allowed Domains (Strict)</span>
+                        <span className="text-[10px] text-zinc-400">Campus administrator cannot modify student domain whitelist without Super Admin approval.</span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provLockBillingAndLimits}
+                        onChange={(e) => setProvLockBillingAndLimits(e.target.checked)}
+                        className="mt-0.5 rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <div>
+                        <span className="font-bold text-white block">Lock Billing &amp; Capacity Limits (Strict)</span>
+                        <span className="text-[10px] text-zinc-400">Prevents campus admin from tampering with monthly MRR, student seat caps, or AI allowances.</span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provAllowOrgEditTeacherDomains}
+                        onChange={(e) => setProvAllowOrgEditTeacherDomains(e.target.checked)}
+                        className="mt-0.5 rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <div>
+                        <span className="font-bold text-white block">Allow Org Admin to Manage Teacher Domains</span>
+                        <span className="text-[10px] text-zinc-400">Permits campus admin to add faculty email domains for teacher onboarding.</span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provAllowOrgEditFeatures}
+                        onChange={(e) => setProvAllowOrgEditFeatures(e.target.checked)}
+                        className="mt-0.5 rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <div>
+                        <span className="font-bold text-white block">Allow Org Admin to Toggle Feature Flags</span>
+                        <span className="text-[10px] text-zinc-400">Allows turning AI questions or anti-cheat on or off for their campus.</span>
+                      </div>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 cursor-pointer text-zinc-200">
+                      <input
+                        type="checkbox"
+                        checked={provAllowOrgEditExamDefaults}
+                        onChange={(e) => setProvAllowOrgEditExamDefaults(e.target.checked)}
+                        className="mt-0.5 rounded border-zinc-700 text-teal-500 focus:ring-teal-500"
+                      />
+                      <div>
+                        <span className="font-bold text-white block">Allow Org Admin to Modify Exam Defaults</span>
+                        <span className="text-[10px] text-zinc-400">Allows campus administrators to adjust default exam durations and visibility rules.</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Navigation Buttons */}
+              <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    if (provTab === 'delegation') setProvTab('billing');
+                    else if (provTab === 'billing') setProvTab('features');
+                    else if (provTab === 'features') setProvTab('auth');
+                    else if (provTab === 'auth') setProvTab('identity');
+                    else setProvisionOpen(false);
+                  }}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  {provTab === 'identity' ? 'Cancel' : 'Previous Step'}
+                </Button>
+
+                {provTab !== 'delegation' ? (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      if (provTab === 'identity') setProvTab('auth');
+                      else if (provTab === 'auth') setProvTab('features');
+                      else if (provTab === 'features') setProvTab('billing');
+                      else if (provTab === 'billing') setProvTab('delegation');
+                    }}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-bold"
                   >
-                    <option value="COLLEGE">College</option>
-                    <option value="UNIVERSITY">University</option>
-                    <option value="COACHING">Coaching</option>
-                    <option value="SCHOOL">School</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-zinc-300 mb-1">Institute Code</label>
-                  <input
-                    type="text"
-                    value={provCode}
-                    onChange={(e) => setProvCode(e.target.value)}
-                    placeholder="ACEM-01"
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-zinc-300 mb-1">
-                  Allowed Domains (comma-separated)
-                </label>
-                <input
-                  type="text"
-                  value={provDomains}
-                  onChange={(e) => setProvDomains(e.target.value)}
-                  placeholder="acem.edu.in, aravali.edu.in"
-                  className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-zinc-300 mb-1">Setup Operator Email *</label>
-                  <input
-                    type="email"
-                    required
-                    value={provEmail}
-                    onChange={(e) => setProvEmail(e.target.value)}
-                    placeholder="operator@colformly.internal"
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-zinc-300 mb-1">Setup Password</label>
-                  <input
-                    type="password"
-                    value={provPassword}
-                    onChange={(e) => setProvPassword(e.target.value)}
-                    placeholder="Auto-generated if empty"
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-zinc-300 mb-1">Plan Tier</label>
-                  <select
-                    value={provTier}
-                    onChange={(e) => setProvTier(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
+                    Next Step &rarr;
+                  </Button>
+                ) : (
+                  <Button
+                    type="submit"
+                    size="md"
+                    isLoading={provLoading}
+                    className="bg-teal-500 hover:bg-teal-400 text-zinc-950 font-bold"
                   >
-                    <option value="CAMPUS">Campus Tier</option>
-                    <option value="ENTERPRISE">Enterprise Tier</option>
-                    <option value="FREE">Free Tier</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-zinc-300 mb-1">Monthly Fee (₹ INR)</label>
-                  <input
-                    type="number"
-                    value={provMrr}
-                    onChange={(e) => setProvMrr(parseInt(e.target.value, 10) || 0)}
-                    className="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-100 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
+                    Provision Institution &amp; Operator
+                  </Button>
+                )}
               </div>
-
-              <Button
-                type="submit"
-                size="md"
-                isLoading={provLoading}
-                className="w-full bg-teal-500 hover:bg-teal-400 text-zinc-950 font-bold"
-              >
-                Create Institution &amp; Operator
-              </Button>
             </form>
           )}
         </BaseModal>

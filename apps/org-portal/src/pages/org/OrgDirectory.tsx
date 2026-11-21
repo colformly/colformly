@@ -12,6 +12,7 @@ import { useTheme } from '@colformly/theme';
 import type { Course } from '@colformly/types';
 import { BaseModal, Button } from '@colformly/ui';
 import { PortalShell } from '../../layouts/PortalShell';
+import { addTeacherApi } from '../../lib/workerClient';
 
 interface DirectoryMember {
   id: string;
@@ -46,6 +47,8 @@ export default function OrgDirectory() {
   const [formRole, setFormRole] = useState<'TEACHER' | 'STUDENT'>('STUDENT');
   const [formRoll, setFormRoll] = useState('');
   const [formSectionId, setFormSectionId] = useState('');
+  const [formTeacherAuthMode, setFormTeacherAuthMode] = useState<'GOOGLE' | 'PASSWORD'>('GOOGLE');
+  const [formTeacherPassword, setFormTeacherPassword] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -179,29 +182,44 @@ export default function OrgDirectory() {
 
     try {
       setSubmitting(true);
-      const { error } = await (supabase.from('org_users') as any).insert({
-        org_id: orgId,
-        role: formRole,
-        invited_email: formEmail.trim().toLowerCase(),
-        invited_name: formName.trim() || formEmail.split('@')[0],
-        roll_number: formRoll.trim() || null,
-        section_id: formSectionId || null,
-        is_active: true,
-        onboarding_completed: false,
-      });
 
-      if (error) throw error;
+      if (formRole === 'TEACHER') {
+        const res = await addTeacherApi({
+          orgId,
+          email: formEmail.trim().toLowerCase(),
+          fullName: formName.trim() || undefined,
+          sectionId: formSectionId || undefined,
+          authMode: formTeacherAuthMode,
+          password: formTeacherAuthMode === 'PASSWORD' ? formTeacherPassword : undefined,
+        });
+
+        setImportNotice(res.message || `Successfully provisioned faculty ${formEmail}.`);
+      } else {
+        const { error } = await (supabase.from('org_users') as any).insert({
+          org_id: orgId,
+          role: 'STUDENT',
+          invited_email: formEmail.trim().toLowerCase(),
+          invited_name: formName.trim() || formEmail.split('@')[0],
+          roll_number: formRoll.trim() || null,
+          section_id: formSectionId || null,
+          is_active: true,
+          onboarding_completed: false,
+        });
+
+        if (error) throw error;
+        setImportNotice(`Added student ${formEmail} to organization directory.`);
+      }
 
       setFormName('');
       setFormEmail('');
       setFormRoll('');
       setFormSectionId('');
+      setFormTeacherPassword('');
       setModalOpen(false);
-      setImportNotice(`Added ${formEmail} to organization directory.`);
       await loadDirectory();
     } catch (err: any) {
-      console.error('Whitelist error:', err);
-      alert(`Error saving member: ${err.message}`);
+      console.error('Member provisioning error:', err);
+      alert(`Error provisioning member: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -468,6 +486,40 @@ export default function OrgDirectory() {
                 />
               </div>
             </div>
+
+            {formRole === 'TEACHER' && (
+              <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                <div>
+                  <label className="block text-xs font-label font-semibold text-slate-800 mb-1">
+                    Faculty Authentication Mode
+                  </label>
+                  <select
+                    value={formTeacherAuthMode}
+                    onChange={(e) => setFormTeacherAuthMode(e.target.value as 'GOOGLE' | 'PASSWORD')}
+                    className={`w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg`}
+                  >
+                    <option value="GOOGLE">Google SSO Invite (Magic Auto-Join)</option>
+                    <option value="PASSWORD">Email + Direct Password</option>
+                  </select>
+                </div>
+
+                {formTeacherAuthMode === 'PASSWORD' && (
+                  <div>
+                    <label className="block text-xs font-label font-semibold text-slate-800 mb-1">
+                      Initial Faculty Password
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={formTeacherPassword}
+                      onChange={(e) => setFormTeacherPassword(e.target.value)}
+                      placeholder="At least 6 characters (e.g. Faculty@2026!)"
+                      className={`w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg`}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">

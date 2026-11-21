@@ -16,6 +16,7 @@ import {
 import { supabase, useAuth, useAuthStore } from '@colformly/auth';
 import { Button } from '@colformly/ui';
 import { triggerToast } from '../lib/toast';
+import { resolveSessionApi } from '../lib/workerClient';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -108,17 +109,27 @@ export default function Login() {
       if (session?.user && isMounted) {
         setAuthLoading(true);
         try {
-          // Auto-join org by domain if needed
-          if (session.user.email) {
-            await (supabase.rpc as any)('auto_join_org_by_domain', {
-              p_email: session.user.email,
-            });
+          const res = await resolveSessionApi();
+          if (!res.authorized) {
+            await supabase.auth.signOut();
+            if (res.reason === 'WORKSPACE_SUSPENDED') {
+              setError('Workspace Suspended: Your institution workspace is currently suspended. Please contact your campus administrator.');
+            } else if (res.reason === 'DOMAIN_NOT_AUTHORIZED') {
+              setError(
+                `Access Denied: Your email domain (@${res.domain || session.user.email?.split('@')[1]}) is not authorized for any campus workspace. Please sign in with your official college email.`,
+              );
+            } else {
+              setError(res.message || 'You are not authorized to access this portal.');
+            }
+            return;
           }
+
           await refreshProfile();
-          const latestRole = useAuthStore.getState().role;
+          const latestRole = res.role || useAuthStore.getState().role;
           redirectByRole(latestRole);
         } catch (err) {
           console.warn('Session resolve warning:', err);
+          await refreshProfile();
           redirectByRole();
         } finally {
           if (isMounted) setAuthLoading(false);
@@ -172,15 +183,21 @@ export default function Login() {
 
       if (signInErr) throw signInErr;
 
-      if (data?.user?.email) {
-        // Auto-join domain
-        await (supabase.rpc as any)('auto_join_org_by_domain', {
-          p_email: data.user.email,
-        }).catch(() => {});
+      const res = await resolveSessionApi();
+      if (!res.authorized) {
+        await supabase.auth.signOut();
+        if (res.reason === 'WORKSPACE_SUSPENDED') {
+          setError('Workspace Suspended: Your institution workspace is currently suspended. Please contact your campus administrator.');
+        } else if (res.reason === 'DOMAIN_NOT_AUTHORIZED') {
+          setError(`Access Denied: Domain @${res.domain || email.split('@')[1]} is not authorized for this campus.`);
+        } else {
+          setError(res.message || 'You are not authorized to access this portal.');
+        }
+        return;
       }
 
       await refreshProfile();
-      const latestRole = useAuthStore.getState().role;
+      const latestRole = res.role || useAuthStore.getState().role;
       redirectByRole(latestRole);
     } catch (err: any) {
       console.error('Password sign-in error:', err);

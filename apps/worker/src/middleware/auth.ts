@@ -4,6 +4,7 @@ export interface AuthUser {
   id: string;
   email: string;
   role: string;
+  orgId?: string;
   user_metadata?: Record<string, unknown>;
   app_metadata?: Record<string, unknown>;
 }
@@ -49,42 +50,94 @@ export async function supabaseAuthMiddleware(c: Context, next: Next) {
       user_metadata?: { role?: string };
     };
 
-    let role =
+    const secretKey = c.env.SUPABASE_SECRET_KEY || c.env.SUPABASE_SERVICE_ROLE_KEY || apiKey;
+    const restBase = supabaseUrl.replace(/\/$/, '');
+
+    let globalRole: string | undefined =
       userData.app_metadata?.role ||
       userData.user_metadata?.role;
 
-    if (!role || role === 'authenticated') {
-      if (userData.email === 'core@edgecors.com') {
-        role = 'SUPER_ADMIN';
-      } else {
-        const secretKey = c.env.SUPABASE_SECRET_KEY || c.env.SUPABASE_SERVICE_ROLE_KEY || apiKey;
-        const profileRes = await fetch(
-          `${supabaseUrl.replace(/\/$/, '')}/rest/v1/users?id=eq.${encodeURIComponent(userData.id)}&select=global_role`,
-          {
-            headers: {
-              apikey: secretKey,
-              Authorization: `Bearer ${secretKey}`,
-            },
+    if (userData.email === 'core@edgecors.com') {
+      globalRole = 'SUPER_ADMIN';
+    } else if (!globalRole || globalRole === 'authenticated') {
+      const profileRes = await fetch(
+        `${restBase}/rest/v1/users?id=eq.${encodeURIComponent(userData.id)}&select=global_role`,
+        {
+          headers: {
+            apikey: secretKey,
+            Authorization: `Bearer ${secretKey}`,
           },
-        ).catch(() => null);
+        },
+      ).catch(() => null);
 
-        if (profileRes && profileRes.ok) {
-          const profiles = (await profileRes.json().catch(() => [])) as Array<{ global_role?: string }>;
-          if (profiles?.[0]?.global_role) {
-            role = profiles[0].global_role;
+      if (profileRes && profileRes.ok) {
+        const profiles = (await profileRes.json().catch(() => [])) as Array<{ global_role?: string }>;
+        if (profiles?.[0]?.global_role) {
+          globalRole = profiles[0].global_role;
+        }
+      }
+    }
+
+    // Resolve active org membership and tenant status
+    let orgId: string | undefined = undefined;
+    let orgRole: string | undefined = undefined;
+
+    const orgUserRes = await fetch(
+      `${restBase}/rest/v1/org_users?user_id=eq.${encodeURIComponent(userData.id)}&is_active=eq.true&select=org_id,role,organizations(id,name,is_active,onboarding_status)&order=created_at.desc&limit=1`,
+      {
+        headers: {
+          apikey: secretKey,
+          Authorization: `Bearer ${secretKey}`,
+        },
+      },
+    ).catch(() => null);
+
+    if (orgUserRes && orgUserRes.ok) {
+      const orgUsers = (await orgUserRes.json().catch(() => [])) as Array<{
+        org_id: string;
+        role: string;
+        organizations?: {
+          id: string;
+          name: string;
+          is_active: boolean;
+          onboarding_status: string;
+        };
+      }>;
+
+      if (orgUsers.length > 0) {
+        const membership = orgUsers[0];
+        orgId = membership.org_id;
+        orgRole = membership.role;
+
+        // Tenant Kill-Switch Check (bypass for SUPER_ADMIN and session resolution)
+        const isSuper = globalRole === 'SUPER_ADMIN' || userData.email === 'core@edgecors.com';
+        const isResolveSessionPath = c.req.path.includes('/resolve-session');
+
+        if (!isSuper && !isResolveSessionPath && membership.organizations) {
+          const org = membership.organizations;
+          if (org.is_active === false || org.onboarding_status === 'SUSPENDED') {
+            return c.json(
+              {
+                error: 'WORKSPACE_SUSPENDED',
+                message: `The workspace for "${org.name}" is currently suspended. Please contact your administrator.`,
+              },
+              403,
+            );
           }
         }
       }
     }
 
-    if (!role || role === 'authenticated') {
-      role = 'STUDENT';
-    }
+    const resolvedRole =
+      globalRole === 'SUPER_ADMIN'
+        ? 'SUPER_ADMIN'
+        : orgRole || globalRole || 'STUDENT';
 
     c.set('user', {
       id: userData.id,
       email: userData.email,
-      role,
+      role: resolvedRole,
+      orgId,
       user_metadata: userData.user_metadata,
       app_metadata: userData.app_metadata,
     });

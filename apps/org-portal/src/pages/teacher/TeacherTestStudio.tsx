@@ -155,7 +155,15 @@ export default function TeacherTestStudio() {
       const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
       const teacherId = user?.id || 'd9f9acff-eb5e-478e-9c38-269cb136cda0';
 
-      // 1. Insert into public.tests
+      // 1. Sanitize blocks: Strip correctAnswer and explanation so student client inspection CANNOT leak answer keys
+      const sanitizedBlocks = blocks.map((b) => {
+        const copy: any = { ...b };
+        delete copy.correctAnswer;
+        delete copy.explanation;
+        return copy;
+      });
+
+      // 2. Insert into public.tests
       const { data: testRow, error: testErr } = await (supabase.from('tests') as any)
         .insert({
           org_id: orgId,
@@ -168,7 +176,7 @@ export default function TeacherTestStudio() {
           is_published: true,
           target_section_ids: targetSectionIds,
           share_code: generated,
-          blocks: blocks as unknown as Record<string, unknown>[],
+          blocks: sanitizedBlocks as unknown as Record<string, unknown>[],
         })
         .select()
         .single();

@@ -12,12 +12,64 @@ export type ResultStatus = 'IN_PROGRESS' | 'SUBMITTED' | 'GRADED' | 'FLAGGED';
 export type OrgType = 'COLLEGE' | 'UNIVERSITY' | 'COACHING' | 'SCHOOL';
 export type OnboardingStatus = 'SETUP_MODE' | 'HANDED_OVER' | 'SUSPENDED';
 export type AuthPolicy = 'HYBRID' | 'GOOGLE_ONLY';
+export type TeacherAuthMode = 'GOOGLE_ONLY' | 'EMAIL_PASSWORD' | 'BOTH';
+export type StudentAuthMode = 'GOOGLE_ONLY' | 'EMAIL_PASSWORD' | 'BOTH';
+
+export interface CapacityLimits {
+  max_active_tests: number;
+  student_seat_cap: number;
+  monthly_ai_allowance: number;
+  usage_alert_percent: number;
+  [key: string]: number | undefined;
+}
+
+export interface ExamDefaults {
+  default_duration_mins: number;
+  negative_marking_allowed: boolean;
+  result_visibility: 'IMMEDIATE' | 'AFTER_CLOSE' | 'MANUAL_RELEASE';
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface BillingConfig {
+  plan_tier: string;
+  billing_cycle: string;
+  monthly_fee: number;
+  contract_status: string;
+  invoice_status: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface DelegationPolicy {
+  allow_org_edit_teacher_domains: boolean;
+  lock_student_domains: boolean;
+  allow_org_edit_features: boolean;
+  allow_org_edit_exam_defaults: boolean;
+  lock_billing_and_limits: boolean;
+  [key: string]: boolean | undefined;
+}
 
 export interface FeatureFlags {
   ai_generator: boolean;
-  byoc_explainer: boolean;
-  strict_pwa: boolean;
+  wrong_answer_explainer?: boolean;
+  csv_import?: boolean;
+  anti_cheat?: boolean;
+  byoc_explainer?: boolean;
+  strict_pwa?: boolean;
   [key: string]: boolean | undefined;
+}
+
+export interface OrgInvite {
+  id: string;
+  org_id: string;
+  email: string;
+  role: 'ORG_ADMIN' | 'TEACHER' | 'STUDENT';
+  full_name?: string | null;
+  department?: string | null;
+  course_id?: string | null;
+  section_id?: string | null;
+  invited_by?: string | null;
+  claimed_at?: string | null;
+  created_at: string;
 }
 
 export interface GlobalBroadcast {
@@ -62,6 +114,15 @@ export interface Organization extends Omit<Tables<'organizations'>, 'theme_confi
   theme_config: ThemeConfig;
   org_type?: OrgType;
   institute_code?: string | null;
+  city_state?: string | null;
+  teacher_auth_mode?: TeacherAuthMode;
+  student_auth_mode?: StudentAuthMode;
+  student_allowed_domains?: string[];
+  teacher_allowed_domains?: string[];
+  capacity_limits?: CapacityLimits;
+  exam_defaults?: ExamDefaults;
+  billing_config?: BillingConfig;
+  delegation_policy?: DelegationPolicy;
   onboarding_status?: OnboardingStatus;
   setup_admin_id?: string | null;
   auth_policy?: AuthPolicy;

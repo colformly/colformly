@@ -4,7 +4,7 @@ const WORKER_BASE =
   (import.meta.env.VITE_CLOUDFLARE_WORKER_URL as string | undefined) ||
   (typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://localhost:8787'
-    : 'https://colformly-worker.edgecors.workers.dev');
+    : 'https://colformly-worker.colformly.workers.dev');
 
 export interface GeneratedQuestion {
   question: string;
@@ -121,4 +121,86 @@ export async function explainAnswerApi(params: {
 
   const data = (await res.json()) as { explanation: string; provider: string };
   return data;
+}
+
+/**
+ * 4. Multi-Tenant Session Resolution & Domain Authorization Gate
+ */
+export interface ResolveSessionResult {
+  authorized: boolean;
+  role?: string;
+  orgId?: string | null;
+  org?: any;
+  isNewMember?: boolean;
+  source?: string;
+  reason?: 'DOMAIN_NOT_AUTHORIZED' | 'WORKSPACE_SUSPENDED' | 'INVALID_SESSION' | string;
+  email?: string;
+  domain?: string;
+  message?: string;
+}
+
+export async function resolveSessionApi(): Promise<ResolveSessionResult> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/auth/resolve-session`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as ResolveSessionResult;
+  return data;
+}
+
+/**
+ * 5. Faculty / Teacher Provisioning (Google Invite or Password Auth)
+ */
+export interface AddTeacherParams {
+  orgId?: string;
+  email: string;
+  fullName?: string;
+  department?: string;
+  sectionId?: string;
+  authMode: 'GOOGLE' | 'PASSWORD';
+  password?: string;
+}
+
+export async function addTeacherApi(params: AddTeacherParams): Promise<{
+  success: boolean;
+  mode: string;
+  message: string;
+  teacher: any;
+}> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/org/teachers/add`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(params),
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(json.error || `Failed to add teacher: HTTP ${res.status}`);
+  }
+  return json;
+}
+
+/**
+ * 6. Organization Settings Update (Enforces Delegation Policy Locks)
+ */
+export async function updateOrgSettingsApi(params: Record<string, any>): Promise<{
+  success: boolean;
+  org: any;
+}> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/org/settings`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(params),
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(json.error || json.message || `Failed to update settings: HTTP ${res.status}`);
+  }
+  return json;
 }
