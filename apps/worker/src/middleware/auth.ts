@@ -12,6 +12,18 @@ export interface AuthUser {
 export async function supabaseAuthMiddleware(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization');
 
+  // Allow unauthenticated telemetry crash reporting and Google OAuth URL generation
+  if (c.req.path === '/api/telemetry/report' || c.req.path === '/api/google/auth-url') {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      c.set('user', {
+        id: 'anonymous',
+        email: 'anonymous@colformly.internal',
+        role: 'ANON',
+      });
+      return next();
+    }
+  }
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return c.json(
       { error: 'Unauthorized: Missing or malformed Authorization header' },

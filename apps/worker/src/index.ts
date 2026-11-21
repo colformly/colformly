@@ -14,7 +14,7 @@ import {
   type ProvisionOrgParams,
   type HandoverOrgParams,
 } from './services/superAdmin';
-import { exchangeGoogleCode } from './lib/googleAuth';
+import { exchangeGoogleCode, buildGoogleAuthUrl } from './lib/googleAuth';
 import { encryptToken } from './lib/crypto';
 import {
   syncTestToGoogleForm,
@@ -742,6 +742,21 @@ app.patch('/api/org/settings', async (c) => {
 
 // ── Google Workspace Integration Endpoints (Drive.file & Forms.body) ────
 
+// 0c. GET /api/google/auth-url (Generate server-side Google OAuth URL)
+app.get('/api/google/auth-url', async (c) => {
+  const redirectUri = c.req.query('redirectUri');
+  if (!redirectUri) {
+    return c.json({ error: 'Missing required query parameter: redirectUri' }, 400);
+  }
+
+  try {
+    const authUrl = buildGoogleAuthUrl(redirectUri, c.env, 'google_connect');
+    return c.json({ authUrl });
+  } catch (err: any) {
+    return c.json({ error: err.message || 'Failed to generate Google auth URL' }, 500);
+  }
+});
+
 // 0d. GET /api/google/status (Teacher / Admin Google Connection Status)
 app.get('/api/google/status', async (c) => {
   const user = c.get('user');
@@ -1235,16 +1250,19 @@ app.post('/api/telemetry/report', async (c) => {
 
   try {
     const body = await c.req.json<{
-      severity: 'CRITICAL' | 'WARNING' | 'INFO';
-      category: 'SUPABASE_DB' | 'AUTH_SECURITY' | 'RATE_LIMIT' | 'AI_ROUTER' | 'WORKER_CRASH' | 'ANTI_CHEAT';
+      severity?: 'CRITICAL' | 'WARNING' | 'INFO';
+      category?: 'SUPABASE_DB' | 'AUTH_SECURITY' | 'RATE_LIMIT' | 'AI_ROUTER' | 'WORKER_CRASH' | 'ANTI_CHEAT';
+      source?: string;
       message: string;
+      stack?: string;
+      url?: string;
       orgId?: string;
       errorCode?: string;
       payload?: Record<string, unknown>;
     }>();
 
-    if (!body?.message || !body?.category || !body?.severity) {
-      return c.json({ error: 'Missing required incident fields: severity, category, message' }, 400);
+    if (!body?.message) {
+      return c.json({ error: 'Missing required incident field: message' }, 400);
     }
 
     const telemetryEnv: TelemetryEnv = {
@@ -1255,14 +1273,22 @@ app.post('/api/telemetry/report', async (c) => {
       SUPABASE_ANON_KEY: c.env.SUPABASE_ANON_KEY,
     };
 
+    const reporterLabel = user?.email || body.source || 'frontend';
+    const incidentPayload = {
+      source: body.source || 'frontend',
+      stack: body.stack,
+      url: body.url,
+      ...(body.payload || {}),
+    };
+
     c.executionCtx.waitUntil(
       reportSystemIncidentAsync(telemetryEnv, {
-        severity: body.severity,
-        category: body.category,
+        severity: body.severity || 'CRITICAL',
+        category: body.category || 'WORKER_CRASH',
         orgId: body.orgId || null,
         errorCode: body.errorCode || null,
-        message: `[Reported by ${user.email}] ${body.message}`,
-        payload: body.payload || {},
+        message: `[${reporterLabel}] ${body.message}`,
+        payload: incidentPayload,
       }),
     );
 

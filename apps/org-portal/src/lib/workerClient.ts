@@ -288,3 +288,20 @@ export async function verifyTestSheetApi(testId: string): Promise<{
   }
   return data;
 }
+
+/**
+ * 10. Fetch Server-Generated Google OAuth Authorization URL
+ */
+export async function getGoogleAuthUrlApi(redirectUri: string): Promise<string> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/google/auth-url?redirectUri=${encodeURIComponent(redirectUri)}`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.authUrl) {
+    throw new Error(data.error || 'Failed to retrieve Google auth URL from worker');
+  }
+  return data.authUrl;
+}

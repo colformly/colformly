@@ -6,4 +6,5 @@ export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from '.
 export { FloatingNav, type FloatingNavProps, type NavItem } from './FloatingNav';
 export { MetricCard, type MetricCardProps, type MetricTrend } from './MetricCard';
 export { BaseModal, type BaseModalProps, type ModalSize } from './BaseModal';
+export { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 export { cn } from './utils';

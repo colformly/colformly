@@ -29,6 +29,7 @@ import {
   connectGoogleApi,
   syncTestGoogleFormApi,
   verifyTestSheetApi,
+  getGoogleAuthUrlApi,
 } from '../../lib/workerClient';
 import { triggerToast } from '../../lib/toast';
 import { PortalShell } from '../../layouts/PortalShell';
@@ -169,18 +170,24 @@ export default function TeacherTestStudio() {
     };
   }, []);
 
-  const handleGoogleConnect = () => {
-    const clientId =
-      (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) ||
-      '1088241477726-colformly.apps.googleusercontent.com';
+  const handleGoogleConnect = async () => {
     const redirectUri = `${window.location.origin}/teacher/studio`;
-    const scopes = encodeURIComponent(
-      'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/forms.body',
-    );
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      redirectUri,
-    )}&response_type=code&scope=${scopes}&access_type=offline&prompt=consent&include_granted_scopes=true&state=google_connect`;
-    window.location.href = authUrl;
+    try {
+      const authUrl = await getGoogleAuthUrlApi(redirectUri);
+      window.location.href = authUrl;
+    } catch (err: any) {
+      console.warn('Worker Google auth-url retrieval failed, attempting client fallback:', err);
+      const clientId =
+        (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) ||
+        '1088241477726-colformly.apps.googleusercontent.com';
+      const scopes = encodeURIComponent(
+        'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/forms.body',
+      );
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+        redirectUri,
+      )}&response_type=code&scope=${scopes}&access_type=offline&prompt=consent&include_granted_scopes=true&state=google_connect`;
+      window.location.href = authUrl;
+    }
   };
 
   // Load teacher's claimed classes

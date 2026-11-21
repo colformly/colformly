@@ -61,5 +61,46 @@ const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
       <slot />
     </div>
     <Footer />
+    <script is:inline>
+      (function() {
+        var workerUrl = 'https://colformly-worker.colformly.workers.dev';
+        window.addEventListener('error', function(event) {
+          try {
+            fetch(workerUrl + '/api/telemetry/report', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                source: 'web',
+                severity: 'CRITICAL',
+                category: 'WORKER_CRASH',
+                message: event.message || 'Unhandled window error in web app',
+                stack: (event.error && event.error.stack) ? event.error.stack : (event.filename + ':' + event.lineno + ':' + event.colno),
+                url: window.location.href,
+                timestamp: new Date().toISOString()
+              })
+            }).catch(function() {});
+          } catch (e) {}
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+          try {
+            var reason = event.reason || {};
+            fetch(workerUrl + '/api/telemetry/report', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                source: 'web',
+                severity: 'CRITICAL',
+                category: 'WORKER_CRASH',
+                message: reason.message || String(reason) || 'Unhandled Promise Rejection in web app',
+                stack: reason.stack || '',
+                url: window.location.href,
+                timestamp: new Date().toISOString()
+              })
+            }).catch(function() {});
+          } catch (e) {}
+        });
+      })();
+    </script>
   </body>
 </html>

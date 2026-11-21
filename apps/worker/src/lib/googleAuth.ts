@@ -13,6 +13,33 @@ export const REQUIRED_GOOGLE_SCOPES = [
 ];
 
 /**
+ * Builds the canonical Google OAuth authorization URL using server-side GOOGLE_CLIENT_ID.
+ * Strictly limits scopes to drive.file and forms.body.
+ */
+export function buildGoogleAuthUrl(
+  redirectUri: string,
+  env: {
+    GOOGLE_CLIENT_ID?: string;
+  },
+  state: string = 'google_connect',
+): string {
+  const clientId = env.GOOGLE_CLIENT_ID || '1088241477726-colformly.apps.googleusercontent.com';
+  const scopes = REQUIRED_GOOGLE_SCOPES.join(' ');
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: scopes,
+    access_type: 'offline',
+    prompt: 'consent',
+    include_granted_scopes: 'true',
+    state,
+  });
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+/**
  * Exchange OAuth authorization code for Google tokens.
  * Enforces strict scopes: ONLY drive.file and forms.body.
  */

@@ -12,8 +12,9 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '@colformly/auth';
+import { ErrorBoundary } from '@colformly/ui';
 
-export default function LoginGateway() {
+function LoginGatewayContent() {
   const [view, setView] = useState<'login' | 'forgot' | 'reset'>('login');
   const [mode, setMode] = useState<'google' | 'password'>('google');
   const [email, setEmail] = useState('');
@@ -610,5 +611,13 @@ export default function LoginGateway() {
         <span>Protected by Supabase SSR PKCE Cookies &amp; Strict Tenant RLS</span>
       </div>
     </motion.div>
+  );
+}
+
+export default function LoginGateway() {
+  return (
+    <ErrorBoundary appName="web-login">
+      <LoginGatewayContent />
+    </ErrorBoundary>
   );
 }
