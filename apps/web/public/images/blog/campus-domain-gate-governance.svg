@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07090E" />
+      <stop offset="50%" stop-color="#0F1420" />
+      <stop offset="100%" stop-color="#07090E" />
+    </linearGradient>
+    <linearGradient id="indigoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#4F46E5" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg3)" />
+
+  <!-- Grid overlay -->
+  <g stroke="rgba(255,255,255,0.03)" stroke-width="1">
+    <line x1="200" y1="0" x2="200" y2="630" />
+    <line x1="400" y1="0" x2="400" y2="630" />
+    <line x1="600" y1="0" x2="600" y2="630" />
+    <line x1="800" y1="0" x2="800" y2="630" />
+    <line x1="1000" y1="0" x2="1000" y2="630" />
+    <line x1="0" y1="200" x2="1200" y2="200" />
+    <line x1="0" y1="400" x2="1200" y2="400" />
+  </g>
+
+  <!-- Title Badge -->
+  <rect x="80" y="50" width="220" height="32" rx="16" fill="rgba(129,140,248,0.12)" stroke="#818CF8" stroke-width="1" />
+  <text x="190" y="71" fill="#818CF8" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle">EXAM GOVERNANCE 03</text>
+  <text x="80" y="115" fill="#FFFFFF" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="28" font-weight="800">Campus Domain Gate &amp; Ghost Handover Architecture</text>
+  <text x="80" y="142" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="14">Multi-Tenant Identity Isolation &amp; Zero-Trust Academic Governance for Universities</text>
+
+  <!-- Step 1: Super Admin Provisioning -->
+  <rect x="80" y="200" width="240" height="360" rx="16" fill="#0D111A" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" />
+  <rect x="100" y="220" width="110" height="24" rx="12" fill="rgba(129,140,248,0.15)" />
+  <text x="155" y="236" fill="#818CF8" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">STAGE 01</text>
+  <text x="100" y="275" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="bold">Super Admin</text>
+  <text x="100" y="295" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">Tenant Provisioning</text>
+
+  <rect x="100" y="320" width="200" height="85" rx="8" fill="#161B26" />
+  <text x="110" y="340" fill="#818CF8" font-family="monospace" font-size="10">org_type: COLLEGE</text>
+  <text x="110" y="360" fill="#818CF8" font-family="monospace" font-size="10">institute_code: ACEM-26</text>
+  <text x="110" y="380" fill="#2DD4BF" font-family="monospace" font-size="10">onboarding: SETUP_MODE</text>
+
+  <text x="100" y="435" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• 5-section initial config</text>
+  <text x="100" y="460" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Seed mock faculty/tests</text>
+  <text x="100" y="485" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Verify edge routing</text>
+
+  <rect x="100" y="515" width="200" height="26" rx="6" fill="#4F46E5" />
+  <text x="200" y="532" fill="#FFFFFF" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">SETUP OPERATOR</text>
+
+  <!-- Step 2: Ghost Handover -->
+  <rect x="360" y="200" width="240" height="360" rx="16" fill="#0D111A" stroke="#14B8A6" stroke-width="1.5" />
+  <rect x="380" y="220" width="110" height="24" rx="12" fill="rgba(20,184,166,0.15)" />
+  <text x="435" y="236" fill="#14B8A6" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">STAGE 02</text>
+  <text x="380" y="275" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="bold">Ghost Handover</text>
+  <text x="380" y="295" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">Campus Dean Transfer</text>
+
+  <rect x="380" y="320" width="200" height="85" rx="8" fill="#161B26" />
+  <text x="390" y="340" fill="#14B8A6" font-family="monospace" font-size="10">Status: HANDED_OVER</text>
+  <text x="390" y="360" fill="#E2E8F0" font-family="monospace" font-size="10">setup_admin_id: PURGED</text>
+  <text x="390" y="380" fill="#F59E0B" font-family="monospace" font-size="10">Lock: Domain Delegation</text>
+
+  <text x="380" y="435" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Operator auto-demoted</text>
+  <text x="380" y="460" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Real Dean claims org</text>
+  <text x="380" y="485" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Zero super-admin snooping</text>
+
+  <rect x="380" y="515" width="200" height="26" rx="6" fill="#0F766E" />
+  <text x="480" y="532" fill="#FFFFFF" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">ZERO-TRUST AUDIT</text>
+
+  <!-- Step 3: Domain Gatekeeper -->
+  <rect x="640" y="200" width="240" height="360" rx="16" fill="#0D111A" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" />
+  <rect x="660" y="220" width="110" height="24" rx="12" fill="rgba(56,189,248,0.15)" />
+  <text x="715" y="236" fill="#38BDF8" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">STAGE 03</text>
+  <text x="660" y="275" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="bold">Campus Gate</text>
+  <text x="660" y="295" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">Domain Enforcement</text>
+
+  <rect x="660" y="320" width="200" height="85" rx="8" fill="#161B26" />
+  <text x="670" y="340" fill="#38BDF8" font-family="monospace" font-size="10">@college.edu.in</text>
+  <text x="670" y="360" fill="#34D399" font-family="monospace" font-size="10">Auto-Enroll: Section A</text>
+  <text x="670" y="380" fill="#F43F5E" font-family="monospace" font-size="10">Personal @gmail: 403 ❌</text>
+
+  <text x="660" y="435" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Google Workspace SSO</text>
+  <text x="660" y="460" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Strict domain whitelist</text>
+  <text x="660" y="485" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="11">• Non-whitelisted rejected</text>
+
+  <rect x="660" y="515" width="200" height="26" rx="6" fill="#0284C7" />
+  <text x="760" y="532" fill="#FFFFFF" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">EDGE DOMAIN GATE</text>
+
+  <!-- Step 4: Encrypted Token Vault -->
+  <rect x="920" y="200" width="200" height="360" rx="16" fill="#0D111A" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" />
+  <rect x="935" y="220" width="100" height="24" rx="12" fill="rgba(245,158,11,0.15)" />
+  <text x="985" y="236" fill="#F59E0B" font-family="monospace" font-size="10" font-weight="bold" text-anchor="middle">STAGE 04</text>
+  <text x="935" y="275" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" font-weight="bold">Token Vault</text>
+  <text x="935" y="295" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="11">Teacher OAuth Sync</text>
+
+  <rect x="935" y="320" width="170" height="85" rx="8" fill="#161B26" />
+  <text x="945" y="340" fill="#F59E0B" font-family="monospace" font-size="9">AES-256-GCM</text>
+  <text x="945" y="360" fill="#94A3B8" font-family="monospace" font-size="9">12-Byte Random IV</text>
+  <text x="945" y="380" fill="#34D399" font-family="monospace" font-size="9">forms.body only</text>
+
+  <text x="935" y="435" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="10">• Zero broad scopes</text>
+  <text x="935" y="460" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="10">• Encrypted in DB</text>
+  <text x="935" y="485" fill="#CBD5E1" font-family="system-ui, sans-serif" font-size="10">• Decrypted at Edge</text>
+
+  <rect x="935" y="515" width="170" height="26" rx="6" fill="#D97706" />
+  <text x="1020" y="532" fill="#FFFFFF" font-family="monospace" font-size="9" font-weight="bold" text-anchor="middle">GOOGLE VERIFIED</text>
+
+  <!-- Connectors -->
+  <line x1="320" y1="380" x2="360" y2="380" stroke="#818CF8" stroke-width="2" />
+  <line x1="600" y1="380" x2="640" y2="380" stroke="#14B8A6" stroke-width="2" />
+  <line x1="880" y1="380" x2="920" y2="380" stroke="#38BDF8" stroke-width="2" />
+</svg>

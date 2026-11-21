@@ -1,0 +1,55 @@
+# Colformly — Institutional Exam-as-a-Service
+
+> High-throughput, cheat-proof campus examination platform engineered for colleges, universities, and coaching institutes. Bypasses Google Sheets API limits via split-plane edge architecture while preserving 100% faculty Google Forms & Sheets data sovereignty.
+
+## Project Overview
+Colformly is a specialized EdTech infrastructure platform designed to solve the two catastrophic failure modes of digital campus exams:
+1. **Client-Side Answer Leaks:** Native Google Forms and traditional web forms leak question metadata, hidden fields, and answer keys to the browser DOM and network inspector, enabling automated student cheating.
+2. **API Rate-Limit Crashes (HTTP 429):** Running concurrent exams for 500+ students on standard Google Workspace scripts crashes due to Google Sheets' hard limit of 60 write requests per minute per user.
+
+Colformly resolves these challenges through a zero-cost, split-plane edge execution architecture powered by Cloudflare Workers, Supabase PostgreSQL, and native Google Forms webhook forwarders.
+
+## Key Technical Specifications & Architectural Benchmarks
+- **Grading Latency:** Under 150ms evaluated entirely inside Cloudflare V8 worker isolates across 330+ edge locations.
+- **Concurrency Throughput:** 50,000+ concurrent student exam submissions without hitting Google Sheets rate limits or triggering quota exhaustion.
+- **Client Security Boundary:** Answer keys (`test_answer_keys`) reside strictly server-side in isolated database relations and are never delivered to the student client bundle or DOM.
+- **Google OAuth Privacy:** Requests only minimal incremental scopes (`https://www.googleapis.com/auth/drive.file` and `https://www.googleapis.com/auth/forms.body`), ensuring zero access to private institutional Google Drive files and eliminating cumbersome CASA Tier 2/3 security reviews.
+- **Data Sovereignty:** Institutional faculty retain 100% ownership of their exams, forms, and results spreadsheets inside their own institutional Google Drive.
+
+## System Architecture
+
+```
+Student Browser (Minimal Assessment Client)
+        │
+        ▼ (Encrypted HTTPS POST /api/grade-paper)
+Cloudflare Edge Worker (V8 Isolate)
+   ├─ Evaluates submission against server-side answer key in <150ms
+   ├─ Simultaneously records grade to Supabase Postgres ledger (Primary Truth)
+   └─ Uses ctx.waitUntil() to dispatch background fire-and-forget payload
+        to Google Form native /formResponse endpoint (Teacher Sheet Sync)
+```
+
+### Core Architecture Components:
+1. **Dual-Sitemap Architecture:**
+   - Core static sitemap (`https://colformly.pages.dev/sitemap.xml`): Primary static routes (`/`, `/blog`, `/privacy`, `/terms`, `/login`).
+   - Blog dynamic sitemap (`https://colformly.pages.dev/sitemap-0.xml`): Content collection articles with image extensions and metadata.
+   - Master index sitemap (`https://colformly.pages.dev/sitemap-index.xml`): Aggregates all sitemaps for search engines and AI indexing.
+2. **Split-Plane Data Storage:**
+   - Fast Plane (Transactional): Supabase PostgreSQL handles instant real-time leaderboards, fraud alerts, and student result queries.
+   - Batch Plane (Faculty Sovereign): Direct HTTP POST to Google Form responder endpoints writes row data into the faculty Google Sheet at zero API quota cost.
+3. **Campus Domain Gatekeeper:**
+   - Enforces institutional Google Sign-In domain matching (`@college.edu.in`), preventing students or teachers from using personal Gmail accounts.
+4. **Ghost Handover Lifecycle:**
+   - Multi-tenant tenant provisioning allowing campus super admins to configure institutes in "Setup Mode" and seamlessly hand over control to academic directors with zero operational downtime.
+
+## Official Technical Engineering Guides & Deep Dives
+
+- [Why Google Forms Alone Fail College Exams (And How Server-Side Edge Grading Stops Answer-Key Leaks)](https://colformly.pages.dev/blog/why-google-forms-fail-college-exams-server-side-grading): Complete forensic breakdown of DOM answer-key leaks, timing tampering, network inspection vulnerabilities in Google Forms, and how server-side Cloudflare Worker grading guarantees cryptographic test integrity.
+- [Zero-Limit Exam Storage: How Split-Plane Architecture Handles 50,000 Concurrent Submissions Without Hitting Google Sheets API Limits](https://colformly.pages.dev/blog/zero-limit-exam-storage-split-plane-architecture-google-sheets): Deep architectural analysis of Google Sheets 60-write/minute rate limits, CASA Tier-2 audit avoidance, and how background edge forwarding syncs massive student cohorts directly into faculty spreadsheets.
+- [The 2026 Campus Exam Playbook: Domain-Gated Google Sign-In, Ghost Handover & Anti-Cheat Governance for Institutions](https://colformly.pages.dev/blog/campus-exam-playbook-domain-gated-google-signin-anti-cheat): Comprehensive rollout guide for university IT directors, addressing institutional domain separation, AES-256-GCM token vaults, role-based access control, and seamless academic handover.
+
+## Verification & Open Source Contact
+- **Website:** https://colformly.pages.dev
+- **Blog:** https://colformly.pages.dev/blog
+- **Contact:** support@edgecors.com
+- **Repository:** https://github.com/colformly/colformly

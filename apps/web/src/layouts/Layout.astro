@@ -9,6 +9,9 @@ interface Props {
   description?: string;
   canonical?: string;
   surfaceClass?: string;
+  structuredData?: any[];
+  ogImage?: string;
+  ogType?: string;
 }
 
 const {
@@ -16,12 +19,15 @@ const {
   description = 'Run unlimited campus exams with zero API limits. Server-side edge grading, campus Google Sign-In domain gates, and native Google Forms & Sheets ownership for colleges, universities, and coaching institutes.',
   canonical = 'https://colformly.pages.dev/',
   surfaceClass = 'bg-[#F8F9FB] dark:bg-[#07090E]',
+  structuredData: customStructuredData,
+  ogImage = 'https://colformly.pages.dev/og-image.png',
+  ogType = 'website',
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
 const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
 
-const structuredData = [
+const defaultStructuredData = [
   {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -71,6 +77,8 @@ const structuredData = [
     ],
   },
 ];
+
+const finalStructuredData = customStructuredData || defaultStructuredData;
 ---
 
 <!doctype html>
@@ -99,16 +107,17 @@ const structuredData = [
     </script>
 
     {/* OpenGraph & Social Cards */}
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="Colformly" />
-    <meta property="og:image" content="https://colformly.pages.dev/og-image.png" />
+    <meta property="og:image" content={ogImage} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
     {/* Content Security Policy */}
     <meta
@@ -126,7 +135,7 @@ const structuredData = [
     />
 
     {/* Structured Data JSON-LD */}
-    {structuredData.map((schema) => (
+    {finalStructuredData.map((schema) => (
       <script type="application/ld+json" set:html={JSON.stringify(schema)} />
     ))}
 

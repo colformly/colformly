@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07090E" />
+      <stop offset="50%" stop-color="#0A101D" />
+      <stop offset="100%" stop-color="#07090E" />
+    </linearGradient>
+    <linearGradient id="tealGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2DD4BF" />
+      <stop offset="100%" stop-color="#0D9488" />
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg2)" />
+
+  <!-- Subtle grid lines -->
+  <g stroke="rgba(255,255,255,0.03)" stroke-width="1">
+    <line x1="200" y1="0" x2="200" y2="630" />
+    <line x1="400" y1="0" x2="400" y2="630" />
+    <line x1="600" y1="0" x2="600" y2="630" />
+    <line x1="800" y1="0" x2="800" y2="630" />
+    <line x1="1000" y1="0" x2="1000" y2="630" />
+    <line x1="0" y1="200" x2="1200" y2="200" />
+    <line x1="0" y1="400" x2="1200" y2="400" />
+  </g>
+
+  <!-- Title Badge -->
+  <rect x="80" y="50" width="220" height="32" rx="16" fill="rgba(45,212,191,0.12)" stroke="#2DD4BF" stroke-width="1" />
+  <text x="190" y="71" fill="#2DD4BF" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle">EXAM ARCHITECTURE 02</text>
+  <text x="80" y="115" fill="#FFFFFF" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-size="28" font-weight="800">Split-Plane Ingestion &amp; Zero-Limit Google Sync</text>
+  <text x="80" y="142" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="14">Bypassing the 60 Writes/Minute Google Sheets API Quota Wall at Massive Scale</text>
+
+  <!-- Left: Ingestion Source (50,000 Students) -->
+  <rect x="80" y="200" width="280" height="360" rx="20" fill="#0D111A" stroke="rgba(255,255,255,0.1)" stroke-width="1.5" />
+  <text x="105" y="235" fill="#38BDF8" font-family="monospace" font-size="12" font-weight="bold">SOURCE INGESTION</text>
+  <text x="105" y="270" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="22" font-weight="800">50,000 Scholars</text>
+  <text x="105" y="295" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="13">Mid-semester concurrent exam submission</text>
+
+  <rect x="105" y="325" width="230" height="70" rx="10" fill="#161B26" />
+  <text x="120" y="350" fill="#2DD4BF" font-family="monospace" font-size="11">Peak Concurrency: 850 req/sec</text>
+  <text x="120" y="372" fill="#94A3B8" font-family="monospace" font-size="11">Payload: ~1.2 KB Encrypted JSON</text>
+
+  <rect x="105" y="420" width="230" height="110" rx="10" fill="#161B26" />
+  <text x="120" y="445" fill="#F59E0B" font-family="monospace" font-size="11">Google API Direct: FAILS ❌</text>
+  <text x="120" y="465" fill="#94A3B8" font-family="monospace" font-size="10">HTTP 429 Quota Exceeded</text>
+  <text x="120" y="485" fill="#94A3B8" font-family="monospace" font-size="10">Limit: 60 writes/user/min</text>
+  <text x="120" y="505" fill="#F87171" font-family="monospace" font-size="10">Exam crashes within 4 seconds</text>
+
+  <!-- Center: Edge Worker Split Plane -->
+  <rect x="420" y="190" width="340" height="380" rx="20" fill="#0D111A" stroke="#2DD4BF" stroke-width="2" />
+  <rect x="440" y="215" width="170" height="26" rx="13" fill="#0F766E" />
+  <text x="525" y="232" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle">EDGE SPLIT-PLANE</text>
+  
+  <text x="440" y="275" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="20" font-weight="800">Cloudflare Worker V8</text>
+  <text x="440" y="295" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">POST /api/grade-paper</text>
+
+  <!-- Edge execution box -->
+  <rect x="440" y="315" width="300" height="150" rx="12" fill="#07090E" stroke="rgba(45,212,191,0.3)" stroke-width="1" />
+  <text x="455" y="340" fill="#2DD4BF" font-family="monospace" font-size="11">1. Grade Answers (&lt;120ms)</text>
+  <text x="455" y="362" fill="#2DD4BF" font-family="monospace" font-size="11">2. Return Student Grade UI</text>
+  <text x="455" y="384" fill="#E2E8F0" font-family="monospace" font-size="11">3. ctx.waitUntil() Non-Blocking Fork:</text>
+  <text x="475" y="406" fill="#34D399" font-family="monospace" font-size="10">↳ Stream A: Supabase Postgres</text>
+  <text x="475" y="426" fill="#F59E0B" font-family="monospace" font-size="10">↳ Stream B: Form /formResponse</text>
+  <text x="455" y="448" fill="#64748B" font-family="monospace" font-size="10">// Zero student waiting time</text>
+
+  <rect x="440" y="485" width="300" height="60" rx="10" fill="rgba(45,212,191,0.08)" stroke="rgba(45,212,191,0.3)" />
+  <text x="590" y="510" fill="#2DD4BF" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle">STUDENT COMPLETION: &lt;150ms</text>
+  <text x="590" y="530" fill="#94A3B8" font-family="monospace" font-size="10" text-anchor="middle">Unblocked while background streams persist</text>
+
+  <!-- Right: The Dual Persistence Sinks -->
+  <rect x="820" y="190" width="300" height="175" rx="16" fill="#0D111A" stroke="rgba(52,211,153,0.4)" stroke-width="1.5" />
+  <text x="845" y="225" fill="#34D399" font-family="monospace" font-size="11" font-weight="bold">SINK A • POSTGRES AUDIT</text>
+  <text x="845" y="250" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="17" font-weight="bold">Supabase (~200B/row)</text>
+  <text x="845" y="275" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">100,000 attempts = ~20 MB total</text>
+  <text x="845" y="295" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">Instant Hall of Fame podium indexing</text>
+  <rect x="845" y="320" width="160" height="22" rx="4" fill="rgba(52,211,153,0.1)" stroke="#34D399" />
+  <text x="925" y="335" fill="#34D399" font-family="monospace" font-size="10" text-anchor="middle">ACCREDITATION AUDIT</text>
+
+  <rect x="820" y="390" width="300" height="180" rx="16" fill="#0D111A" stroke="rgba(245,158,11,0.4)" stroke-width="1.5" />
+  <text x="845" y="425" fill="#F59E0B" font-family="monospace" font-size="11" font-weight="bold">SINK B • ZERO-LIMIT GOOGLE SYNC</text>
+  <text x="845" y="450" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-size="17" font-weight="bold">Teacher's Google Sheet</text>
+  <text x="845" y="475" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">Posts to Form Responder URL</text>
+  <text x="845" y="495" fill="#94A3B8" font-family="system-ui, sans-serif" font-size="12">Bypasses all Sheets API quotas</text>
+  <rect x="845" y="520" width="160" height="22" rx="4" fill="rgba(245,158,11,0.1)" stroke="#F59E0B" />
+  <text x="925" y="535" fill="#F59E0B" font-family="monospace" font-size="10" text-anchor="middle">UNLIMITED FREE ROWS</text>
+
+  <!-- Connectors -->
+  <line x1="360" y1="380" x2="420" y2="380" stroke="#38BDF8" stroke-width="2" />
+  <path d="M 760 380 L 790 380 L 790 280 L 820 280" fill="none" stroke="#34D399" stroke-width="2" />
+  <path d="M 760 380 L 790 380 L 790 480 L 820 480" fill="none" stroke="#F59E0B" stroke-width="2" />
+</svg>

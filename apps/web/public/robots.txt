@@ -1,4 +1,20 @@
 User-agent: *
 Allow: /
 
+# Explicit AI crawler permissions for Generative Engine Optimization (GEO)
+User-agent: GPTBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Dual-Sitemap Architecture
 Sitemap: https://colformly.pages.dev/sitemap.xml
+Sitemap: https://colformly.pages.dev/sitemap-index.xml
+Sitemap: https://colformly.pages.dev/sitemap-0.xml

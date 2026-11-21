@@ -7,16 +7,22 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://colformly.pages.dev/blog</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://colformly.pages.dev/privacy</loc>
     <lastmod>2026-11-21</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://colformly.pages.dev/terms</loc>
     <lastmod>2026-11-21</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://colformly.pages.dev/login</loc>
