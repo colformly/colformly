@@ -10,24 +10,25 @@
     "clean": "rimraf dist .astro"
   },
   "dependencies": {
-    "astro": "^5.8.0",
     "@astrojs/react": "^4.2.0",
     "@astrojs/tailwind": "^6.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "framer-motion": "^12.12.0",
-    "lucide-react": "^0.513.0",
-    "@supabase/supabase-js": "^2.49.0",
-    "@colformly/ui": "workspace:*",
     "@colformly/auth": "workspace:*",
+    "@colformly/theme": "workspace:*",
     "@colformly/types": "workspace:*",
-    "@colformly/theme": "workspace:*"
+    "@colformly/ui": "workspace:*",
+    "@supabase/supabase-js": "^2.49.0",
+    "astro": "^5.8.0",
+    "framer-motion": "^12.12.0",
+    "gsap": "^3.15.1",
+    "lucide-react": "^0.513.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "rimraf": "^6.0.0"
+    "rimraf": "^6.0.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.0"
   }
 }

@@ -1,259 +1,88 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import InstantGradingDemo from '../components/InstantGradingDemo';
+import HeroSection from '../components/landing/HeroSection';
+import MetricsStrip from '../components/landing/MetricsStrip';
+import ChaosVsCalm from '../components/landing/ChaosVsCalm';
+import HorizontalScrollStage from '../components/landing/HorizontalScrollStage';
+import ArchitectureSection from '../components/landing/ArchitectureSection';
+import SecurityBento from '../components/landing/SecurityBento';
+import TeacherWorkflow from '../components/landing/TeacherWorkflow';
+import AudienceSelector from '../components/landing/AudienceSelector';
+import PricingSection from '../components/landing/PricingSection';
+import ContactForm from '../components/ContactForm';
+import { Mail, Clock, ShieldCheck, Sparkles } from 'lucide-react';
 ---
 
-<Layout
-  title="Zero-Cost, Cheat-Proof EdTech for Colleges"
-  description="Instant AI grading, anti-cheat exam viewports, and BYOS zero-cost architecture built for modern colleges."
->
-  <main class="relative pt-28 md:pt-36 pb-20 overflow-hidden flex flex-col gap-16">
-    <!-- Atmospheric Teal Glow (matching all ui/home-port.html) -->
-    <div
-      class="absolute top-0 inset-x-0 h-[640px] bg-gradient-to-b from-teal-50/60 via-slate-50/20 to-transparent pointer-events-none -z-10"
-    >
+<Layout>
+  <main class="relative overflow-hidden">
+    <!-- SECTION 1: HERO -->
+    <HeroSection client:load />
+
+    <!-- SECTION 2: METRICS & PULSE STRIP -->
+    <MetricsStrip client:visible />
+
+    <!-- SECTION 3: CHAOS VS CALM PARALLAX SPLIT -->
+    <ChaosVsCalm client:visible />
+
+    <!-- SECTION 4: HORIZONTAL SCROLL STAGE ("ONE PLATFORM, FOUR WORLDS") -->
+    <div id="features">
+      <HorizontalScrollStage client:visible />
     </div>
-    <div
-      class="absolute top-20 left-1/2 -translate-x-1/2 w-[900px] h-[350px] bg-teal-100/35 blur-[120px] rounded-full pointer-events-none -z-10"
-    >
-    </div>
 
-    <!-- HERO SECTION -->
-    <section class="max-w-6xl mx-auto px-6 text-center pt-4 md:pt-8">
-      <!-- Subtle Pill Eyebrow -->
-      <a
-        href="/blog"
-        class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-soft border border-teal-300 text-light-on-primary-container mb-8 shadow-sm hover:bg-teal-100 transition-colors"
-      >
-        <span class="w-2 h-2 rounded-full bg-light-primary animate-pulse"></span>
-        <span class="font-label text-xs font-semibold tracking-wide">Colformly v2.4 • BYOS Edge Release</span>
-        <span class="font-bold text-xs">•</span>
-        <span class="font-label text-xs font-semibold inline-flex items-center gap-0.5">
-          Read the Architecture Log →
-        </span>
-      </a>
+    <!-- SECTION 5: THE ZERO-LIMIT SPLIT-PLANE ARCHITECTURE -->
+    <ArchitectureSection client:visible />
 
-      <!-- Hero Heading -->
-      <h1
-        class="font-display text-4xl sm:text-5xl md:text-[56px] md:leading-[64px] font-extrabold tracking-tight text-light-on-surface max-w-4xl mx-auto mb-6 text-balance"
-      >
-        The cheat-proof exam &amp; instant grading OS for modern colleges
-      </h1>
+    <!-- SECTION 6: THE SECURITY & ANTI-CHEAT BENTO GRID -->
+    <SecurityBento client:visible />
 
-      <!-- Subtitle -->
-      <p class="font-body text-lg text-slate-700 max-w-2xl mx-auto leading-relaxed mb-10">
-        Grade 1,000+ student answer sheets in under 120ms, enforce browser-native anti-cheat lockdowns,
-        and run your entire campus portal at <strong class="text-slate-900">zero cloud overhead</strong> via BYOS.
-      </p>
+    <!-- SECTION 7: TEACHER WORKFLOW IN 3 CLICKS -->
+    <TeacherWorkflow client:visible />
 
-      <!-- Primary & Secondary Pill CTAs -->
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-        <a
-          href="/contact"
-          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-light-primary text-white font-label text-sm font-bold shadow-sm hover:bg-[#0D655E] transition-all hover:-translate-y-0.5 hover:shadow-md"
-        >
-          <span>Start Free Campus Pilot</span>
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        </a>
+    <!-- SECTION 8: BUILT FOR EVERY CAMPUS ECOSYSTEM -->
+    <AudienceSelector client:visible />
 
-        <a
-          href="#grading-demo"
-          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-white text-slate-900 border border-slate-300 font-label text-sm font-bold shadow-sm hover:bg-slate-50 transition-all hover:border-slate-400"
-        >
-          <svg class="w-4 h-4 text-light-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-          <span>Watch Instant Grading Demo</span>
-        </a>
-      </div>
+    <!-- SECTION 9: INSTITUTIONAL PLANS & PREDICTABLE SCALE -->
+    <PricingSection client:visible />
 
-      <!-- Trust Strip -->
-      <div class="flex flex-wrap items-center justify-center gap-y-3 gap-x-8 text-slate-700 font-body text-xs pb-6">
-        <div class="flex items-center gap-1.5">
-          <span class="w-4 h-4 rounded-full bg-teal-50 text-light-primary inline-flex items-center justify-center font-bold">✓</span>
-          <span>₹0 infrastructure burn (BYOS)</span>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="w-4 h-4 rounded-full bg-teal-50 text-light-primary inline-flex items-center justify-center font-bold">✓</span>
-          <span>5-minute CSV student onboarding</span>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="w-4 h-4 rounded-full bg-teal-50 text-light-primary inline-flex items-center justify-center font-bold">✓</span>
-          <span>Strict PostgreSQL RLS tenant isolation</span>
-        </div>
-      </div>
-
-      <!-- FLOATING INTERACTIVE INSTANT GRADING DEMO -->
-      <InstantGradingDemo client:load />
-    </section>
-
-    <!-- ARAVALI COLLEGE SOCIAL PROOF & PARTNER STRIP -->
-    <section class="max-w-6xl mx-auto px-6 py-10 border-y border-slate-200/80 w-full space-y-8">
-      <p class="text-center font-label text-xs text-slate-500 font-bold uppercase tracking-widest">
-        Trusted by progressive engineering colleges &amp; academic exam cells
-      </p>
-
-      <!-- Featured Aravali College Case Study Callout -->
-      <div
-        class="rounded-3xl bg-light-surface-variant border border-slate-200/90 p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center"
-      >
-        <div class="lg:col-span-7 space-y-3">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-light-primary text-xs font-label font-bold">
-            <span>Verified Campus Deployment • Aravali College of Engineering</span>
+    <!-- SECTION 10: LIVE PILOT DEMO CTA -->
+    <section class="py-24 px-4 sm:px-6 max-w-7xl mx-auto border-t border-slate-200/80 dark:border-white/10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- Left Explanatory Pitch -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 text-xs font-mono font-bold">
+            <Sparkles class="w-3.5 h-3.5" />
+            <span>Dedicated Campus Onboarding</span>
           </div>
-          <blockquote class="font-headline font-bold text-xl sm:text-2xl text-slate-900 leading-snug">
-            “Colformly eliminated our 12-day exam grading backlog overnight. 1,850 students took our
-            mid-sem CS assessment concurrently with zero tab-switch cheating and zero server cost.”
-          </blockquote>
-          <p class="text-xs text-slate-600 font-medium">
-            Exam Cell &amp; Computer Science Department — <strong class="text-slate-900">Aravali College of Engineering &amp; Management</strong>
+
+          <h2 class="font-display font-black text-3xl sm:text-5xl text-slate-900 dark:text-white tracking-tight">
+            Deploy a Free 60-Day Pilot for Your Department
+          </h2>
+
+          <p class="font-body text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+            See how easy it is to eliminate spreadsheet rate limits and answer leaks. Our engineering team
+            provisions your dedicated Google Workspace domain gate, configures your faculty rosters, and
+            supports your first live midterm at zero risk.
           </p>
-        </div>
 
-        <div class="lg:col-span-5 grid grid-cols-3 gap-3 text-center">
-          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-card-soft">
-            <div class="font-headline font-extrabold text-2xl text-light-primary">1,850+</div>
-            <div class="text-[11px] text-slate-600 mt-1 font-medium">Aravali Students</div>
-          </div>
-          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-card-soft">
-            <div class="font-headline font-extrabold text-2xl text-slate-900">98.7%</div>
-            <div class="text-[11px] text-slate-600 mt-1 font-medium">Faster Grading</div>
-          </div>
-          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-card-soft">
-            <div class="font-headline font-extrabold text-2xl text-emerald-700">₹0</div>
-            <div class="text-[11px] text-slate-600 mt-1 font-medium">Cloud Infra Bill</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Campus Logo Strip -->
-      <div class="flex flex-wrap items-center justify-center gap-8 md:gap-14 opacity-80">
-        <div class="font-headline font-bold text-slate-800 text-base tracking-tight">
-          Aravali College
-        </div>
-        <div class="font-headline font-semibold text-slate-700 text-base tracking-tight">
-          MIT-WPU Pune
-        </div>
-        <div class="font-headline font-semibold text-slate-700 text-base tracking-tight">
-          JECRC University
-        </div>
-        <div class="font-headline font-semibold text-slate-700 text-base tracking-tight">
-          LNMIIT Jaipur
-        </div>
-        <div class="font-headline font-semibold text-slate-700 text-base tracking-tight">
-          BIT Mesra
-        </div>
-      </div>
-    </section>
-
-    <!-- 3-COLUMN BYOS & CORE CAPABILITIES GRID (matching all ui/home-port.html) -->
-    <section id="features" class="max-w-6xl mx-auto px-6 py-6 w-full">
-      <div class="text-center max-w-2xl mx-auto mb-14">
-        <span class="font-label text-xs text-light-primary uppercase tracking-wider font-bold mb-2 block">
-          BYOS Architecture &amp; Core Capabilities
-        </span>
-        <h2 class="font-headline text-3xl md:text-4xl font-bold text-light-on-surface tracking-tight mb-4">
-          Engineered for focus. Built for zero-cost campus scale.
-        </h2>
-        <p class="font-body text-base text-slate-600">
-          Bring Your Own Storage, enforce airtight exam integrity, and deliver gamified student insights
-          without bloated per-seat SaaS contracts.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-7 items-stretch">
-        <!-- Card 1: BYOS -->
-        <article class="bg-white rounded-2xl p-8 border border-slate-200 shadow-card-soft hover:shadow-card-hover hover:border-teal-200 transition-all duration-300 group flex flex-col justify-between">
-          <div>
-            <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary mb-6 group-hover:scale-105 group-hover:bg-teal-soft transition-all">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+          <div class="space-y-3 pt-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-mono">
+            <div class="flex items-center gap-2.5">
+              <Clock class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+              <span>4 Business Hours Pilot Provisioning Guarantee</span>
             </div>
-            <h3 class="font-headline font-bold text-lg text-light-on-surface mb-3">
-              BYOS — Bring Your Own Stack
-            </h3>
-            <p class="font-body text-sm text-slate-600 leading-relaxed mb-6">
-              Connect your institution&apos;s own Supabase project and Cloudflare Worker edge endpoints.
-              Colleges retain 100% data sovereignty and eliminate recurring cloud storage markups.
-            </p>
-          </div>
-          <div class="pt-4 border-t border-slate-100">
-            <a href="/features" class="font-label text-xs text-light-primary font-bold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Explore BYOS Architecture →
-            </a>
-          </div>
-        </article>
-
-        <!-- Card 2: Cheat-Proof Exam Viewport -->
-        <article class="bg-white rounded-2xl p-8 border border-slate-200 shadow-card-soft hover:shadow-card-hover hover:border-teal-200 transition-all duration-300 group flex flex-col justify-between">
-          <div>
-            <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary mb-6 group-hover:scale-105 group-hover:bg-teal-soft transition-all">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+            <div class="flex items-center gap-2.5">
+              <ShieldCheck class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+              <span>Zero Credit Card Required • Full Feature Access</span>
             </div>
-            <h3 class="font-headline font-bold text-lg text-light-on-surface mb-3">
-              Cheat-Proof Exam Lockdown
-            </h3>
-            <p class="font-body text-sm text-slate-600 leading-relaxed mb-6">
-              Real-time <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">Document.visibilityState</code>
-              tab-switch tracking, Fullscreen API enforcement, right-click/clipboard blocking, and
-              RLS-sealed answer keys that stay unreadable until submission.
-            </p>
-          </div>
-          <div class="pt-4 border-t border-slate-100">
-            <a href="/features" class="font-label text-xs text-light-primary font-bold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Inspect Security Specs →
-            </a>
-          </div>
-        </article>
-
-        <!-- Card 3: Instant Grading & Structural Theming -->
-        <article class="bg-white rounded-2xl p-8 border border-slate-200 shadow-card-soft hover:shadow-card-hover hover:border-teal-200 transition-all duration-300 group flex flex-col justify-between">
-          <div>
-            <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-200 flex items-center justify-center text-light-primary mb-6 group-hover:scale-105 group-hover:bg-teal-soft transition-all">
-              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <div class="flex items-center gap-2.5">
+              <Mail class="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+              <span>Direct Founder Support: support@edgecors.com</span>
             </div>
-            <h3 class="font-headline font-bold text-lg text-light-on-surface mb-3">
-              Instant Grading &amp; Topic Autopsy
-            </h3>
-            <p class="font-body text-sm text-slate-600 leading-relaxed mb-6">
-              Automated SVG paper grading with teacher handwriting signatures, custom blessings,
-              class-wide topic autopsies, and BYOC AI explainers for every wrong student answer.
-            </p>
           </div>
-          <div class="pt-4 border-t border-slate-100">
-            <a href="/pricing" class="font-label text-xs text-light-primary font-bold inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              View Flat Campus Pricing →
-            </a>
-          </div>
-        </article>
-      </div>
-    </section>
+        </div>
 
-    <!-- CALL TO ACTION BANNER -->
-    <section class="max-w-5xl mx-auto px-6 py-4 w-full">
-      <div class="rounded-3xl bg-gradient-to-b from-teal-50/80 to-slate-50 border border-teal-200/80 p-10 md:p-14 text-center relative overflow-hidden">
-        <div class="absolute -right-20 -top-20 w-72 h-72 rounded-full border border-teal-200/50 pointer-events-none"></div>
-        <div class="absolute -left-20 -bottom-20 w-72 h-72 rounded-full border border-teal-200/50 pointer-events-none"></div>
-
-        <h2 class="font-headline text-3xl md:text-4xl font-bold text-light-on-surface tracking-tight mb-4">
-          Ready to modernize your college&apos;s exam cell?
-        </h2>
-        <p class="font-body text-base text-slate-700 max-w-xl mx-auto mb-8">
-          Launch an isolated campus portal with custom structural branding in under 15 minutes.
-          One flat campus license — zero per-student penalties.
-        </p>
-
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href="/contact"
-            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-light-primary text-white font-label text-sm font-bold shadow-sm hover:bg-[#0D655E] transition-all hover:-translate-y-0.5"
-          >
-            <span>Book Campus Pilot</span>
-            <span>→</span>
-          </a>
-          <a
-            href="/pricing"
-            class="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-full bg-white text-slate-800 border border-slate-300 font-label text-sm font-bold hover:bg-slate-50 transition-colors"
-          >
-            See Flat Campus Pricing
-          </a>
+        <!-- Right Embedded Contact Form -->
+        <div class="lg:col-span-7">
+          <ContactForm client:visible />
         </div>
       </div>
     </section>

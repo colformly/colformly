@@ -1,86 +1,67 @@
 ---
+import ThemeToggle from './ThemeToggle';
+
 interface Props {
   currentPath: string;
 }
 
 const { currentPath } = Astro.props;
-
-const orgPortalUrl = import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
-const loginUrl = `${orgPortalUrl}/login`;
+const isHome = currentPath === '/';
 
 const navLinks = [
-  { href: '/features', label: 'Features' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/contact', label: 'Contact' },
+  { href: isHome ? '#features' : '/#features', label: 'Features' },
+  { href: isHome ? '#pricing' : '/#pricing', label: 'Pricing' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
 ];
-
-const isActive = (href: string) =>
-  href === '/' ? currentPath === '/' : currentPath.startsWith(href);
 ---
 
-<!-- DESKTOP FLOATING DETACHED PILL GLASSMORPHISM TOP NAVBAR -->
+<!-- FLOATING DETACHED PILL GLASSMORPHISM NAVBAR (DESKTOP) -->
 <header class="fixed top-5 inset-x-0 z-50 hidden md:flex justify-center px-4 pointer-events-none">
   <nav
     aria-label="Main Navigation"
-    class="pointer-events-auto w-full max-w-5xl px-5 py-2.5 rounded-full bg-white/75 backdrop-blur-md border border-slate-200/80 shadow-floating-nav flex items-center justify-between transition-all duration-300 hover:shadow-[0_14px_40px_-6px_rgba(15,23,42,0.12)]"
+    class="pointer-events-auto w-full max-w-5xl px-5 py-2.5 rounded-full bg-white/80 dark:bg-[#0D111A]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-floating-nav flex items-center justify-between transition-all duration-300 hover:shadow-2xl"
   >
     <!-- Brand -->
     <a href="/" class="flex items-center gap-2.5 group">
-      <div class="w-9 h-9 rounded-full bg-light-primary text-white flex items-center justify-center font-headline font-extrabold text-sm shadow-sm group-hover:scale-105 transition-transform">
+      <div class="w-9 h-9 rounded-full bg-teal-600 text-white flex items-center justify-center font-display font-extrabold text-sm shadow-sm group-hover:scale-105 transition-transform border border-teal-400/30">
         C
       </div>
-      <span class="font-headline font-bold text-lg tracking-tight text-light-on-surface">
+      <span class="font-display font-bold text-lg tracking-tight text-slate-900 dark:text-white">
         Colformly
       </span>
-      {currentPath.startsWith('/blog') && (
-        <span class="px-2 py-0.5 rounded-full bg-teal-50 text-light-primary text-[10px] font-bold uppercase tracking-wider font-label border border-teal-200">
-          Journal
-        </span>
-      )}
     </a>
 
     <!-- Center Links -->
-    <ul class="flex items-center gap-7">
-      {navLinks.map((link) => {
-        const active = isActive(link.href);
-        return (
-          <li>
-            <a
-              href={link.href}
-              class:list={[
-                'font-label text-sm transition-colors relative py-1',
-                active
-                  ? 'font-bold text-light-primary'
-                  : 'font-semibold text-slate-600 hover:text-light-primary',
-              ]}
-            >
-              {link.label}
-              {active && (
-                <span class="absolute -bottom-1 inset-x-0 h-0.5 bg-light-primary rounded-full" />
-              )}
-            </a>
-          </li>
-        );
-      })}
+    <ul class="flex items-center gap-6">
+      {navLinks.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            class="font-display text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+          >
+            {link.label}
+          </a>
+        </li>
+      ))}
     </ul>
 
-    <!-- Actions -->
-    <div class="flex items-center gap-2.5">
+    <!-- Actions: Theme Toggle, Sign In, Book Pilot -->
+    <div class="flex items-center gap-3">
+      <ThemeToggle client:load />
+
       <a
-        href={loginUrl}
-        class="font-label text-sm font-semibold text-slate-700 hover:text-light-on-surface px-3.5 py-1.5 transition-colors"
+        href="/login"
+        class="font-display text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-400 px-3 py-1.5 transition-colors"
       >
         Sign In
       </a>
+
       <a
-        href="/contact"
-        class="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-light-primary hover:bg-[#0D655E] text-white font-label text-sm font-semibold shadow-sm transition-all hover:-translate-y-0.5 active:scale-95"
+        href="/#pilot-demo"
+        class="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-teal-600 hover:bg-teal-700 text-white font-display text-sm font-bold shadow-md transition-all hover:-translate-y-0.5 active:scale-95"
       >
         <span>Book Pilot</span>
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
-        </svg>
       </a>
     </div>
   </nav>
@@ -88,77 +69,22 @@ const isActive = (href: string) =>
 
 <!-- MOBILE TOP BRAND BAR -->
 <header class="md:hidden fixed top-4 inset-x-4 z-40 pointer-events-none">
-  <div class="pointer-events-auto flex items-center justify-between px-4 py-2.5 rounded-full bg-white/85 backdrop-blur-md border border-slate-200/80 shadow-floating-nav">
+  <div class="pointer-events-auto flex items-center justify-between px-4 py-2.5 rounded-full bg-white/85 dark:bg-[#0D111A]/85 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 shadow-lg">
     <a href="/" class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-full bg-light-primary text-white flex items-center justify-center font-headline font-bold text-xs">
+      <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-display font-bold text-xs border border-teal-400/30">
         C
       </div>
-      <span class="font-headline font-bold text-base text-light-on-surface">Colformly</span>
+      <span class="font-display font-bold text-base text-slate-900 dark:text-white">Colformly</span>
     </a>
-    <a
-      href={loginUrl}
-      class="px-4 py-1.5 rounded-full bg-light-primary text-white font-label text-xs font-bold"
-    >
-      Sign In
-    </a>
+
+    <div class="flex items-center gap-2">
+      <ThemeToggle client:load />
+      <a
+        href="/login"
+        class="px-3.5 py-1.5 rounded-full bg-teal-600 text-white font-display text-xs font-bold shadow-sm"
+      >
+        Sign In
+      </a>
+    </div>
   </div>
 </header>
-
-<!-- MOBILE FLOATING PILL BOTTOM NAVIGATION BAR -->
-<nav
-  aria-label="Mobile Navigation"
-  class="md:hidden fixed bottom-4 inset-x-4 z-50 flex justify-center pointer-events-none"
->
-  <div class="pointer-events-auto w-full max-w-md px-5 py-2.5 rounded-full bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_16px_36px_rgba(15,23,42,0.16)] flex items-center justify-between">
-    <a
-      href="/"
-      class:list={[
-        'flex flex-col items-center gap-0.5 transition-colors',
-        isActive('/') ? 'text-light-primary font-bold' : 'text-slate-600 hover:text-light-primary',
-      ]}
-    >
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span class="text-[11px] font-label">Home</span>
-    </a>
-    <a
-      href="/features"
-      class:list={[
-        'flex flex-col items-center gap-0.5 transition-colors',
-        isActive('/features') ? 'text-light-primary font-bold' : 'text-slate-600 hover:text-light-primary',
-      ]}
-    >
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-      <span class="text-[11px] font-label">Features</span>
-    </a>
-    <a
-      href="/pricing"
-      class:list={[
-        'flex flex-col items-center gap-0.5 transition-colors',
-        isActive('/pricing') ? 'text-light-primary font-bold' : 'text-slate-600 hover:text-light-primary',
-      ]}
-    >
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
-      <span class="text-[11px] font-label">Pricing</span>
-    </a>
-    <a
-      href="/blog"
-      class:list={[
-        'flex flex-col items-center gap-0.5 transition-colors',
-        isActive('/blog') ? 'text-light-primary font-bold' : 'text-slate-600 hover:text-light-primary',
-      ]}
-    >
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
-      <span class="text-[11px] font-label">Blog</span>
-    </a>
-    <a
-      href="/contact"
-      class:list={[
-        'flex flex-col items-center gap-0.5 transition-colors',
-        isActive('/contact') ? 'text-light-primary font-bold' : 'text-slate-600 hover:text-light-primary',
-      ]}
-    >
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      <span class="text-[11px] font-label">Contact</span>
-    </a>
-  </div>
-</nav>

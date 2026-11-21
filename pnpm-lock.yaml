@@ -203,6 +203,9 @@ importers:
       framer-motion:
         specifier: ^12.12.0
         version: 12.43.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      gsap:
+        specifier: ^3.15.1
+        version: 3.15.1
       lucide-react:
         specifier: ^0.513.0
         version: 0.513.0(react@19.3.1)
@@ -2434,6 +2437,9 @@ packages:
   gopd@1.2.0:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
     engines: {node: '>= 0.4'}
+
+  gsap@3.15.1:
+    resolution: {integrity: sha512-63yjWRFWj3QRP1UOuD8kcidCcy3nxb1mMRpwHr/xJRvPfm9GtWOXFAYUiL0ro1fgPq2nY53LR+98pAgy9BumBg==}
 
   gtoken@7.1.0:
     resolution: {integrity: sha512-pCcEwRi+TKpMlxAQObHDQ56KawURgyAf6jtIY046fJ5tIv3zDe/LEIubckAO8fj6JnAxLdmWkUfNyulQ2iKdEw==}
@@ -5744,6 +5750,8 @@ snapshots:
   google-logging-utils@0.0.2: {}
 
   gopd@1.2.0: {}
+
+  gsap@3.15.1: {}
 
   gtoken@7.1.0:
     dependencies:

@@ -1,35 +1,54 @@
 ---
 ---
 
-<footer class="border-t border-slate-200 bg-white py-12 px-6 pb-24 md:pb-12">
-  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-    <!-- Brand & Copyright -->
-    <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
-      <a href="/" class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-full bg-light-primary text-white flex items-center justify-center font-headline font-bold text-xs">
-          C
-        </div>
-        <span class="font-headline font-bold text-slate-900 text-sm">Colformly</span>
-      </a>
-      <span class="text-slate-400 text-xs">•</span>
-      <span class="font-body text-xs text-slate-600">
-        © 2026 Colformly EdTech Systems. Zero-cost, cheat-proof campus assessments.
-      </span>
+<footer class="border-t border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#07090E] py-14 px-6">
+  <div className="max-w-7xl mx-auto space-y-10">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 pb-10 border-b border-slate-100 dark:border-white/10">
+      <!-- Brand & Description -->
+      <div class="space-y-3 max-w-sm">
+        <a href="/" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-display font-bold text-xs border border-teal-400/30">
+            C
+          </div>
+          <span class="font-display font-black text-xl text-slate-900 dark:text-white">Colformly</span>
+        </a>
+        <p class="font-body text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Institutional Exam-as-a-Service OS with campus Google Sign-In domain verification, &lt;150ms edge
+          grading, and zero Google Sheets API write caps.
+        </p>
+      </div>
+
+      <!-- Quick Navigation & Legal -->
+      <div class="flex flex-wrap items-center gap-8 text-xs font-display font-semibold text-slate-600 dark:text-slate-400">
+        <a href="/#features" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Features</a>
+        <a href="/#pricing" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Pricing</a>
+        <a href="/#pilot-demo" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Book Pilot</a>
+        <a href="/login" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">Portal Login</a>
+        <a href="/privacy" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors font-bold text-slate-900 dark:text-white">
+          Privacy Policy
+        </a>
+        <a href="/terms" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors font-bold text-slate-900 dark:text-white">
+          Terms of Service
+        </a>
+      </div>
     </div>
 
-    <!-- Links & Operational Status -->
-    <div class="flex flex-wrap items-center justify-center gap-6 font-body text-xs text-slate-700">
-      <a href="/features" class="hover:text-light-primary transition-colors">Features</a>
-      <a href="/pricing" class="hover:text-light-primary transition-colors">Pricing</a>
-      <a href="/blog" class="hover:text-light-primary transition-colors">Journal</a>
-      <a href="/contact" class="hover:text-light-primary transition-colors">Campus Pilot</a>
-      <a href="/login" class="hover:text-light-primary transition-colors font-semibold text-light-primary">
-        Portal Login
-      </a>
-      <span class="inline-flex items-center gap-1.5 font-medium text-slate-800">
-        <span class="w-2 h-2 rounded-full bg-teal-600 animate-pulse" />
-        Systems Operational
-      </span>
+    <!-- Bottom Attribution, Contact & System Status -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500 dark:text-slate-400">
+      <div>
+        © 2026 Colformly EdTech Systems. Built by{' '}
+        <span class="text-slate-900 dark:text-slate-200 font-semibold">EdgeCors Engineering</span>.
+      </div>
+
+      <div class="flex items-center gap-6">
+        <a href="mailto:support@edgecors.com" class="hover:text-teal-600 dark:hover:text-teal-400 transition-colors">
+          support@edgecors.com
+        </a>
+        <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Edge Network Operational</span>
+        </span>
+      </div>
     </div>
   </div>
 </footer>

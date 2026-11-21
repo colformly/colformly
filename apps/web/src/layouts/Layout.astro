@@ -2,21 +2,75 @@
 import '../styles/global.css';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import Preloader from '../components/Preloader';
 
 interface Props {
-  title: string;
+  title?: string;
   description?: string;
+  canonical?: string;
   surfaceClass?: string;
 }
 
 const {
-  title,
-  description = 'Colformly — Zero-cost, cheat-proof B2B EdTech assessment & instant grading platform for colleges.',
-  surfaceClass = 'bg-light-surface',
+  title = 'Colformly — Institutional Exam-as-a-Service | Calm, Cheat-Proof Campus Testing',
+  description = 'Run unlimited campus exams with zero API limits. Server-side edge grading, campus Google Sign-In domain gates, and native Google Forms & Sheets ownership for colleges, universities, and coaching institutes.',
+  canonical = 'https://colformly.pages.dev/',
+  surfaceClass = 'bg-[#F8F9FB] dark:bg-[#07090E]',
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
 const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+
+const structuredData = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Colformly',
+    url: 'https://colformly.pages.dev',
+    logo: 'https://colformly.pages.dev/favicon.svg',
+    sameAs: ['https://github.com/colformly'],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      email: 'support@edgecors.com',
+      contactType: 'customer support',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Colformly',
+    applicationCategory: 'EducationalApplication',
+    operatingSystem: 'Web, Cloudflare Edge',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'INR',
+    },
+    description: description,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'How does Colformly prevent Google Sheets rate-limit errors during high-concurrency exams?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Colformly evaluates student answer sheets entirely on Cloudflare Edge Workers and queues background form submissions directly to the native Form responder URL, completely bypassing Google Sheets API rate limits.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Does Colformly access my private Google Drive files?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'No. Colformly requests strictly drive.file and forms.body scopes, allowing it to create and manage only assessment folders and Google Forms created by Colformly inside the teacher\'s own Google Drive.',
+        },
+      },
+    ],
+  },
+];
 ---
 
 <!doctype html>
@@ -24,20 +78,59 @@ const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    {/* Zero-FOUC Dark/Light Theme Script */}
+    <script is:inline>
+      (function() {
+        try {
+          var theme = localStorage.getItem('colformly-theme') || 'dark';
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+
+    {/* OpenGraph & Social Cards */}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="Colformly" />
+    <meta property="og:image" content="https://colformly.pages.dev/og-image.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    {/* Content Security Policy */}
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.workers.dev https://*.onrender.com https://colformly-ga4.onrender.com https://colformly-ga4-service.onrender.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; base-uri 'self'; form-action 'self'; object-src 'none';"
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* Google Fonts Preconnect & Preload */}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Red+Hat+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap"
       rel="stylesheet"
     />
-    <title>{title} | Colformly</title>
 
+    {/* Structured Data JSON-LD */}
+    {structuredData.map((schema) => (
+      <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+    ))}
+
+    {/* Google Analytics 4 */}
     {gaId && (
       <>
         <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
@@ -53,14 +146,19 @@ const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
   <body
     class:list={[
       surfaceClass,
-      'text-light-on-surface font-body antialiased min-h-screen flex flex-col selection:bg-teal-soft selection:text-light-primary',
+      'text-slate-900 dark:text-slate-100 font-body antialiased min-h-screen flex flex-col selection:bg-teal-500/20 selection:text-teal-600 dark:selection:text-teal-400',
     ]}
   >
+    <Preloader client:load />
     <Navbar currentPath={currentPath} />
+
     <div class="flex-1">
       <slot />
     </div>
+
     <Footer />
+
+    {/* Phase 3 Telemetry Crash Monitoring Listeners */}
     <script is:inline>
       (function() {
         var workerUrl = 'https://colformly-worker.colformly.workers.dev';

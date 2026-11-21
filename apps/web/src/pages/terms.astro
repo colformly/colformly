@@ -1,0 +1,118 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { FileCheck, Shield, HelpCircle } from 'lucide-react';
+
+const title = 'Terms of Service — Colformly';
+const description = 'Official Terms of Service, Licensing Agreements, and Institutional Responsibilities for Colformly.';
+---
+
+<Layout title={title} description={description} canonical="https://colformly.pages.dev/terms">
+  <main class="pt-32 sm:pt-40 pb-24 px-4 sm:px-6 max-w-4xl mx-auto">
+    {/* Page Header */}
+    <div class="border-b border-slate-200/80 dark:border-white/10 pb-8 mb-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 text-xs font-mono font-medium mb-4">
+        <FileCheck class="w-4 h-4" />
+        <span>Institutional Terms of Service</span>
+      </div>
+      <h1 class="font-display font-black text-3xl sm:text-5xl text-slate-900 dark:text-white tracking-tight">
+        Terms of Service
+      </h1>
+      <p class="font-mono text-xs text-slate-500 dark:text-slate-400 mt-3">
+        Effective Date: November 21, 2026 • Governing Law: India
+      </p>
+    </div>
+
+    {/* Prose Content */}
+    <div class="space-y-10 text-slate-700 dark:text-slate-300 font-body text-sm sm:text-base leading-relaxed">
+      {/* 1. Acceptance */}
+      <section class="space-y-3">
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+          1. Acceptance of Terms
+        </h2>
+        <p>
+          By accessing or utilizing the Colformly platform (&quot;Service&quot;), provided by EdgeCors Engineering
+          (&quot;Company,&quot; &quot;we,&quot; &quot;our&quot;), your institution, including its authorized
+          administrators, faculty, and scholars, agrees to be bound by these Terms of Service. If you are entering
+          into this agreement on behalf of a college, university, or educational entity, you warrant that you possess
+          the legal authority to bind such entity.
+        </p>
+      </section>
+
+      {/* 2. Service Description */}
+      <section class="space-y-3">
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+          2. Description of Service
+        </h2>
+        <p>
+          Colformly is an Institutional Exam-as-a-Service operating system designed to enable high-concurrency,
+          cheat-proof academic assessments. Features include institutional Google Workspace domain gating,
+          instant server-side edge grading, anti-cheat proctoring telemetry, and optional synchronization with
+          faculty Google Drive and Google Sheets repositories.
+        </p>
+      </section>
+
+      {/* 3. Intellectual Property & Academic Content Ownership */}
+      <section class="space-y-3 p-6 sm:p-8 rounded-3xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-500/30">
+        <div class="flex items-center gap-3 text-teal-700 dark:text-teal-300">
+          <Shield class="w-6 h-6 shrink-0" />
+          <h2 class="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+            3. Intellectual Property &amp; Content Ownership
+          </h2>
+        </div>
+        <p>
+          <strong class="text-slate-900 dark:text-white">Your Institution Retains 100% Ownership:</strong> All examination
+          questions, curricula, syllabi, grading rubrics, and student responses authored or uploaded by your faculty
+          remain the exclusive intellectual property of your institution and educators.
+        </p>
+        <p class="text-xs text-slate-600 dark:text-slate-400">
+          Google Forms and Google Sheets generated through Colformly reside directly within the faculty member&apos;s
+          or institution&apos;s own Google Drive. Colformly claims zero proprietary ownership or commercial rights over
+          institutional test materials.
+        </p>
+      </section>
+
+      {/* 4. Institutional Responsibilities */}
+      <section class="space-y-3">
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+          4. Institutional &amp; User Responsibilities
+        </h2>
+        <ul class="list-disc list-inside space-y-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+          <li><strong>Domain Gate Integrity:</strong> Institutions are responsible for maintaining accurate domain whitelist configurations (<code class="font-mono">@campus.edu.in</code>).</li>
+          <li><strong>Account Security:</strong> Faculty and staff must safeguard their credentials and maintain authorized control over linked Google accounts.</li>
+          <li><strong>Ethical Exam Administration:</strong> The platform may not be utilized to distribute unlawful, malicious, or unaccredited materials.</li>
+        </ul>
+      </section>
+
+      {/* 5. Subscription Plans & Billing */}
+      <section class="space-y-3">
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+          5. Subscription Plans &amp; Service Availability
+        </h2>
+        <p>
+          Colformly offers tiered commercial plans (Campus Pilot, Department Growth, and University Enterprise).
+          Service tier quotas (active student seats and AI generation capacities) apply as specified in the service
+          contract. We guarantee 99.9% scheduled uptime on edge grading infrastructure.
+        </p>
+      </section>
+
+      {/* 6. Limitation of Liability & Contact */}
+      <section class="space-y-3">
+        <h2 class="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+          6. Limitation of Liability &amp; Governing Law
+        </h2>
+        <p>
+          To the maximum extent permitted by applicable law, EdgeCors Engineering shall not be liable for indirect,
+          incidental, or consequential damages arising from test interruptions or unauthorized network tampering.
+          These terms are governed by the laws of India, and disputes shall be subject to the exclusive jurisdiction
+          of the courts in India.
+        </p>
+        <p class="pt-2 text-xs text-slate-500">
+          For legal inquiries, contract amendments, or support, contact:{' '}
+          <a href="mailto:support@edgecors.com" class="font-mono text-teal-600 dark:text-teal-400 underline font-bold">
+            support@edgecors.com
+          </a>
+        </p>
+      </section>
+    </div>
+  </main>
+</Layout>
