@@ -204,3 +204,87 @@ export async function updateOrgSettingsApi(params: Record<string, any>): Promise
   }
   return json;
 }
+
+/**
+ * 7. Google Workspace Connection & Status
+ */
+export async function getGoogleStatusApi(): Promise<{
+  connected: boolean;
+  googleEmail?: string;
+  scopes?: string[];
+  updatedAt?: string;
+}> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/google/status`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await res.json().catch(() => ({ connected: false }));
+  return data;
+}
+
+export async function connectGoogleApi(
+  code: string,
+  redirectUri: string,
+): Promise<{ success: boolean; googleEmail?: string; scopes?: string[] }> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/google/connect`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ code, redirectUri }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to connect Google account');
+  }
+  return data;
+}
+
+/**
+ * 8. Sync Test with Google Drive & Google Forms
+ */
+export async function syncTestGoogleFormApi(testId: string): Promise<{
+  success: boolean;
+  googleFormId: string;
+  driveFolderId: string;
+  formResponderUrl: string;
+  responsesEditUrl: string;
+  linkedSheetId?: string | null;
+  entryMap: Record<string, string>;
+}> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/tests/${encodeURIComponent(testId)}/sync-google-form`, {
+    method: 'POST',
+    headers,
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to sync Google Form');
+  }
+  return data;
+}
+
+/**
+ * 9. Verify Google Form Linked Sheet
+ */
+export async function verifyTestSheetApi(testId: string): Promise<{
+  verified: boolean;
+  linkedSheetId?: string;
+  responsesEditUrl?: string;
+  message: string;
+}> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/tests/${encodeURIComponent(testId)}/verify-sheet`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok && data.verified !== false) {
+    throw new Error(data.error || 'Failed to verify sheet link');
+  }
+  return data;
+}

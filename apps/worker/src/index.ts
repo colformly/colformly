@@ -14,6 +14,13 @@ import {
   type ProvisionOrgParams,
   type HandoverOrgParams,
 } from './services/superAdmin';
+import { exchangeGoogleCode } from './lib/googleAuth';
+import { encryptToken } from './lib/crypto';
+import {
+  syncTestToGoogleForm,
+  verifyTestSheetLink,
+  forwardSubmissionToGoogleFormAsync,
+} from './lib/googleSync';
 
 export type Bindings = {
   SUPABASE_URL: string;
@@ -25,6 +32,9 @@ export type Bindings = {
   GROQ_API_KEY?: string;
   GEMINI_API_KEYS?: string;
   GEMINI_API_KEY?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  TOKEN_ENCRYPTION_KEY?: string;
 };
 
 export type Variables = {
@@ -730,6 +740,168 @@ app.patch('/api/org/settings', async (c) => {
   }
 });
 
+// ── Google Workspace Integration Endpoints (Drive.file & Forms.body) ────
+
+// 0d. GET /api/google/status (Teacher / Admin Google Connection Status)
+app.get('/api/google/status', async (c) => {
+  const user = c.get('user');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/google_credentials?user_id=eq.${encodeURIComponent(user.id)}&select=google_email,scopes,updated_at`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+    if (!res.ok) return c.json({ connected: false });
+    const data = (await res.json().catch(() => [])) as any[];
+    if (data.length > 0) {
+      return c.json({
+        connected: true,
+        googleEmail: data[0].google_email,
+        scopes: data[0].scopes || [],
+        updatedAt: data[0].updated_at,
+      });
+    }
+    return c.json({ connected: false });
+  } catch (err: any) {
+    return c.json({ connected: false, error: err.message }, 500);
+  }
+});
+
+// 0e. POST /api/google/connect (Exchange code for tokens & store encrypted refresh token)
+app.post('/api/google/connect', async (c) => {
+  const user = c.get('user');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  const isPrivileged =
+    user.role === 'TEACHER' ||
+    user.role === 'ORG_ADMIN' ||
+    user.role === 'SUPER_ADMIN';
+
+  if (!isPrivileged) {
+    return c.json({ error: 'Forbidden: Faculty or Administrator access required' }, 403);
+  }
+
+  try {
+    const body = await c.req.json<{ code: string; redirectUri: string }>();
+    if (!body?.code || !body?.redirectUri) {
+      return c.json({ error: 'Missing required fields: code and redirectUri' }, 400);
+    }
+
+    const tokens = await exchangeGoogleCode(body.code, body.redirectUri, {
+      GOOGLE_CLIENT_ID: c.env.GOOGLE_CLIENT_ID,
+      GOOGLE_CLIENT_SECRET: c.env.GOOGLE_CLIENT_SECRET,
+    });
+
+    const encSecret = c.env.TOKEN_ENCRYPTION_KEY || 'colformly_default_sec_token_key_2026';
+    let encryptedRefreshToken = '';
+    let tokenIv = '';
+
+    if (tokens.refreshToken) {
+      const enc = await encryptToken(tokens.refreshToken, encSecret);
+      encryptedRefreshToken = enc.ciphertext;
+      tokenIv = enc.iv;
+    } else {
+      // Retain existing refresh token if user reconnected without offline consent prompt
+      const existingRes = await fetch(
+        `${supabaseUrl}/rest/v1/google_credentials?user_id=eq.${encodeURIComponent(user.id)}&select=encrypted_refresh_token,token_iv`,
+        { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+      );
+      const existing = (await existingRes.json().catch(() => [])) as any[];
+      if (existing[0]?.encrypted_refresh_token) {
+        encryptedRefreshToken = existing[0].encrypted_refresh_token;
+        tokenIv = existing[0].token_iv;
+      } else {
+        throw new Error('No refresh token returned by Google. Please reconnect and ensure offline consent is granted.');
+      }
+    }
+
+    const targetOrgId = user.orgId || 'a0000000-0000-0000-0000-000000000001';
+
+    // Upsert into public.google_credentials
+    const upsertRes = await fetch(`${supabaseUrl}/rest/v1/google_credentials`, {
+      method: 'POST',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        org_id: targetOrgId,
+        google_email: tokens.googleEmail,
+        encrypted_refresh_token: encryptedRefreshToken,
+        token_iv: tokenIv,
+        scopes: tokens.scopes,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+
+    if (!upsertRes.ok) {
+      const errText = await upsertRes.text();
+      throw new Error(`Failed to store credentials: ${errText}`);
+    }
+
+    return c.json({
+      success: true,
+      googleEmail: tokens.googleEmail,
+      scopes: tokens.scopes,
+    });
+  } catch (err: any) {
+    console.error('Error in /api/google/connect:', err);
+    return c.json({ error: err.message || 'Google OAuth connection failed' }, 400);
+  }
+});
+
+// 0f. POST /api/tests/:testId/sync-google-form (Drive Folder & Google Form Sync)
+app.post('/api/tests/:testId/sync-google-form', async (c) => {
+  const user = c.get('user');
+  const testId = c.req.param('testId');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  const isPrivileged =
+    user.role === 'TEACHER' ||
+    user.role === 'ORG_ADMIN' ||
+    user.role === 'SUPER_ADMIN';
+
+  if (!isPrivileged) {
+    return c.json({ error: 'Forbidden: Faculty or Administrator access required' }, 403);
+  }
+
+  try {
+    const result = await syncTestToGoogleForm(testId, user.id, c.env, { supabaseUrl, secretKey });
+    return c.json(result);
+  } catch (err: any) {
+    console.error('Google Form sync error:', err);
+    return c.json({ error: err.message || 'Google Form sync failed' }, 400);
+  }
+});
+
+// 0g. GET /api/tests/:testId/verify-sheet (Inspect linkedSheetId from Google Forms)
+app.get('/api/tests/:testId/verify-sheet', async (c) => {
+  const user = c.get('user');
+  const testId = c.req.param('testId');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  const isPrivileged =
+    user.role === 'TEACHER' ||
+    user.role === 'ORG_ADMIN' ||
+    user.role === 'SUPER_ADMIN';
+
+  if (!isPrivileged) {
+    return c.json({ error: 'Forbidden: Faculty or Administrator access required' }, 403);
+  }
+
+  try {
+    const result = await verifyTestSheetLink(testId, user.id, c.env, { supabaseUrl, secretKey });
+    return c.json(result);
+  } catch (err: any) {
+    console.error('Sheet verification error:', err);
+    return c.json({ verified: false, error: err.message || 'Sheet verification failed' }, 400);
+  }
+});
+
 // 1. POST /api/ai/generate-questions (Teacher / Admin only with Quota & Feature check)
 app.post('/api/ai/generate-questions', async (c) => {
   const user = c.get('user');
@@ -906,6 +1078,15 @@ app.post('/api/grade-paper', async (c) => {
       incrementOrgUsageAsync(telemetryEnv, {
         orgId: targetOrgId,
         testsGraded: 1,
+      }),
+    );
+
+    // Zero-Limit Background Forwarding to Google Form Response (0 Google Sheets API calls)
+    c.executionCtx.waitUntil(
+      forwardSubmissionToGoogleFormAsync(telemetryEnv, {
+        testId: body.testId,
+        studentEmail: user.email,
+        answers: body.answers || {},
       }),
     );
 

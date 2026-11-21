@@ -114,9 +114,9 @@ export default function StudentDashboard() {
           studentSectionId = membership?.section_id;
         }
 
-        // 2. Fetch live tests
+        // 2. Fetch live tests (Explicitly select ONLY safe student columns — NEVER google_form_id, form_responder_url, or form_entry_map)
         const { data: testsData } = await (supabase.from('tests') as any)
-          .select('*')
+          .select('id, org_id, course_id, title, blocks, duration_minutes, is_published, created_at, anti_cheat_enabled, total_marks, target_section_ids, share_code')
           .eq('org_id', orgId)
           .eq('is_published', true)
           .order('created_at', { ascending: false });

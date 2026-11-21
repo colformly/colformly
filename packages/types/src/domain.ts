@@ -245,8 +245,30 @@ export interface TestBlock {
   topic?: string;
 }
 
+export interface FormEntryMap {
+  _student_email?: string;
+  [questionId: string]: string | undefined;
+}
+
+export interface GoogleCredential {
+  id: string;
+  user_id: string;
+  org_id: string;
+  google_email: string;
+  encrypted_refresh_token: string;
+  token_iv: string;
+  scopes: string[];
+  updated_at: string;
+}
+
 export interface Test extends Omit<Tables<'tests'>, 'blocks'> {
   blocks: TestBlock[];
+  drive_folder_id?: string | null;
+  google_form_id?: string | null;
+  linked_sheet_id?: string | null;
+  form_responder_url?: string | null;
+  form_entry_map?: FormEntryMap;
+  sheet_verified_at?: string | null;
 }
 
 export interface TestAnswerKey extends Omit<Tables<'test_answer_keys'>, 'question_type' | 'options'> {

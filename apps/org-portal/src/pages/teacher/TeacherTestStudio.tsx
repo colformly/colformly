@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import {
+  AlertCircle,
   Check,
   CheckCircle2,
   Copy,
+  ExternalLink,
+  FileSpreadsheet,
+  FolderSync,
   GripVertical,
   Layers,
+  Link2,
   MessageCircle,
   Plus,
+  RefreshCw,
   Send,
   Share2,
   ShieldCheck,
@@ -17,7 +23,14 @@ import { supabase, useAuth } from '@colformly/auth';
 import { useTheme } from '@colformly/theme';
 import type { Course, TestBlock } from '@colformly/types';
 import { BaseModal, Button } from '@colformly/ui';
-import { generateQuestionsApi } from '../../lib/workerClient';
+import {
+  generateQuestionsApi,
+  getGoogleStatusApi,
+  connectGoogleApi,
+  syncTestGoogleFormApi,
+  verifyTestSheetApi,
+} from '../../lib/workerClient';
+import { triggerToast } from '../../lib/toast';
 import { PortalShell } from '../../layouts/PortalShell';
 
 interface TeacherCohortChip {
@@ -95,6 +108,81 @@ export default function TeacherTestStudio() {
   const [publishing, setPublishing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Google OAuth & Pre-Publish 2-Step Gate State
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState<string | null>(null);
+  const [googleConnecting, setGoogleConnecting] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(true);
+
+  const [prePublishModalOpen, setPrePublishModalOpen] = useState(false);
+  const [draftTestId, setDraftTestId] = useState<string | null>(null);
+  const [googleFormId, setGoogleFormId] = useState<string | null>(null);
+  const [responsesEditUrl, setResponsesEditUrl] = useState<string | null>(null);
+  const [linkedSheetId, setLinkedSheetId] = useState<string | null>(null);
+  const [isSyncingForm, setIsSyncingForm] = useState(false);
+  const [isVerifyingSheet, setIsVerifyingSheet] = useState(false);
+  const [isSheetVerified, setIsSheetVerified] = useState(false);
+  const [prePublishError, setPrePublishError] = useState<string | null>(null);
+
+  // Initialize Google Auth Status & Handle OAuth Callback
+  useEffect(() => {
+    let isMounted = true;
+    const initGoogleAuth = async () => {
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        const code = searchParams.get('code');
+        const state = searchParams.get('state');
+
+        if (code && state === 'google_connect') {
+          setGoogleConnecting(true);
+          try {
+            const redirectUri = `${window.location.origin}/teacher/studio`;
+            const res = await connectGoogleApi(code, redirectUri);
+            if (isMounted) {
+              setGoogleConnected(true);
+              setGoogleEmail(res.googleEmail || null);
+              triggerToast('Google Workspace connected successfully!', 'success');
+            }
+          } catch (err: any) {
+            triggerToast(err.message || 'Google connection failed', 'error');
+          } finally {
+            window.history.replaceState({}, '', window.location.pathname);
+            if (isMounted) setGoogleConnecting(false);
+          }
+        }
+
+        const statusRes = await getGoogleStatusApi();
+        if (statusRes?.connected && isMounted) {
+          setGoogleConnected(true);
+          setGoogleEmail(statusRes.googleEmail || null);
+        }
+      } catch (err) {
+        console.warn('Google status check warning:', err);
+      } finally {
+        if (isMounted) setGoogleLoading(false);
+      }
+    };
+
+    void initGoogleAuth();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleGoogleConnect = () => {
+    const clientId =
+      (import.meta.env.VITE_GOOGLE_CLIENT_ID as string) ||
+      '1088241477726-colformly.apps.googleusercontent.com';
+    const redirectUri = `${window.location.origin}/teacher/studio`;
+    const scopes = encodeURIComponent(
+      'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/forms.body',
+    );
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
+      redirectUri,
+    )}&response_type=code&scope=${scopes}&access_type=offline&prompt=consent&include_granted_scopes=true&state=google_connect`;
+    window.location.href = authUrl;
+  };
+
   // Load teacher's claimed classes
   useEffect(() => {
     let isMounted = true;
@@ -146,77 +234,155 @@ export default function TeacherTestStudio() {
     );
   };
 
-  const handlePublish = async () => {
-    setPublishing(true);
-    // Generate 6-char alphanumeric share code
-    const generated = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const ensureDraftCreated = async (): Promise<string> => {
+    if (draftTestId) return draftTestId;
 
-    try {
-      const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
-      const teacherId = user?.id || 'd9f9acff-eb5e-478e-9c38-269cb136cda0';
+    const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
+    const teacherId = user?.id || 'd9f9acff-eb5e-478e-9c38-269cb136cda0';
 
-      // 1. Sanitize blocks: Strip correctAnswer and explanation so student client inspection CANNOT leak answer keys
-      const sanitizedBlocks = blocks.map((b) => {
-        const copy: any = { ...b };
-        delete copy.correctAnswer;
-        delete copy.explanation;
-        return copy;
-      });
+    // 1. Sanitize blocks: Strip correctAnswer and explanation so student client inspection CANNOT leak answer keys
+    const sanitizedBlocks = blocks.map((b) => {
+      const copy: any = { ...b };
+      delete copy.correctAnswer;
+      delete copy.explanation;
+      return copy;
+    });
 
-      // 2. Insert into public.tests
-      const { data: testRow, error: testErr } = await (supabase.from('tests') as any)
-        .insert({
-          org_id: orgId,
-          course_id: targetSectionIds[0] || 'c0000000-0000-0000-0000-000000000001',
-          created_by: teacherId,
-          title,
-          total_marks: totalMarks,
-          duration_minutes: 45,
-          anti_cheat_enabled: antiCheat,
-          is_published: true,
-          target_section_ids: targetSectionIds,
-          share_code: generated,
-          blocks: sanitizedBlocks as unknown as Record<string, unknown>[],
-        })
-        .select()
-        .single();
+    // 2. Insert into public.tests as draft (is_published: false)
+    const { data: testRow, error: testErr } = await (supabase.from('tests') as any)
+      .insert({
+        org_id: orgId,
+        course_id: targetSectionIds[0] || 'c0000000-0000-0000-0000-000000000001',
+        created_by: teacherId,
+        title,
+        total_marks: totalMarks,
+        duration_minutes: 45,
+        anti_cheat_enabled: antiCheat,
+        is_published: false,
+        target_section_ids: targetSectionIds,
+        blocks: sanitizedBlocks as unknown as Record<string, unknown>[],
+      })
+      .select()
+      .single();
 
-      if (testErr) {
-        console.warn('Test creation error:', testErr);
+    if (testErr) throw new Error(testErr.message || 'Failed to create test draft');
+
+    // 3. Insert locked answers into public.test_answer_keys
+    if (testRow?.id) {
+      const questionBlocks = blocks.filter(
+        (b) => b.type === 'mcq' || b.type === 'short_answer',
+      );
+      const answerKeys = questionBlocks.map((b, idx) => ({
+        org_id: orgId,
+        test_id: testRow.id,
+        question_number: idx + 1,
+        question_type: b.type === 'mcq' ? 'MCQ' : 'SHORT_ANSWER',
+        question_text: b.content,
+        options: b.options || [],
+        correct_answer: b.correctAnswer || '',
+        marks: b.marks || 5,
+        topic: b.topic || 'General',
+        explanation: `Verified answer key for Question ${idx + 1}`,
+      }));
+
+      if (answerKeys.length > 0) {
+        await (supabase.from('test_answer_keys') as any).insert(answerKeys);
       }
 
-      // 2. Insert locked answers into public.test_answer_keys
-      if (testRow?.id) {
-        const questionBlocks = blocks.filter(
-          (b) => b.type === 'mcq' || b.type === 'short_answer',
-        );
-        const answerKeys = questionBlocks.map((b, idx) => ({
-          org_id: orgId,
-          test_id: testRow.id,
-          question_number: idx + 1,
-          question_type: b.type === 'mcq' ? 'MCQ' : 'SHORT_ANSWER',
-          question_text: b.content,
-          options: b.options || [],
-          correct_answer: b.correctAnswer || '',
-          marks: b.marks || 5,
-          topic: b.topic || 'General',
-          explanation: `Verified answer key for Question ${idx + 1}`,
-        }));
-
-        if (answerKeys.length > 0) {
-          const { error: keyErr } = await (supabase.from('test_answer_keys') as any).insert(
-            answerKeys,
-          );
-          if (keyErr) console.warn('Answer keys insert warning:', keyErr);
-        }
-      }
-    } catch (err) {
-      console.warn('Publish error:', err);
+      setDraftTestId(testRow.id);
+      return testRow.id;
     }
 
-    setShareCode(generated);
-    setPublished(true);
-    setPublishing(false);
+    throw new Error('Failed to resolve created test.');
+  };
+
+  const handleOpenPrePublishGate = async () => {
+    try {
+      setPrePublishError(null);
+      await ensureDraftCreated();
+      setPrePublishModalOpen(true);
+    } catch (err: any) {
+      triggerToast(err.message || 'Error initializing draft assessment', 'error');
+    }
+  };
+
+  const handleSyncGoogleForm = async () => {
+    if (!googleConnected) {
+      triggerToast('Please connect your Google Workspace account first.', 'error');
+      return;
+    }
+
+    setIsSyncingForm(true);
+    setPrePublishError(null);
+    try {
+      const testId = await ensureDraftCreated();
+      const res = await syncTestGoogleFormApi(testId);
+      setGoogleFormId(res.googleFormId);
+      setResponsesEditUrl(res.responsesEditUrl);
+      if (res.linkedSheetId) {
+        setLinkedSheetId(res.linkedSheetId);
+        setIsSheetVerified(true);
+      }
+      triggerToast('Google Form & Drive folder synced successfully!', 'success');
+    } catch (err: any) {
+      setPrePublishError(err.message || 'Failed to sync with Google Forms');
+    } finally {
+      setIsSyncingForm(false);
+    }
+  };
+
+  const handleVerifySheet = async () => {
+    if (!draftTestId) return;
+
+    setIsVerifyingSheet(true);
+    setPrePublishError(null);
+    try {
+      const res = await verifyTestSheetApi(draftTestId);
+      if (res.verified && res.linkedSheetId) {
+        setLinkedSheetId(res.linkedSheetId);
+        setIsSheetVerified(true);
+        triggerToast('Google Sheet link verified successfully!', 'success');
+      } else {
+        setPrePublishError(
+          res.message || "Sheet not linked yet. Please click 'Link to Sheets' in the Google Forms Responses tab.",
+        );
+      }
+    } catch (err: any) {
+      setPrePublishError(err.message || 'Sheet verification failed');
+    } finally {
+      setIsVerifyingSheet(false);
+    }
+  };
+
+  const handleFinalPublish = async () => {
+    if (!isSheetVerified) {
+      triggerToast('You must verify the linked Google Sheet before publishing.', 'error');
+      return;
+    }
+
+    setPublishing(true);
+    try {
+      const testId = await ensureDraftCreated();
+      const generated = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      const { error } = await (supabase.from('tests') as any)
+        .update({
+          is_published: true,
+          share_code: generated,
+        })
+        .eq('id', testId);
+
+      if (error) throw error;
+
+      setShareCode(generated);
+      setPublished(true);
+      setPrePublishModalOpen(false);
+      triggerToast('Assessment is now live for students!', 'success');
+    } catch (err: any) {
+      triggerToast(err.message || 'Failed to publish assessment', 'error');
+    } finally {
+      setPublishing(false);
+    }
   };
 
   const handleCopyWhatsAppLink = () => {
@@ -346,12 +512,57 @@ export default function TeacherTestStudio() {
               size="sm"
               isLoading={publishing}
               leftIcon={published ? <CheckCircle2 className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-              onClick={handlePublish}
+              onClick={published ? undefined : handleOpenPrePublishGate}
             >
-              {published ? 'Test Published & Shared!' : `Publish (${totalMarks} Marks)`}
+              {published ? 'Test Published & Shared!' : `Publish Assessment (${totalMarks} Marks)`}
             </Button>
           </div>
         </header>
+
+        {/* Google Workspace Connection Banner */}
+        {!googleLoading && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                  googleConnected ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                {googleConnected ? <CheckCircle2 className="w-4 h-4" /> : <FolderSync className="w-4 h-4" />}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900">
+                  {googleConnected
+                    ? `Google Workspace Connected (${googleEmail})`
+                    : 'Google Workspace (Drive & Forms) Disconnected'}
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  {googleConnected
+                    ? 'Assessment folders & Google Forms will sync directly to your institution Google Drive.'
+                    : 'Connect Drive & Forms (drive.file + forms.body) to sync assessments & link live Google Sheets.'}
+                </p>
+              </div>
+            </div>
+
+            {!googleConnected ? (
+              <Button
+                size="sm"
+                variant="outline"
+                isLoading={googleConnecting}
+                onClick={handleGoogleConnect}
+                leftIcon={<Link2 className="w-3.5 h-3.5" />}
+                className="shrink-0 text-xs font-bold border-amber-300 text-amber-900 hover:bg-amber-50"
+              >
+                Connect Google Drive &amp; Forms (1-Click)
+              </Button>
+            ) : (
+              <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold shrink-0 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                Drive &amp; Forms Synced
+              </span>
+            )}
+          </div>
+        )}
 
         {/* WhatsApp Quiz Link & Share Code Banner */}
         {published && shareCode && (
@@ -638,6 +849,156 @@ export default function TeacherTestStudio() {
               </Button>
             </div>
           </form>
+        </BaseModal>
+
+        {/* ── PRE-PUBLISH & GOOGLE WORKSPACE GATE MODAL ───────────── */}
+        <BaseModal
+          open={prePublishModalOpen}
+          onClose={() => setPrePublishModalOpen(false)}
+          title="Pre-Publish Assessment Gate"
+          description="Sync questions to an isolated Google Drive folder & Form, and verify the linked Google Sheet."
+        >
+          <div className="space-y-5 text-xs">
+            {prePublishError && (
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{prePublishError}</span>
+              </div>
+            )}
+
+            {/* Assessment Meta Summary */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1 text-slate-700">
+              <p className="font-bold text-slate-900 text-sm font-headline">{title}</p>
+              <p>Target Cohorts: <span className="font-bold text-slate-900">{targetSectionIds.length} Section(s)</span></p>
+              <p>Total Marks: <span className="font-bold text-slate-900">{totalMarks} Marks</span> • Questions: <span className="font-bold text-slate-900">{blocks.filter(b => b.type === 'mcq' || b.type === 'short_answer').length}</span></p>
+            </div>
+
+            {/* STEP 1: GOOGLE DRIVE & FORM SYNC */}
+            <div className={`p-4 rounded-2xl border transition-all ${googleFormId ? 'bg-emerald-50/60 border-emerald-300 text-emerald-950' : 'bg-white border-slate-200'}`}>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${googleFormId ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                    1
+                  </span>
+                  <span className="font-bold text-slate-900 text-sm font-headline">
+                    Sync to Google Drive &amp; Form
+                  </span>
+                </div>
+                {googleFormId && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-bold">
+                    SYNCED
+                  </span>
+                )}
+              </div>
+
+              <p className="text-slate-600 text-xs mb-3">
+                Creates the assessment folder in your Google Drive (<code>drive.file</code>) and compiles blocks into a Google Form (<code>forms.body</code>).
+              </p>
+
+              {googleFormId ? (
+                <div className="p-2.5 rounded-xl bg-emerald-100/60 border border-emerald-300/80 text-[11px] text-emerald-900 space-y-1">
+                  <p>Form ID: <code>{googleFormId}</code></p>
+                  <p>Drive Folder: <code>Colformly / Assessments / {title}</code></p>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  isLoading={isSyncingForm}
+                  onClick={handleSyncGoogleForm}
+                  leftIcon={<FolderSync className="w-3.5 h-3.5" />}
+                  className="w-full text-xs font-bold border-teal-500 text-teal-800 hover:bg-teal-50"
+                >
+                  Create Assessment Drive Folder &amp; Form
+                </Button>
+              )}
+            </div>
+
+            {/* STEP 2: LINK TO GOOGLE SHEET */}
+            <div className={`p-4 rounded-2xl border transition-all ${isSheetVerified ? 'bg-emerald-50/60 border-emerald-300 text-emerald-950' : 'bg-white border-slate-200'}`}>
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isSheetVerified ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                    2
+                  </span>
+                  <span className="font-bold text-slate-900 text-sm font-headline">
+                    Link to Google Sheet (1-Click)
+                  </span>
+                </div>
+                {isSheetVerified && (
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 text-[10px] font-bold">
+                    VERIFIED
+                  </span>
+                )}
+              </div>
+
+              <p className="text-slate-600 text-xs mb-3">
+                Open the Google Form Responses tab, click the green <strong>Link to Sheets</strong> button, then click <strong>Verify Sheet Link</strong> below.
+              </p>
+
+              {isSheetVerified ? (
+                <div className="p-2.5 rounded-xl bg-emerald-100/60 border border-emerald-300/80 text-[11px] text-emerald-900 space-y-1">
+                  <p className="font-bold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Google Sheet Linked &amp; Verified!</span>
+                  </p>
+                  <p>Sheet ID: <code>{linkedSheetId}</code></p>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={!googleFormId}
+                    onClick={() => {
+                      if (responsesEditUrl) window.open(responsesEditUrl, '_blank');
+                    }}
+                    leftIcon={<ExternalLink className="w-3.5 h-3.5" />}
+                    className="w-full sm:w-1/2 text-xs font-bold"
+                  >
+                    Open Form Responses Tab ↗
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={!googleFormId}
+                    isLoading={isVerifyingSheet}
+                    onClick={handleVerifySheet}
+                    leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                    className="w-full sm:w-1/2 text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white"
+                  >
+                    Verify Sheet Link
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* STEP 3: PUBLISH ASSESSMENT */}
+            <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPrePublishModalOpen(false)}
+                className="text-xs text-slate-500 hover:text-slate-900"
+              >
+                Close &amp; Keep Draft
+              </Button>
+
+              <Button
+                size="md"
+                disabled={!isSheetVerified}
+                isLoading={publishing}
+                onClick={handleFinalPublish}
+                leftIcon={<Send className="w-4 h-4" />}
+                className={`text-xs font-bold shadow-md ${
+                  isSheetVerified
+                    ? 'bg-primary hover:bg-primary/90 text-white'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                {isSheetVerified ? 'Publish Assessment (Make Live)' : 'Link Sheet to Unlock Publishing'}
+              </Button>
+            </div>
+          </div>
         </BaseModal>
       </div>
     </PortalShell>
