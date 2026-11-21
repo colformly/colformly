@@ -3,6 +3,13 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Building2, CheckCircle2, Mail, Users } from 'lucide-react';
 import { supabase } from '@colformly/auth';
 
+declare global {
+  interface Window {
+    dataLayer?: any[];
+    gtag?: (...args: any[]) => void;
+  }
+}
+
 export default function ContactForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -21,19 +28,9 @@ export default function ContactForm() {
     e.preventDefault();
     setSubmitting(true);
 
-    // 1. Fire GA4 generate_lead event
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'generate_lead', {
-        event_category: 'engagement',
-        event_label: 'demo_inquiry',
-        value: 1,
-      });
-    }
-
-    // 2. Persist to public.demo_leads table
     try {
       const approxStudents = parseInt(form.studentCount.replace(/[^0-9]/g, '') || '1000', 10);
-      await supabase.from('demo_leads').insert({
+      const { error: insertError } = await supabase.from('demo_leads').insert({
         full_name: form.fullName.trim(),
         email: form.email.trim().toLowerCase(),
         phone: form.phone.trim() || null,
@@ -43,8 +40,38 @@ export default function ContactForm() {
         notes: `BYOS: ${form.byos ? 'Yes' : 'No'} | ${form.notes}`,
         status: 'NEW',
       });
+
+      if (insertError) {
+        console.warn('Demo lead DB insertion warning:', insertError);
+      } else {
+        // Safe GA4 generate_lead event dispatch upon SUCCESSFUL lead persistence
+        try {
+          if (typeof window !== 'undefined') {
+            const leadPayload = {
+              event_category: 'engagement',
+              event_label: form.college.trim() || 'demo_inquiry',
+              value: 1,
+              currency: 'INR',
+              institution: form.college.trim(),
+              designation: form.role,
+              student_count: approxStudents,
+            };
+
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', 'generate_lead', leadPayload);
+            } else if (Array.isArray(window.dataLayer)) {
+              window.dataLayer.push({
+                event: 'generate_lead',
+                ...leadPayload,
+              });
+            }
+          }
+        } catch (analyticsErr) {
+          console.warn('GA4 lead tracking warning:', analyticsErr);
+        }
+      }
     } catch (err) {
-      console.warn('Demo lead DB insertion warning:', err);
+      console.warn('Demo lead DB insertion error:', err);
     } finally {
       setSubmitting(false);
       setSubmitted(true);

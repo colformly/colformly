@@ -25,7 +25,10 @@ const {
 } = Astro.props;
 
 const currentPath = Astro.url.pathname;
-const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+const gaMeasurementId =
+  import.meta.env.PUBLIC_GA_MEASUREMENT_ID ||
+  import.meta.env.VITE_GA_MEASUREMENT_ID ||
+  '';
 
 const defaultStructuredData = [
   {
@@ -131,7 +134,7 @@ const finalStructuredData = customStructuredData || defaultStructuredData;
     {/* Content Security Policy */}
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.workers.dev https://*.onrender.com https://colformly-ga4.onrender.com https://colformly-ga4-service.onrender.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; base-uri 'self'; form-action 'self'; object-src 'none';"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://*.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.google-analytics.com https://*.googletagmanager.com https://*.doubleclick.net; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.workers.dev https://*.onrender.com https://colformly-ga4.onrender.com https://colformly-ga4-service.onrender.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net; base-uri 'self'; form-action 'self'; object-src 'none';"
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
@@ -148,17 +151,26 @@ const finalStructuredData = customStructuredData || defaultStructuredData;
       <script type="application/ld+json" set:html={JSON.stringify(schema)} />
     ))}
 
-    {/* Google Analytics 4 */}
-    {gaId && (
+    {/* Google Analytics 4 (GA4) */}
+    {gaMeasurementId ? (
       <>
-        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
-        <script is:inline define:vars={{ gaId }}>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}></script>
+        <script is:inline define:vars={{ gaMeasurementId }}>
           window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
+          function gtag(){window.dataLayer.push(arguments);}
+          window.gtag = gtag;
           gtag('js', new Date());
-          gtag('config', gaId, { send_page_view: true });
+          gtag('config', gaMeasurementId, {
+            send_page_view: true,
+          });
         </script>
       </>
+    ) : (
+      <script is:inline>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        window.gtag = gtag;
+      </script>
     )}
   </head>
   <body
