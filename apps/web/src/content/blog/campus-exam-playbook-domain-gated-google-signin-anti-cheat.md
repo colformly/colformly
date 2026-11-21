@@ -250,4 +250,4 @@ Colformly provides this complete foundation out of the box—free, open, and eng
 Explore our live documentation or schedule a technical pilot for your university:
 - **Architecture Deep-Dive:** [Why Google Forms Alone Fail College Exams](/blog/why-google-forms-fail-college-exams-server-side-grading)
 - **High-Concurrency Scale:** [Zero-Limit Exam Storage via Split-Plane Edge Sync](/blog/zero-limit-exam-storage-split-plane-architecture-google-sheets)
-- **Request a Campus Pilot:** [colformly.pages.dev/#pilot-demo](https://colformly.pages.dev/#pilot-demo)
+- **Request a Campus Pilot:** [colformly.edgecors.com/#pilot-demo](https://colformly.edgecors.com/#pilot-demo)

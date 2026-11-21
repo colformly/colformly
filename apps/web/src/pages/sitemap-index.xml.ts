@@ -6,11 +6,11 @@ export const GET: APIRoute = async () => {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>https://colformly.pages.dev/sitemap.xml</loc>
+    <loc>https://colformly.edgecors.com/sitemap.xml</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
   <sitemap>
-    <loc>https://colformly.pages.dev/sitemap-0.xml</loc>
+    <loc>https://colformly.edgecors.com/sitemap-0.xml</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>`;

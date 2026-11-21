@@ -393,7 +393,7 @@ export default function TeacherTestStudio() {
   };
 
   const handleCopyWhatsAppLink = () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://colformly-org.pages.dev';
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://colformly-org.edgecors.com';
     const link = `${origin}/student/dashboard?code=${shareCode}`;
     const text = `🚨 *${title}* is LIVE on Colformly!\n\n📋 *Target Cohorts:* ${targetSectionIds.length} Section(s)\n🔑 *Quiz Share Code:* ${shareCode}\n🔗 *Direct Access Link:* ${link}\n\n⚠️ *Anti-Cheat Active:* Fullscreen enforcement & Tab-Switch tracking enabled.`;
 

@@ -10,6 +10,9 @@ const PORT = process.env.PORT || 3001;
 
 // ── Allowed CORS Origins ─────────────────────────────────────────
 const ALLOWED_ORIGINS = [
+  'https://colformly-super-admin.edgecors.com',
+  'https://colformly-org.edgecors.com',
+  'https://colformly.edgecors.com',
   'https://colformly-super-admin.pages.dev',
   'https://colformly-org.pages.dev',
   'https://colformly.pages.dev',
@@ -25,6 +28,7 @@ app.use(
       if (
         !origin ||
         ALLOWED_ORIGINS.includes(origin) ||
+        origin.endsWith('.edgecors.com') ||
         origin.endsWith('.pages.dev') ||
         origin.startsWith('http://localhost:')
       ) {

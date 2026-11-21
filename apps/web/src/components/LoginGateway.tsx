@@ -28,7 +28,7 @@ function LoginGatewayContent() {
   const [authedUser, setAuthedUser] = useState<{ email: string; role: string } | null>(null);
 
   const resolveWorkspaceUrl = () => {
-    return import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
+    return import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.edgecors.com';
   };
 
   const syncUserSession = async (userEmail: string, explicitRole?: string) => {

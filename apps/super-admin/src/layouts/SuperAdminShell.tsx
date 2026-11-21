@@ -269,7 +269,7 @@ export function SuperAdminShell({ children }: SuperAdminShellProps) {
 
   // 3. Access Denied State (Not SUPER_ADMIN)
   if (user && role !== 'SUPER_ADMIN') {
-    const orgPortalUrl = import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.pages.dev';
+    const orgPortalUrl = import.meta.env.VITE_ORG_PORTAL_URL || 'https://colformly-org.edgecors.com';
 
     return (
       <div className="min-h-screen bg-[#09090B] text-zinc-100 flex items-center justify-center p-4 terminal-grid">

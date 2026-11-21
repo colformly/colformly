@@ -17,10 +17,10 @@ interface Props {
 const {
   title = 'Colformly — Institutional Exam-as-a-Service | Calm, Cheat-Proof Campus Testing',
   description = 'Run unlimited campus exams with zero API limits. Server-side edge grading, campus Google Sign-In domain gates, and native Google Forms & Sheets ownership for colleges, universities, and coaching institutes.',
-  canonical = 'https://colformly.pages.dev/',
+  canonical = 'https://colformly.edgecors.com/',
   surfaceClass = 'bg-[#F8F9FB] dark:bg-[#07090E]',
   structuredData: customStructuredData,
-  ogImage = 'https://colformly.pages.dev/og-image.png',
+  ogImage = 'https://colformly.edgecors.com/og-image.png',
   ogType = 'website',
 } = Astro.props;
 
@@ -32,8 +32,8 @@ const defaultStructuredData = [
     '@context': 'https://schema.org',
     '@type': 'Organization',
     name: 'Colformly',
-    url: 'https://colformly.pages.dev',
-    logo: 'https://colformly.pages.dev/favicon.svg',
+    url: 'https://colformly.edgecors.com',
+    logo: 'https://colformly.edgecors.com/favicon.svg',
     sameAs: ['https://github.com/colformly'],
     contactPoint: {
       '@type': 'ContactPoint',
@@ -89,6 +89,15 @@ const finalStructuredData = customStructuredData || defaultStructuredData;
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+
+    {/* Canonical Domain Redirect: colformly.pages.dev -> colformly.edgecors.com */}
+    <script is:inline>
+      (function() {
+        if (typeof window !== 'undefined' && window.location.hostname === 'colformly.pages.dev') {
+          window.location.replace('https://colformly.edgecors.com' + window.location.pathname + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
 
     {/* Zero-FOUC Dark/Light Theme Script */}
     <script is:inline>

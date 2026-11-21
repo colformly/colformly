@@ -31,9 +31,9 @@ Cloudflare Edge Worker (V8 Isolate)
 
 ### Core Architecture Components:
 1. **Dual-Sitemap Architecture:**
-   - Core static sitemap (`https://colformly.pages.dev/sitemap.xml`): Primary static routes (`/`, `/blog`, `/privacy`, `/terms`, `/login`).
-   - Blog dynamic sitemap (`https://colformly.pages.dev/sitemap-0.xml`): Content collection articles with image extensions and metadata.
-   - Master index sitemap (`https://colformly.pages.dev/sitemap-index.xml`): Aggregates all sitemaps for search engines and AI indexing.
+   - Core static sitemap (`https://colformly.edgecors.com/sitemap.xml`): Primary static routes (`/`, `/blog`, `/privacy`, `/terms`, `/login`).
+   - Blog dynamic sitemap (`https://colformly.edgecors.com/sitemap-0.xml`): Content collection articles with image extensions and metadata.
+   - Master index sitemap (`https://colformly.edgecors.com/sitemap-index.xml`): Aggregates all sitemaps for search engines and AI indexing.
 2. **Split-Plane Data Storage:**
    - Fast Plane (Transactional): Supabase PostgreSQL handles instant real-time leaderboards, fraud alerts, and student result queries.
    - Batch Plane (Faculty Sovereign): Direct HTTP POST to Google Form responder endpoints writes row data into the faculty Google Sheet at zero API quota cost.
@@ -44,12 +44,14 @@ Cloudflare Edge Worker (V8 Isolate)
 
 ## Official Technical Engineering Guides & Deep Dives
 
-- [Why Google Forms Alone Fail College Exams (And How Server-Side Edge Grading Stops Answer-Key Leaks)](https://colformly.pages.dev/blog/why-google-forms-fail-college-exams-server-side-grading): Complete forensic breakdown of DOM answer-key leaks, timing tampering, network inspection vulnerabilities in Google Forms, and how server-side Cloudflare Worker grading guarantees cryptographic test integrity.
-- [Zero-Limit Exam Storage: How Split-Plane Architecture Handles 50,000 Concurrent Submissions Without Hitting Google Sheets API Limits](https://colformly.pages.dev/blog/zero-limit-exam-storage-split-plane-architecture-google-sheets): Deep architectural analysis of Google Sheets 60-write/minute rate limits, CASA Tier-2 audit avoidance, and how background edge forwarding syncs massive student cohorts directly into faculty spreadsheets.
-- [The 2026 Campus Exam Playbook: Domain-Gated Google Sign-In, Ghost Handover & Anti-Cheat Governance for Institutions](https://colformly.pages.dev/blog/campus-exam-playbook-domain-gated-google-signin-anti-cheat): Comprehensive rollout guide for university IT directors, addressing institutional domain separation, AES-256-GCM token vaults, role-based access control, and seamless academic handover.
+- [Why Google Forms Alone Fail College Exams (And How Server-Side Edge Grading Stops Answer-Key Leaks)](https://colformly.edgecors.com/blog/why-google-forms-fail-college-exams-server-side-grading): Complete forensic breakdown of DOM answer-key leaks, timing tampering, network inspection vulnerabilities in Google Forms, and how server-side Cloudflare Worker grading guarantees cryptographic test integrity.
+- [Zero-Limit Exam Storage: How Split-Plane Architecture Handles 50,000 Concurrent Submissions Without Hitting Google Sheets API Limits](https://colformly.edgecors.com/blog/zero-limit-exam-storage-split-plane-architecture-google-sheets): Deep architectural analysis of Google Sheets 60-write/minute rate limits, CASA Tier-2 audit avoidance, and how background edge forwarding syncs massive student cohorts directly into faculty spreadsheets.
+- [The 2026 Campus Exam Playbook: Domain-Gated Google Sign-In, Ghost Handover & Anti-Cheat Governance for Institutions](https://colformly.edgecors.com/blog/campus-exam-playbook-domain-gated-google-signin-anti-cheat): Comprehensive rollout guide for university IT directors, addressing institutional domain separation, AES-256-GCM token vaults, role-based access control, and seamless academic handover.
 
 ## Verification & Open Source Contact
-- **Website:** https://colformly.pages.dev
-- **Blog:** https://colformly.pages.dev/blog
+- **Website:** https://colformly.edgecors.com
+- **College Portal:** https://colformly-org.edgecors.com
+- **Super Admin Command Center:** https://colformly-super-admin.edgecors.com
+- **Blog:** https://colformly.edgecors.com/blog
 - **Contact:** support@edgecors.com
 - **Repository:** https://github.com/colformly/colformly

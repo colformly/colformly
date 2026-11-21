@@ -1,0 +1,5 @@
+/org https://colformly-org.edgecors.com 301
+/portal https://colformly-org.edgecors.com 301
+/superadmin https://colformly-super-admin.edgecors.com 301
+/super-admin https://colformly-super-admin.edgecors.com 301
+https://colformly.pages.dev/* https://colformly.edgecors.com/:splat 301

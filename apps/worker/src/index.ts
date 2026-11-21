@@ -45,6 +45,9 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // ── Strict Multi-Origin CORS ────────────────────────────────────
 const ALLOWED_ORIGINS = [
+  'https://colformly.edgecors.com',
+  'https://colformly-org.edgecors.com',
+  'https://colformly-super-admin.edgecors.com',
   'https://colformly.pages.dev',
   'https://colformly-org.pages.dev',
   'https://colformly-super-admin.pages.dev',
@@ -56,6 +59,8 @@ app.use(
     origin: (origin) => {
       if (!origin) return ALLOWED_ORIGINS[0];
       if (ALLOWED_ORIGINS.includes(origin)) return origin;
+      if (/^https:\/\/([a-zA-Z0-9-]+\.)*edgecors\.com$/.test(origin)) return origin;
+      if (/^https:\/\/colformly(-[a-zA-Z0-9-]+)?\.pages\.dev$/.test(origin)) return origin;
       if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return origin;
       if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return origin;
       return null;

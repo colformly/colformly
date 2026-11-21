@@ -1,0 +1,17 @@
+---
+return Astro.redirect('https://colformly-org.edgecors.com', 301);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content="0;url=https://colformly-org.edgecors.com" />
+    <title>Redirecting to College Portal — Colformly</title>
+    <script is:inline>
+      window.location.replace('https://colformly-org.edgecors.com');
+    </script>
+  </head>
+  <body class="bg-slate-900 text-white font-sans flex items-center justify-center min-h-screen">
+    <p class="text-sm">Redirecting to College Portal (<a class="underline text-teal-400" href="https://colformly-org.edgecors.com">colformly-org.edgecors.com</a>)...</p>
+  </body>
+</html>
