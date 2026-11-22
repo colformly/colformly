@@ -110,7 +110,26 @@ export interface ThemeConfig {
 }
 
 // ── Core Domain Interfaces (mapped to Supabase tables) ─────────
-export interface Organization extends Omit<Tables<'organizations'>, 'theme_config' | 'feature_flags' | 'global_broadcast' | 'org_type' | 'onboarding_status' | 'auth_policy'> {
+export interface Organization extends Omit<
+  Tables<'organizations'>,
+  | 'theme_config'
+  | 'feature_flags'
+  | 'global_broadcast'
+  | 'org_type'
+  | 'onboarding_status'
+  | 'auth_policy'
+  | 'billing_config'
+  | 'capacity_limits'
+  | 'exam_defaults'
+  | 'delegation_policy'
+  | 'city_state'
+  | 'institute_code'
+  | 'setup_admin_id'
+  | 'teacher_auth_mode'
+  | 'student_auth_mode'
+  | 'student_allowed_domains'
+  | 'teacher_allowed_domains'
+> {
   theme_config: ThemeConfig;
   org_type?: OrgType;
   institute_code?: string | null;
@@ -261,7 +280,16 @@ export interface GoogleCredential {
   updated_at: string;
 }
 
-export interface Test extends Omit<Tables<'tests'>, 'blocks'> {
+export interface Test extends Omit<
+  Tables<'tests'>,
+  | 'blocks'
+  | 'drive_folder_id'
+  | 'google_form_id'
+  | 'linked_sheet_id'
+  | 'form_responder_url'
+  | 'form_entry_map'
+  | 'sheet_verified_at'
+> {
   blocks: TestBlock[];
   drive_folder_id?: string | null;
   google_form_id?: string | null;

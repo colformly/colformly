@@ -24,6 +24,8 @@ interface CourseTree {
   id: string;
   code: string;
   name: string;
+  degreeCode?: string | null;
+  durationYears?: number | null;
   years: YearNode[];
 }
 
@@ -38,6 +40,8 @@ export default function OrgCourses() {
   const [modalOpen, setModalOpen] = useState(false);
   const [newCourseName, setNewCourseName] = useState('');
   const [newCourseCode, setNewCourseCode] = useState('');
+  const [newDegreeCode, setNewDegreeCode] = useState('BTECH');
+  const [newDurationYears, setNewDurationYears] = useState(4);
   const [submitting, setSubmitting] = useState(false);
 
   const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
@@ -101,6 +105,8 @@ export default function OrgCourses() {
           id: c.id,
           code: c.code || 'COURSE',
           name: c.name,
+          degreeCode: c.degree_code,
+          durationYears: c.duration_years || 4,
           years: builtYears,
         };
       });
@@ -125,51 +131,61 @@ export default function OrgCourses() {
     void loadCourses();
   }, [orgId]);
 
-  // Add new Course Program (and auto-provision Year 1 > Section A)
+  // Add new Course Program (and auto-provision Year 1..N > Section A)
   const addCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCourseName.trim()) return;
 
     try {
       setSubmitting(true);
-      // 1. Insert Course
+      const duration = Math.max(1, Math.min(6, Number(newDurationYears) || 4));
+
+      // 1. Insert Course Program
       const { data: courseRow, error: cErr } = await (supabase.from('courses') as any)
         .insert({
           org_id: orgId,
           level: 'COURSE',
           name: newCourseName.trim(),
           code: newCourseCode.trim().toUpperCase() || 'COURSE',
+          degree_code: newDegreeCode.trim().toUpperCase() || 'DEGREE',
+          duration_years: duration,
         })
         .select()
         .single();
 
       if (cErr) throw cErr;
 
-      // 2. Provision Year 1
-      const { data: yearRow, error: yErr } = await (supabase.from('courses') as any)
-        .insert({
+      // 2. Auto-provision all Academic Years with Section A
+      const yearLabels = ['Freshman', 'Sophomore', 'Junior', 'Senior', 'Final', 'Specialization'];
+      for (let y = 1; y <= duration; y++) {
+        const yearSub = y <= yearLabels.length ? ` (${yearLabels[y - 1]})` : '';
+        const { data: yearRow, error: yErr } = await (supabase.from('courses') as any)
+          .insert({
+            org_id: orgId,
+            parent_id: courseRow.id,
+            level: 'YEAR',
+            name: `Year ${y}${yearSub}`,
+            year: y,
+          })
+          .select()
+          .single();
+
+        if (yErr) throw yErr;
+
+        // 3. Provision Section A in each year
+        await (supabase.from('courses') as any).insert({
           org_id: orgId,
-          parent_id: courseRow.id,
-          level: 'YEAR',
-          name: 'Year 1 (Freshman)',
-          year: 1,
-        })
-        .select()
-        .single();
-
-      if (yErr) throw yErr;
-
-      // 3. Provision Section A
-      await (supabase.from('courses') as any).insert({
-        org_id: orgId,
-        parent_id: yearRow.id,
-        level: 'SECTION',
-        name: 'Section A',
-        section: 'A',
-      });
+          parent_id: yearRow.id,
+          level: 'SECTION',
+          name: 'Section A',
+          section: 'A',
+        });
+      }
 
       setNewCourseName('');
       setNewCourseCode('');
+      setNewDegreeCode('BTECH');
+      setNewDurationYears(4);
       setModalOpen(false);
       await loadCourses();
     } catch (err) {
@@ -305,16 +321,21 @@ export default function OrgCourses() {
                         <FolderTree className="w-4 h-4" />
                       </span>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
                             {course.code}
                           </span>
+                          {course.degreeCode && (
+                            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
+                              {course.degreeCode}
+                            </span>
+                          )}
                           <h2 className="font-headline font-bold text-base text-slate-900 truncate">
                             {course.name}
                           </h2>
                         </div>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          {course.years.length} Academic Years • {totalStudents} Enrolled Students
+                          {course.durationYears || 4} Years ({(course.durationYears || 4) * 2} Semesters) • {course.years.length} Academic Years • {totalStudents} Enrolled Students
                         </p>
                       </div>
                     </button>
@@ -376,6 +397,9 @@ export default function OrgCourses() {
                                 )}
                                 <BookOpen className="w-4 h-4 text-primary" />
                                 <span>{year.label}</span>
+                                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">
+                                  Sem {year.yearNumber * 2 - 1} & Sem {year.yearNumber * 2}
+                                </span>
                                 <span className="text-xs font-normal text-slate-400">
                                   ({year.sections.length} sections)
                                 </span>
@@ -448,8 +472,8 @@ export default function OrgCourses() {
         <BaseModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
-          title="Add Course Program"
-          description="Creates a new top-level Course node with Year 1 & Section A auto-provisioned."
+          title="Add Academic Program"
+          description="Creates a top-level degree program with all academic years and Section A auto-provisioned."
         >
           <form onSubmit={addCourse} className="space-y-4">
             <div>
@@ -465,25 +489,62 @@ export default function OrgCourses() {
                 className={`w-full px-3.5 py-2.5 text-sm ${classes.input}`}
               />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
+                  Course Code
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newCourseCode}
+                  onChange={(e) => setNewCourseCode(e.target.value)}
+                  placeholder="BTECH-AIDS"
+                  className={`w-full px-3.5 py-2.5 text-sm font-mono ${classes.input}`}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
+                  Degree Level
+                </label>
+                <select
+                  value={newDegreeCode}
+                  onChange={(e) => setNewDegreeCode(e.target.value)}
+                  className={`w-full px-3 py-2 text-sm font-medium ${classes.input}`}
+                >
+                  <option value="BTECH">B.Tech / B.E. (Undergrad)</option>
+                  <option value="BCA">BCA (Computer Apps)</option>
+                  <option value="BBA">BBA (Business Admin)</option>
+                  <option value="BSC">B.Sc (Sciences)</option>
+                  <option value="MCA">MCA (Postgraduate)</option>
+                  <option value="MBA">MBA (Management)</option>
+                  <option value="MTECH">M.Tech (Engineering PG)</option>
+                  <option value="DIPLOMA">Polytechnic / Diploma</option>
+                </select>
+              </div>
+            </div>
             <div>
               <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
-                Course Code
+                Duration & Semesters
               </label>
-              <input
-                type="text"
-                required
-                value={newCourseCode}
-                onChange={(e) => setNewCourseCode(e.target.value)}
-                placeholder="BTECH-AIDS"
-                className={`w-full px-3.5 py-2.5 text-sm font-mono ${classes.input}`}
-              />
+              <select
+                value={newDurationYears}
+                onChange={(e) => setNewDurationYears(Number(e.target.value))}
+                className={`w-full px-3 py-2 text-sm font-medium ${classes.input}`}
+              >
+                <option value={4}>4 Years (8 Semesters) — Standard Engineering</option>
+                <option value={3}>3 Years (6 Semesters) — BCA, BBA, B.Sc</option>
+                <option value={2}>2 Years (4 Semesters) — M.Tech, MBA, MCA</option>
+                <option value={5}>5 Years (10 Semesters) — Dual Degree / Architecture</option>
+                <option value={1}>1 Year (2 Semesters) — Certificate / Foundation</option>
+              </select>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={submitting}>
-                {submitting ? 'Creating...' : 'Create Course'}
+                {submitting ? 'Creating...' : 'Create Program'}
               </Button>
             </div>
           </form>

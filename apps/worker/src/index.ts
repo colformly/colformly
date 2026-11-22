@@ -53,24 +53,81 @@ const ALLOWED_ORIGINS = [
   'https://colformly-super-admin.pages.dev',
 ];
 
+function isOriginAllowed(origin: string | undefined): boolean {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*edgecors\.com$/.test(origin)) return true;
+  if (/^https:\/\/colformly(-[a-zA-Z0-9-]+)?\.pages\.dev$/.test(origin)) return true;
+  if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
+  if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return true;
+  return false;
+}
+
+// Global OPTIONS Preflight Handler returning HTTP 204 with strict headers
+app.options('*', (c) => {
+  const origin = c.req.header('Origin') || '';
+  const allowed = isOriginAllowed(origin);
+  const matchedOrigin = allowed ? origin : ALLOWED_ORIGINS[0];
+
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': matchedOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin',
+    },
+  });
+});
+
 app.use(
   '*',
   cors({
     origin: (origin) => {
       if (!origin) return ALLOWED_ORIGINS[0];
-      if (ALLOWED_ORIGINS.includes(origin)) return origin;
-      if (/^https:\/\/([a-zA-Z0-9-]+\.)*edgecors\.com$/.test(origin)) return origin;
-      if (/^https:\/\/colformly(-[a-zA-Z0-9-]+)?\.pages\.dev$/.test(origin)) return origin;
-      if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return origin;
-      if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return origin;
-      return null;
+      return isOriginAllowed(origin) ? origin : ALLOWED_ORIGINS[0];
     },
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'apikey'],
     maxAge: 86400,
     credentials: true,
   }),
 );
+
+// Global Error Handler guaranteeing CORS headers on error responses
+app.onError((err, c) => {
+  const origin = c.req.header('Origin') || '';
+  const matchedOrigin = isOriginAllowed(origin) ? origin : ALLOWED_ORIGINS[0];
+
+  console.error('Unhandled Worker error:', err);
+  return c.json(
+    { error: err.message || 'Internal Server Error' },
+    500,
+    {
+      'Access-Control-Allow-Origin': matchedOrigin,
+      'Access-Control-Allow-Credentials': 'true',
+      'Vary': 'Origin',
+    },
+  );
+});
+
+// Global 404 Handler guaranteeing CORS headers
+app.notFound((c) => {
+  const origin = c.req.header('Origin') || '';
+  const matchedOrigin = isOriginAllowed(origin) ? origin : ALLOWED_ORIGINS[0];
+
+  return c.json(
+    { error: 'Endpoint Not Found' },
+    404,
+    {
+      'Access-Control-Allow-Origin': matchedOrigin,
+      'Access-Control-Allow-Credentials': 'true',
+      'Vary': 'Origin',
+    },
+  );
+});
 
 // ── Public Health & Root Endpoints ──────────────────────────────
 app.get('/', (c) => {
@@ -360,6 +417,7 @@ app.post('/api/org/teachers/add', async (c) => {
       fullName?: string;
       department?: string;
       sectionId?: string;
+      subjectName?: string;
       authMode: 'GOOGLE' | 'PASSWORD';
       password?: string;
     }>();
@@ -577,6 +635,25 @@ app.post('/api/org/teachers/add', async (c) => {
       }),
     });
 
+    // If sectionId and subjectName are provided, auto-assign to teacher_assignments
+    if (body.sectionId && body.subjectName?.trim() && teacherUserId) {
+      await fetch(`${supabaseUrl}/rest/v1/teacher_assignments`, {
+        method: 'POST',
+        headers: {
+          apikey: secretKey,
+          Authorization: `Bearer ${secretKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({
+          org_id: targetOrgId,
+          teacher_id: teacherUserId,
+          section_id: body.sectionId,
+          subject_name: body.subjectName.trim(),
+        }),
+      });
+    }
+
     return c.json({
       success: true,
       mode: 'PASSWORD_CREATED',
@@ -586,6 +663,131 @@ app.post('/api/org/teachers/add', async (c) => {
   } catch (err: any) {
     console.error('Error in /api/org/teachers/add:', err);
     return c.json({ error: err.message || 'Failed to add faculty member' }, 500);
+  }
+});
+
+// 0b-2. POST /api/org/teachers/assign (Assign Teacher to Section/Course with Subject & Semester)
+app.post('/api/org/teachers/assign', async (c) => {
+  const user = c.get('user');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  try {
+    const body = await c.req.json<{
+      orgId?: string;
+      teacherId: string;
+      sectionId: string;
+      subjectName: string;
+      academicYear?: string;
+      semester?: number;
+    }>();
+
+    const targetOrgId = (user.role === 'SUPER_ADMIN' && body.orgId) ? body.orgId : user.orgId;
+    if (!targetOrgId) {
+      return c.json({ error: 'Missing target organization ID' }, 400);
+    }
+
+    // Role check: ORG_ADMIN, SUPER_ADMIN, or TEACHER assigning themselves
+    const isOrgAdmin = user.role === 'ORG_ADMIN' || user.role === 'SUPER_ADMIN';
+    const isSelfTeacher = user.role === 'TEACHER' && user.id === body.teacherId;
+    if (!isOrgAdmin && !isSelfTeacher) {
+      return c.json({ error: 'Forbidden: Insufficient permissions to create teacher assignment' }, 403);
+    }
+
+    if (!body.teacherId || !body.sectionId || !body.subjectName?.trim()) {
+      return c.json({ error: 'Missing required fields: teacherId, sectionId, and subjectName are required' }, 400);
+    }
+
+    // Verify section belongs to this org
+    const sectionLookup = await fetch(
+      `${supabaseUrl}/rest/v1/courses?id=eq.${encodeURIComponent(body.sectionId)}&org_id=eq.${encodeURIComponent(targetOrgId)}&select=id,name,level,parent_id`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+    const sections = (await sectionLookup.json().catch(() => [])) as any[];
+    if (!sections || sections.length === 0) {
+      return c.json({ error: 'Invalid section: section not found in this organization' }, 404);
+    }
+
+    // Insert or update teacher assignment
+    const assignRes = await fetch(`${supabaseUrl}/rest/v1/teacher_assignments`, {
+      method: 'POST',
+      headers: {
+        apikey: secretKey,
+        Authorization: `Bearer ${secretKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=representation',
+      },
+      body: JSON.stringify({
+        org_id: targetOrgId,
+        teacher_id: body.teacherId,
+        section_id: body.sectionId,
+        subject_name: body.subjectName.trim(),
+        academic_year: body.academicYear?.trim() || '2026-2027',
+        semester: body.semester ? Number(body.semester) : null,
+      }),
+    });
+
+    if (!assignRes.ok) {
+      const errText = await assignRes.text();
+      return c.json({ error: `Failed to save teacher assignment: ${errText}` }, 500);
+    }
+
+    const created = (await assignRes.json().catch(() => [])) as any[];
+    return c.json({
+      success: true,
+      message: `Successfully assigned teacher to ${body.subjectName}.`,
+      assignment: created[0] || null,
+    });
+  } catch (err: any) {
+    console.error('Error in /api/org/teachers/assign:', err);
+    return c.json({ error: err.message || 'Failed to assign teacher' }, 500);
+  }
+});
+
+// 0b-3. DELETE /api/org/teachers/assign/:id (Delete Teacher Assignment)
+app.delete('/api/org/teachers/assign/:id', async (c) => {
+  const user = c.get('user');
+  const assignmentId = c.req.param('id');
+  const { supabaseUrl, secretKey } = getSupabaseAdmin(c);
+
+  if (!assignmentId) {
+    return c.json({ error: 'Missing assignment ID' }, 400);
+  }
+
+  try {
+    // Lookup assignment
+    const lookupRes = await fetch(
+      `${supabaseUrl}/rest/v1/teacher_assignments?id=eq.${encodeURIComponent(assignmentId)}&select=id,org_id,teacher_id`,
+      { headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` } },
+    );
+    const rows = (await lookupRes.json().catch(() => [])) as any[];
+    const assignment = rows[0];
+    if (!assignment) {
+      return c.json({ error: 'Assignment not found' }, 404);
+    }
+
+    const isOrgAdmin = (user.role === 'ORG_ADMIN' && user.orgId === assignment.org_id) || user.role === 'SUPER_ADMIN';
+    const isSelfTeacher = user.role === 'TEACHER' && user.id === assignment.teacher_id;
+    if (!isOrgAdmin && !isSelfTeacher) {
+      return c.json({ error: 'Forbidden: Cannot delete this assignment' }, 403);
+    }
+
+    const delRes = await fetch(
+      `${supabaseUrl}/rest/v1/teacher_assignments?id=eq.${encodeURIComponent(assignmentId)}`,
+      {
+        method: 'DELETE',
+        headers: { apikey: secretKey, Authorization: `Bearer ${secretKey}` },
+      },
+    );
+
+    if (!delRes.ok) {
+      const errText = await delRes.text();
+      return c.json({ error: `Failed to delete assignment: ${errText}` }, 500);
+    }
+
+    return c.json({ success: true, message: 'Teacher assignment deleted successfully' });
+  } catch (err: any) {
+    console.error('Error deleting teacher assignment:', err);
+    return c.json({ error: err.message || 'Failed to delete assignment' }, 500);
   }
 });
 

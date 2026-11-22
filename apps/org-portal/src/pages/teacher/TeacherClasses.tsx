@@ -9,12 +9,14 @@ import {
   Plus,
   Send,
   Sparkles,
+  Trash2,
 } from 'lucide-react';
 import { supabase, useAuth } from '@colformly/auth';
 import { useTheme } from '@colformly/theme';
 import type { Course } from '@colformly/types';
 import { BaseModal, Button, MetricCard } from '@colformly/ui';
 import { PortalShell } from '../../layouts/PortalShell';
+import { assignTeacherApi, deleteTeacherAssignmentApi } from '../../lib/workerClient';
 
 interface DisplayAssignment {
   id: string;
@@ -23,62 +25,33 @@ interface DisplayAssignment {
   year_name: string;
   section_name: string;
   section_id: string;
+  academic_year?: string;
+  semester?: number | null;
 }
-
-const DEFAULT_ASSIGNMENTS: DisplayAssignment[] = [
-  {
-    id: 'seed-assign-1',
-    subject_name: 'Design & Analysis of Algorithms',
-    course_name: 'B.Tech Computer Science & Engineering',
-    year_name: 'Year 2 (Sophomore)',
-    section_name: 'Section A',
-    section_id: 'c2000000-0000-0000-0000-000000000001',
-  },
-  {
-    id: 'seed-assign-2',
-    subject_name: 'Operating Systems & Concurrency',
-    course_name: 'B.Tech Computer Science & Engineering',
-    year_name: 'Year 2 (Sophomore)',
-    section_name: 'Section B',
-    section_id: 'c2000000-0000-0000-0000-000000000002',
-  },
-];
-
-const TOPIC_AUTOPSY = [
-  { topic: 'Dynamic Programming (0/1 Knapsack)', accuracy: 42, missedBy: 37, severity: 'critical' },
-  { topic: 'OS Deadlock Avoidance (Banker Alg)', accuracy: 54, missedBy: 29, severity: 'warning' },
-  { topic: 'Red-Black & AVL Tree Rotations', accuracy: 69, missedBy: 20, severity: 'moderate' },
-  { topic: 'Graph Traversals (BFS / Dijkstra)', accuracy: 88, missedBy: 8, severity: 'healthy' },
-  { topic: 'Time Complexity Master Theorem', accuracy: 93, missedBy: 4, severity: 'healthy' },
-];
-
-const INTERVENTION_LIST = [
-  { id: 's1', name: 'Rohan Kulkarni', roll: '24CSE108', score: '41%', weakTopic: 'Dynamic Programming', tabSwitches: 2 },
-  { id: 's2', name: 'Meera Joshi', roll: '24CSE074', score: '46%', weakTopic: 'OS Deadlocks', tabSwitches: 0 },
-  { id: 's3', name: 'Siddharth Rao', roll: '24CSE092', score: '52%', weakTopic: 'Dynamic Programming', tabSwitches: 1 },
-];
 
 export default function TeacherClasses() {
   const { classes } = useTheme();
   const { user, activeOrg } = useAuth();
 
-  const [cohort, setCohort] = useState('CSE Sec-A (Algorithms)');
-  const [topicAutopsy, setTopicAutopsy] = useState(TOPIC_AUTOPSY);
-  const [interventionList, setInterventionList] = useState(INTERVENTION_LIST);
-  const [messageTarget, setMessageTarget] = useState<(typeof INTERVENTION_LIST)[number] | null>(null);
+  const [cohort, setCohort] = useState('All Enrolled Cohorts');
+  const [topicAutopsy, setTopicAutopsy] = useState<Array<{ topic: string; accuracy: number; missedBy: number; severity: 'critical' | 'warning' | 'moderate' | 'healthy' }>>([]);
+  const [interventionList, setInterventionList] = useState<Array<{ id: string; name: string; roll: string; score: string; weakTopic: string; tabSwitches: number }>>([]);
+  const [messageTarget, setMessageTarget] = useState<{ id: string; name: string; roll: string; score: string; weakTopic: string; tabSwitches: number } | null>(null);
   const [messageBody, setMessageBody] = useState('');
   const [sentIds, setSentIds] = useState<Record<string, boolean>>({});
 
   // Class Claiming & Live DB State
-  const [assignments, setAssignments] = useState<DisplayAssignment[]>(DEFAULT_ASSIGNMENTS);
+  const [assignments, setAssignments] = useState<DisplayAssignment[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [subjectInput, setSubjectInput] = useState('');
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const [selectedYearId, setSelectedYearId] = useState('');
   const [selectedSectionId, setSelectedSectionId] = useState('');
+  const [selectedSemester, setSelectedSemester] = useState('1');
   const [claiming, setClaiming] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Load live assignments, courses, and student results
   const loadData = async () => {
@@ -86,9 +59,10 @@ export default function TeacherClasses() {
       const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
       const [{ data: coursesData }, { data: assignData }, { data: resultsData }] =
         await Promise.all([
-          (supabase.from('courses') as any).select('*').order('name'),
+          (supabase.from('courses') as any).select('*').eq('org_id', orgId).order('name'),
           (supabase.from('teacher_assignments') as any)
             .select('*')
+            .eq('org_id', orgId)
             .order('created_at', { ascending: false }),
           (supabase.from('student_results') as any)
             .select('*, users(full_name, email)')
@@ -96,26 +70,28 @@ export default function TeacherClasses() {
         ]);
 
       const allCourses = (coursesData as Course[]) || [];
-      if (allCourses.length > 0) {
-        setCourses(allCourses);
-      }
+      setCourses(allCourses);
 
       if (assignData && assignData.length > 0) {
         const courseMap = new Map<string, Course>(allCourses.map((c) => [c.id, c]));
-        const formatted: DisplayAssignment[] = (assignData as Array<{ id: string; subject_name: string; section_id: string }>).map((a) => {
+        const formatted: DisplayAssignment[] = (assignData as any[]).map((a) => {
           const sec = courseMap.get(a.section_id);
           const yr = sec?.parent_id ? courseMap.get(sec.parent_id) : undefined;
           const crs = yr?.parent_id ? courseMap.get(yr.parent_id) : undefined;
           return {
             id: a.id,
             subject_name: a.subject_name,
-            course_name: crs?.name || 'B.Tech Computer Science',
-            year_name: yr?.name || 'Year 2 (Sophomore)',
-            section_name: sec?.name || 'Section A',
+            course_name: crs?.name || 'Academic Degree',
+            year_name: yr?.name || 'Year',
+            section_name: sec?.name || `Section ${sec?.section || 'A'}`,
             section_id: a.section_id,
+            academic_year: a.academic_year || '2026-2027',
+            semester: a.semester ?? null,
           };
         });
         setAssignments(formatted);
+      } else {
+        setAssignments([]);
       }
 
       // Compute Live Topic Autopsy from question_breakdown
@@ -159,12 +135,11 @@ export default function TeacherClasses() {
           };
         });
 
-        if (computedAutopsy.length > 0) {
-          setTopicAutopsy(computedAutopsy);
-        }
-        if (lowScorers.length > 0) {
-          setInterventionList(lowScorers.slice(0, 5));
-        }
+        setTopicAutopsy(computedAutopsy);
+        setInterventionList(lowScorers.slice(0, 5));
+      } else {
+        setTopicAutopsy([]);
+        setInterventionList([]);
       }
     } catch (err) {
       console.warn('Error loading teacher classes:', err);
@@ -212,19 +187,27 @@ export default function TeacherClasses() {
     setClaiming(true);
     setClaimError(null);
 
-    const orgId = activeOrg?.id || 'a0000000-0000-0000-0000-000000000001';
-    const teacherId = user?.id || 'd9f9acff-eb5e-478e-9c38-269cb136cda0';
+    const orgId = activeOrg?.id;
+    const teacherId = user?.id;
+
+    if (!teacherId) {
+      setClaimError('User not authenticated.');
+      setClaiming(false);
+      return;
+    }
 
     try {
-      const { error: insertErr } = await (supabase.from('teacher_assignments') as any).insert({
-        org_id: orgId,
-        teacher_id: teacherId,
-        section_id: selectedSectionId,
-        subject_name: subjectInput.trim(),
+      const res = await assignTeacherApi({
+        orgId,
+        teacherId,
+        sectionId: selectedSectionId,
+        subjectName: subjectInput.trim(),
+        academicYear: '2026-2027',
+        semester: selectedSemester ? Number(selectedSemester) : undefined,
       });
 
-      if (insertErr) {
-        setClaimError(insertErr.message);
+      if (!res.success) {
+        setClaimError(res.message || 'Failed to claim class.');
         setClaiming(false);
         return;
       }
@@ -232,14 +215,31 @@ export default function TeacherClasses() {
       await loadData();
       setSubjectInput('');
       setModalOpen(false);
-      setClaiming(false);
-    } catch (err) {
-      setClaimError(err instanceof Error ? err.message : 'Failed to claim class.');
+    } catch (err: any) {
+      setClaimError(err.message || 'Failed to claim class.');
+    } finally {
       setClaiming(false);
     }
   };
 
-  const openMessage = (student: (typeof INTERVENTION_LIST)[number]) => {
+  const handleDeleteAssignment = async (assignmentId: string, subjectName: string) => {
+    if (!confirm(`Are you sure you want to unassign "${subjectName}"?`)) return;
+    setDeletingId(assignmentId);
+    try {
+      const res = await deleteTeacherAssignmentApi(assignmentId);
+      if (!res.success) {
+        alert(res.message || 'Failed to delete assignment');
+        return;
+      }
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete assignment');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const openMessage = (student: (typeof interventionList)[number]) => {
     setMessageTarget(student);
     setMessageBody(
       `Hi ${student.name.split(' ')[0]}, I noticed ${student.weakTopic} was tricky on the midterm. Let's review it during Thursday's 4 PM lab clinic!`,
@@ -300,48 +300,76 @@ export default function TeacherClasses() {
             <span className="text-xs text-slate-500 font-mono">Live RLS Multi-Teacher Access</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {assignments.map((assign) => (
-              <div
-                key={assign.id}
-                className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-primary/40 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-primary text-[10px] font-bold uppercase">
-                      {assign.section_name}
+          {assignments.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-white border border-dashed border-slate-300 text-center space-y-2">
+              <Layers className="w-8 h-8 text-slate-300 mx-auto" />
+              <p className="font-headline font-semibold text-slate-700 text-sm">No Teaching Cohorts Claimed Yet</p>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Click "+ Add My Class" above to claim an academic section and subject syllabus.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {assignments.map((assign) => (
+                <div
+                  key={assign.id}
+                  className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm hover:border-primary/40 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-primary text-[10px] font-bold uppercase">
+                          {assign.section_name}
+                        </span>
+                        {assign.semester ? (
+                          <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
+                            Sem {assign.semester}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-mono text-slate-400">
+                          {assign.academic_year || assign.year_name.split(' ')[0]}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={deletingId === assign.id}
+                          onClick={() => handleDeleteAssignment(assign.id, assign.subject_name)}
+                          className="text-slate-400 hover:text-rose-600 transition-colors p-1 rounded-md hover:bg-rose-50"
+                          title="Unassign Class"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    <h3 className="font-headline font-bold text-base text-slate-900 leading-snug">
+                      {assign.subject_name}
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                      {assign.course_name}
+                    </p>
+                  </div>
+                  <div className="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                    <span className="flex items-center gap-1.5">
+                      <GraduationCap className="w-4 h-4 text-primary" />
+                      <span>Live Cohort Roster</span>
                     </span>
-                    <span className="text-[11px] font-mono text-slate-400">
-                      {assign.year_name.split(' ')[0]}
+                    <span className="font-label font-bold text-primary hover:underline cursor-pointer">
+                      View Autopsy →
                     </span>
                   </div>
-                  <h3 className="font-headline font-bold text-base text-slate-900 leading-snug">
-                    {assign.subject_name}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1 line-clamp-1">
-                    {assign.course_name}
-                  </p>
                 </div>
-                <div className="pt-4 mt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                  <span className="flex items-center gap-1.5">
-                    <GraduationCap className="w-4 h-4 text-primary" />
-                    <span>64 Students Enrolled</span>
-                  </span>
-                  <span className="font-label font-bold text-primary hover:underline cursor-pointer">
-                    View Autopsy →
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Summary Strip */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <MetricCard title="Exam Takers" value="128" delta="100% submitted" trend="up" />
-          <MetricCard title="Median Score" value="74.2%" delta="+3.1%" trend="up" />
-          <MetricCard title="Weakest Topic" value="42%" delta="DP Recurrence" trend="down" />
-          <MetricCard title="Intervention Needed" value="3 Students" delta="< 55% score" trend="down" />
+          <MetricCard title="Exam Takers" value={assignments.length > 0 ? "Active" : "0"} delta="100% submitted" trend="up" />
+          <MetricCard title="Median Score" value={topicAutopsy.length > 0 ? `${topicAutopsy[0]?.accuracy}%` : "—"} delta="Live edge grading" trend="up" />
+          <MetricCard title="Weakest Topic" value={topicAutopsy.length > 0 ? topicAutopsy[0]?.topic.slice(0, 14) + '...' : "—"} delta="Diagnostic autopsy" trend="down" />
+          <MetricCard title="Intervention Needed" value={`${interventionList.length} Students`} delta="< 55% score" trend="down" />
         </section>
 
         {/* 2-Column Topic Autopsy + Intervention List */}
@@ -360,37 +388,43 @@ export default function TeacherClasses() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              {topicAutopsy.map((item) => {
-                const barColor =
-                  item.severity === 'critical'
-                    ? 'bg-rose-500'
-                    : item.severity === 'warning'
-                      ? 'bg-amber-500'
-                      : item.severity === 'moderate'
-                        ? 'bg-sky-500'
-                        : 'bg-primary';
-                return (
-                  <div key={item.topic} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs gap-2">
-                      <span className="font-headline font-semibold text-slate-900">
-                        {item.topic}
-                      </span>
-                      <span className="font-mono text-slate-600 shrink-0">
-                        <strong className="text-slate-900">{item.accuracy}%</strong> accuracy •{' '}
-                        {item.missedBy} missed
-                      </span>
+            {topicAutopsy.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs">
+                No topic diagnostic telemetry recorded yet for this cohort.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {topicAutopsy.map((item) => {
+                  const barColor =
+                    item.severity === 'critical'
+                      ? 'bg-rose-500'
+                      : item.severity === 'warning'
+                        ? 'bg-amber-500'
+                        : item.severity === 'moderate'
+                          ? 'bg-sky-500'
+                          : 'bg-primary';
+                  return (
+                    <div key={item.topic} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs gap-2">
+                        <span className="font-headline font-semibold text-slate-900">
+                          {item.topic}
+                        </span>
+                        <span className="font-mono text-slate-600 shrink-0">
+                          <strong className="text-slate-900">{item.accuracy}%</strong> accuracy •{' '}
+                          {item.missedBy} missed
+                        </span>
+                      </div>
+                      <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${barColor}`}
+                          style={{ width: `${item.accuracy}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${barColor}`}
-                        style={{ width: `${item.accuracy}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Intervention Needed List */}
@@ -407,48 +441,54 @@ export default function TeacherClasses() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              {interventionList.map((s) => (
-                <div
-                  key={s.id}
-                  className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-headline font-bold text-sm text-slate-900 truncate">
-                        {s.name}
+            {interventionList.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs">
+                No students currently requiring urgent intervention (&lt;55% score or anti-cheat flags).
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {interventionList.map((s) => (
+                  <div
+                    key={s.id}
+                    className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-headline font-bold text-sm text-slate-900 truncate">
+                          {s.name}
+                        </p>
+                        <span className="font-mono text-[11px] font-bold text-rose-600">
+                          {s.score}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 truncate">
+                        {s.roll} • Struggled on <strong className="text-slate-700">{s.weakTopic}</strong>
                       </p>
-                      <span className="font-mono text-[11px] font-bold text-rose-600">
-                        {s.score}
-                      </span>
+                      {s.tabSwitches > 0 && (
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
+                          {s.tabSwitches} tab switch flag(s)
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-slate-500 truncate">
-                      {s.roll} • Struggled on <strong className="text-slate-700">{s.weakTopic}</strong>
-                    </p>
-                    {s.tabSwitches > 0 && (
-                      <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
-                        {s.tabSwitches} tab switch flag(s)
+
+                    {sentIds[s.id] ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-label font-bold text-emerald-700 shrink-0">
+                        <CheckCircle2 className="w-4 h-4" /> Sent
                       </span>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        leftIcon={<Mail className="w-3.5 h-3.5" />}
+                        onClick={() => openMessage(s)}
+                      >
+                        Message
+                      </Button>
                     )}
                   </div>
-
-                  {sentIds[s.id] ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-label font-bold text-emerald-700 shrink-0">
-                      <CheckCircle2 className="w-4 h-4" /> Sent
-                    </span>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      leftIcon={<Mail className="w-3.5 h-3.5" />}
-                      onClick={() => openMessage(s)}
-                    >
-                      Message
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -501,7 +541,7 @@ export default function TeacherClasses() {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-label font-bold text-slate-700 mb-1.5">
                     Academic Year
@@ -519,6 +559,23 @@ export default function TeacherClasses() {
                     {yearOptions.length === 0 && (
                       <option value="demo-yr">Year 2 (Sophomore)</option>
                     )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-label font-bold text-slate-700 mb-1.5">
+                    Semester
+                  </label>
+                  <select
+                    value={selectedSemester}
+                    onChange={(e) => setSelectedSemester(e.target.value)}
+                    className={`w-full px-4 py-2.5 text-xs font-semibold ${classes.input}`}
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
+                      <option key={s} value={s}>
+                        Sem {s}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

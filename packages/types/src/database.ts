@@ -16,38 +16,53 @@ export type Database = {
     Tables: {
       courses: {
         Row: {
+          batch_year: number | null
           code: string | null
           created_at: string
+          degree_code: string | null
+          duration_years: number | null
           id: string
+          is_active: boolean
           level: Database["public"]["Enums"]["course_level"]
           name: string
           org_id: string
           parent_id: string | null
           section: string | null
+          semester: number | null
           updated_at: string
           year: number | null
         }
         Insert: {
+          batch_year?: number | null
           code?: string | null
           created_at?: string
+          degree_code?: string | null
+          duration_years?: number | null
           id?: string
+          is_active?: boolean
           level?: Database["public"]["Enums"]["course_level"]
           name: string
           org_id: string
           parent_id?: string | null
           section?: string | null
+          semester?: number | null
           updated_at?: string
           year?: number | null
         }
         Update: {
+          batch_year?: number | null
           code?: string | null
           created_at?: string
+          degree_code?: string | null
+          duration_years?: number | null
           id?: string
+          is_active?: boolean
           level?: Database["public"]["Enums"]["course_level"]
           name?: string
           org_id?: string
           parent_id?: string | null
           section?: string | null
+          semester?: number | null
           updated_at?: string
           year?: number | null
         }
@@ -68,11 +83,333 @@ export type Database = {
           },
         ]
       }
-      org_users: {
+      demo_leads: {
         Row: {
+          college_name: string
+          created_at: string
+          designation: string | null
+          email: string
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string | null
+          status: string
+          student_count: number | null
+        }
+        Insert: {
+          college_name: string
+          created_at?: string
+          designation?: string | null
+          email: string
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          student_count?: number | null
+        }
+        Update: {
+          college_name?: string
+          created_at?: string
+          designation?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          student_count?: number | null
+        }
+        Relationships: []
+      }
+      google_credentials: {
+        Row: {
+          encrypted_refresh_token: string
+          google_email: string
+          id: string
+          org_id: string
+          scopes: string[]
+          token_iv: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          encrypted_refresh_token: string
+          google_email: string
+          id?: string
+          org_id: string
+          scopes?: string[]
+          token_iv: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          encrypted_refresh_token?: string
+          google_email?: string
+          id?: string
+          org_id?: string
+          scopes?: string[]
+          token_iv?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_credentials_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_contracts: {
+        Row: {
+          billing_cycle: string
+          contract_number: string
+          created_at: string
+          document_sha256: string
+          effective_date: string
+          expiry_date: string | null
+          fee_inr: number
+          gstin: string | null
+          id: string
+          legal_entity_name: string
+          org_id: string
+          plan_tier: string
+          registered_address: string
+          signatory_designation: string
+          signatory_email: string
+          signatory_name: string
+          signature_svg: string | null
+          signed_at: string
+          signer_ip: string | null
+        }
+        Insert: {
+          billing_cycle?: string
+          contract_number: string
+          created_at?: string
+          document_sha256: string
+          effective_date?: string
+          expiry_date?: string | null
+          fee_inr?: number
+          gstin?: string | null
+          id?: string
+          legal_entity_name: string
+          org_id: string
+          plan_tier?: string
+          registered_address: string
+          signatory_designation: string
+          signatory_email: string
+          signatory_name: string
+          signature_svg?: string | null
+          signed_at?: string
+          signer_ip?: string | null
+        }
+        Update: {
+          billing_cycle?: string
+          contract_number?: string
+          created_at?: string
+          document_sha256?: string
+          effective_date?: string
+          expiry_date?: string | null
+          fee_inr?: number
+          gstin?: string | null
+          id?: string
+          legal_entity_name?: string
+          org_id?: string
+          plan_tier?: string
+          registered_address?: string
+          signatory_designation?: string
+          signatory_email?: string
+          signatory_name?: string
+          signature_svg?: string | null
+          signed_at?: string
+          signer_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_contracts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_invites: {
+        Row: {
+          claimed_at: string | null
           course_id: string | null
           created_at: string
+          department: string | null
+          email: string
+          full_name: string | null
           id: string
+          invited_by: string | null
+          org_id: string
+          role: string
+          section_id: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          department?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          invited_by?: string | null
+          org_id: string
+          role: string
+          section_id?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          invited_by?: string | null
+          org_id?: string
+          role?: string
+          section_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invites_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_invites_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_invoices: {
+        Row: {
+          billing_month: string
+          created_at: string
+          due_date: string | null
+          gst_inr: number
+          id: string
+          invoice_number: string
+          notes: string | null
+          org_id: string
+          paid_at: string | null
+          plan_name: string
+          status: string
+          subtotal_inr: number
+          total_inr: number
+        }
+        Insert: {
+          billing_month: string
+          created_at?: string
+          due_date?: string | null
+          gst_inr?: number
+          id?: string
+          invoice_number: string
+          notes?: string | null
+          org_id: string
+          paid_at?: string | null
+          plan_name: string
+          status?: string
+          subtotal_inr?: number
+          total_inr?: number
+        }
+        Update: {
+          billing_month?: string
+          created_at?: string
+          due_date?: string | null
+          gst_inr?: number
+          id?: string
+          invoice_number?: string
+          notes?: string | null
+          org_id?: string
+          paid_at?: string | null
+          plan_name?: string
+          status?: string
+          subtotal_inr?: number
+          total_inr?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invoices_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_usage_monthly: {
+        Row: {
+          ai_requests_count: number
+          billing_month: string
+          emails_sent_count: number
+          gemini_tokens_used: number
+          groq_tokens_used: number
+          id: string
+          org_id: string
+          tests_graded_count: number
+          updated_at: string
+        }
+        Insert: {
+          ai_requests_count?: number
+          billing_month: string
+          emails_sent_count?: number
+          gemini_tokens_used?: number
+          groq_tokens_used?: number
+          id?: string
+          org_id: string
+          tests_graded_count?: number
+          updated_at?: string
+        }
+        Update: {
+          ai_requests_count?: number
+          billing_month?: string
+          emails_sent_count?: number
+          gemini_tokens_used?: number
+          groq_tokens_used?: number
+          id?: string
+          org_id?: string
+          tests_graded_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_usage_monthly_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_users: {
+        Row: {
+          batch_year: number | null
+          course_id: string | null
+          created_at: string
+          current_semester: number | null
+          id: string
+          invited_email: string | null
+          invited_name: string | null
           is_active: boolean
           onboarding_completed: boolean
           org_id: string
@@ -80,12 +417,16 @@ export type Database = {
           roll_number: string | null
           section_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          batch_year?: number | null
           course_id?: string | null
           created_at?: string
+          current_semester?: number | null
           id?: string
+          invited_email?: string | null
+          invited_name?: string | null
           is_active?: boolean
           onboarding_completed?: boolean
           org_id: string
@@ -93,12 +434,16 @@ export type Database = {
           roll_number?: string | null
           section_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          batch_year?: number | null
           course_id?: string | null
           created_at?: string
+          current_semester?: number | null
           id?: string
+          invited_email?: string | null
+          invited_name?: string | null
           is_active?: boolean
           onboarding_completed?: boolean
           org_id?: string
@@ -106,7 +451,7 @@ export type Database = {
           roll_number?: string | null
           section_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -142,63 +487,120 @@ export type Database = {
       organizations: {
         Row: {
           allowed_domains: string[]
+          auth_policy: string
+          billing_config: Json
+          capacity_limits: Json
+          city_state: string | null
           created_at: string
+          delegation_policy: Json
+          exam_defaults: Json
+          feature_flags: Json
+          global_broadcast: Json | null
           id: string
+          institute_code: string | null
           is_active: boolean
           logo_url: string | null
           mrr_cents: number
           name: string
+          onboarding_status: string
+          org_type: string
+          setup_admin_id: string | null
           slug: string
+          student_allowed_domains: string[]
+          student_auth_mode: string
+          teacher_allowed_domains: string[]
+          teacher_auth_mode: string
           theme_config: Json
           tier: Database["public"]["Enums"]["org_tier"]
           updated_at: string
-          org_type?: string
-          institute_code?: string | null
-          onboarding_status?: string
-          setup_admin_id?: string | null
-          auth_policy?: string
-          feature_flags?: Json
-          global_broadcast?: Json | null
         }
         Insert: {
           allowed_domains?: string[]
+          auth_policy?: string
+          billing_config?: Json
+          capacity_limits?: Json
+          city_state?: string | null
           created_at?: string
+          delegation_policy?: Json
+          exam_defaults?: Json
+          feature_flags?: Json
+          global_broadcast?: Json | null
           id?: string
+          institute_code?: string | null
           is_active?: boolean
           logo_url?: string | null
           mrr_cents?: number
           name: string
+          onboarding_status?: string
+          org_type?: string
+          setup_admin_id?: string | null
           slug: string
+          student_allowed_domains?: string[]
+          student_auth_mode?: string
+          teacher_allowed_domains?: string[]
+          teacher_auth_mode?: string
           theme_config?: Json
           tier?: Database["public"]["Enums"]["org_tier"]
           updated_at?: string
-          org_type?: string
-          institute_code?: string | null
-          onboarding_status?: string
-          setup_admin_id?: string | null
-          auth_policy?: string
-          feature_flags?: Json
-          global_broadcast?: Json | null
         }
         Update: {
           allowed_domains?: string[]
+          auth_policy?: string
+          billing_config?: Json
+          capacity_limits?: Json
+          city_state?: string | null
           created_at?: string
+          delegation_policy?: Json
+          exam_defaults?: Json
+          feature_flags?: Json
+          global_broadcast?: Json | null
           id?: string
+          institute_code?: string | null
           is_active?: boolean
           logo_url?: string | null
           mrr_cents?: number
           name?: string
+          onboarding_status?: string
+          org_type?: string
+          setup_admin_id?: string | null
           slug?: string
+          student_allowed_domains?: string[]
+          student_auth_mode?: string
+          teacher_allowed_domains?: string[]
+          teacher_auth_mode?: string
           theme_config?: Json
           tier?: Database["public"]["Enums"]["org_tier"]
           updated_at?: string
-          org_type?: string
-          institute_code?: string | null
-          onboarding_status?: string
-          setup_admin_id?: string | null
-          auth_policy?: string
-          feature_flags?: Json
-          global_broadcast?: Json | null
+        }
+        Relationships: []
+      }
+      service_rates: {
+        Row: {
+          display_name: string
+          free_tier_quota: number
+          monthly_fixed_inr: number
+          service_key: string
+          unit_cost_inr: number
+          unit_label: string
+          updated_at: string
+        }
+        Insert: {
+          display_name: string
+          free_tier_quota?: number
+          monthly_fixed_inr?: number
+          service_key: string
+          unit_cost_inr?: number
+          unit_label: string
+          updated_at?: string
+        }
+        Update: {
+          display_name?: string
+          free_tier_quota?: number
+          monthly_fixed_inr?: number
+          service_key?: string
+          unit_cost_inr?: number
+          unit_label?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -287,28 +689,78 @@ export type Database = {
           },
         ]
       }
+      system_incidents: {
+        Row: {
+          category: string
+          created_at: string
+          error_code: string | null
+          id: string
+          message: string
+          org_id: string | null
+          payload: Json
+          resolved: boolean
+          severity: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          message: string
+          org_id?: string | null
+          payload?: Json
+          resolved?: boolean
+          severity: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          message?: string
+          org_id?: string | null
+          payload?: Json
+          resolved?: boolean
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_incidents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_assignments: {
         Row: {
+          academic_year: string | null
           created_at: string
           id: string
           org_id: string
           section_id: string
+          semester: number | null
           subject_name: string
           teacher_id: string
         }
         Insert: {
+          academic_year?: string | null
           created_at?: string
           id?: string
           org_id: string
           section_id: string
+          semester?: number | null
           subject_name: string
           teacher_id: string
         }
         Update: {
+          academic_year?: string | null
           created_at?: string
           id?: string
           org_id?: string
           section_id?: string
+          semester?: number | null
           subject_name?: string
           teacher_id?: string
         }
@@ -407,13 +859,19 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          drive_folder_id: string | null
           duration_minutes: number
           expires_at: string | null
+          form_entry_map: Json
+          form_responder_url: string | null
+          google_form_id: string | null
           id: string
           is_published: boolean
+          linked_sheet_id: string | null
           org_id: string
           scheduled_at: string | null
           share_code: string | null
+          sheet_verified_at: string | null
           subject: string | null
           target_section_ids: string[]
           title: string
@@ -427,13 +885,19 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          drive_folder_id?: string | null
           duration_minutes?: number
           expires_at?: string | null
+          form_entry_map?: Json
+          form_responder_url?: string | null
+          google_form_id?: string | null
           id?: string
           is_published?: boolean
+          linked_sheet_id?: string | null
           org_id: string
           scheduled_at?: string | null
           share_code?: string | null
+          sheet_verified_at?: string | null
           subject?: string | null
           target_section_ids?: string[]
           title: string
@@ -447,13 +911,19 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          drive_folder_id?: string | null
           duration_minutes?: number
           expires_at?: string | null
+          form_entry_map?: Json
+          form_responder_url?: string | null
+          google_form_id?: string | null
           id?: string
           is_published?: boolean
+          linked_sheet_id?: string | null
           org_id?: string
           scheduled_at?: string | null
           share_code?: string | null
+          sheet_verified_at?: string | null
           subject?: string | null
           target_section_ids?: string[]
           title?: string
@@ -520,261 +990,6 @@ export type Database = {
         }
         Relationships: []
       }
-      service_rates: {
-        Row: {
-          service_key: string
-          display_name: string
-          unit_label: string
-          unit_cost_inr: number
-          monthly_fixed_inr: number
-          free_tier_quota: number
-          updated_at: string
-        }
-        Insert: {
-          service_key: string
-          display_name: string
-          unit_label: string
-          unit_cost_inr?: number
-          monthly_fixed_inr?: number
-          free_tier_quota?: number
-          updated_at?: string
-        }
-        Update: {
-          service_key?: string
-          display_name?: string
-          unit_label?: string
-          unit_cost_inr?: number
-          monthly_fixed_inr?: number
-          free_tier_quota?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      org_usage_monthly: {
-        Row: {
-          id: string
-          org_id: string
-          billing_month: string
-          ai_requests_count: number
-          groq_tokens_used: number
-          gemini_tokens_used: number
-          tests_graded_count: number
-          emails_sent_count: number
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          org_id: string
-          billing_month: string
-          ai_requests_count?: number
-          groq_tokens_used?: number
-          gemini_tokens_used?: number
-          tests_graded_count?: number
-          emails_sent_count?: number
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          org_id?: string
-          billing_month?: string
-          ai_requests_count?: number
-          groq_tokens_used?: number
-          gemini_tokens_used?: number
-          tests_graded_count?: number
-          emails_sent_count?: number
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      org_invoices: {
-        Row: {
-          id: string
-          invoice_number: string
-          org_id: string
-          billing_month: string
-          plan_name: string
-          subtotal_inr: number
-          gst_inr: number
-          total_inr: number
-          status: string
-          due_date: string | null
-          paid_at: string | null
-          notes: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          invoice_number: string
-          org_id: string
-          billing_month: string
-          plan_name: string
-          subtotal_inr: number
-          gst_inr: number
-          total_inr: number
-          status?: string
-          due_date?: string | null
-          paid_at?: string | null
-          notes?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          invoice_number?: string
-          org_id?: string
-          billing_month?: string
-          plan_name?: string
-          subtotal_inr?: number
-          gst_inr?: number
-          total_inr?: number
-          status?: string
-          due_date?: string | null
-          paid_at?: string | null
-          notes?: string | null
-          created_at?: string
-        }
-        Relationships: []
-      }
-      org_contracts: {
-        Row: {
-          id: string
-          contract_number: string
-          org_id: string
-          legal_entity_name: string
-          registered_address: string
-          gstin: string | null
-          signatory_name: string
-          signatory_designation: string
-          signatory_email: string
-          plan_tier: string
-          fee_inr: number
-          billing_cycle: string
-          effective_date: string
-          expiry_date: string | null
-          signed_at: string
-          signer_ip: string | null
-          signature_svg: string | null
-          document_sha256: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          contract_number: string
-          org_id: string
-          legal_entity_name: string
-          registered_address: string
-          gstin?: string | null
-          signatory_name: string
-          signatory_designation: string
-          signatory_email: string
-          plan_tier: string
-          fee_inr: number
-          billing_cycle?: string
-          effective_date: string
-          expiry_date?: string | null
-          signed_at?: string
-          signer_ip?: string | null
-          signature_svg?: string | null
-          document_sha256: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          contract_number?: string
-          org_id?: string
-          legal_entity_name?: string
-          registered_address?: string
-          gstin?: string | null
-          signatory_name?: string
-          signatory_designation?: string
-          signatory_email?: string
-          plan_tier?: string
-          fee_inr?: number
-          billing_cycle?: string
-          effective_date?: string
-          expiry_date?: string | null
-          signed_at?: string
-          signer_ip?: string | null
-          signature_svg?: string | null
-          document_sha256?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
-      system_incidents: {
-        Row: {
-          id: string
-          severity: string
-          category: string
-          org_id: string | null
-          error_code: string | null
-          message: string
-          payload: Json
-          resolved: boolean
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          severity: string
-          category: string
-          org_id?: string | null
-          error_code?: string | null
-          message: string
-          payload?: Json
-          resolved?: boolean
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          severity?: string
-          category?: string
-          org_id?: string | null
-          error_code?: string | null
-          message?: string
-          payload?: Json
-          resolved?: boolean
-          created_at?: string
-        }
-        Relationships: []
-      }
-      demo_leads: {
-        Row: {
-          id: string
-          full_name: string
-          email: string
-          phone: string | null
-          college_name: string
-          designation: string | null
-          student_count: number
-          notes: string | null
-          status: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          full_name: string
-          email: string
-          phone?: string | null
-          college_name: string
-          designation?: string | null
-          student_count?: number
-          notes?: string | null
-          status?: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          full_name?: string
-          email?: string
-          phone?: string | null
-          college_name?: string
-          designation?: string | null
-          student_count?: number
-          notes?: string | null
-          status?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -793,6 +1008,19 @@ export type Database = {
           total_score: number
         }[]
       }
+      increment_org_usage: {
+        Args: {
+          p_ai_reqs?: number
+          p_emails?: number
+          p_gemini_tokens?: number
+          p_groq_tokens?: number
+          p_month: string
+          p_org_id: string
+          p_tests_graded?: number
+        }
+        Returns: undefined
+      }
+      is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       course_level: "COURSE" | "YEAR" | "SECTION"

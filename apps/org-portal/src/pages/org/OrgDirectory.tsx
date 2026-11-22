@@ -22,6 +22,8 @@ interface DirectoryMember {
   section: string;
   sectionId?: string;
   rollNumber: string;
+  semester?: number | null;
+  batchYear?: number | null;
   status: 'Active' | 'Invited';
 }
 
@@ -47,6 +49,9 @@ export default function OrgDirectory() {
   const [formRole, setFormRole] = useState<'TEACHER' | 'STUDENT'>('STUDENT');
   const [formRoll, setFormRoll] = useState('');
   const [formSectionId, setFormSectionId] = useState('');
+  const [formSemester, setFormSemester] = useState('');
+  const [formBatchYear, setFormBatchYear] = useState('');
+  const [formSubjectName, setFormSubjectName] = useState('');
   const [formTeacherAuthMode, setFormTeacherAuthMode] = useState<'GOOGLE' | 'PASSWORD'>('GOOGLE');
   const [formTeacherPassword, setFormTeacherPassword] = useState('');
 
@@ -93,6 +98,8 @@ export default function OrgDirectory() {
           section: sectionDisplay,
           sectionId: row.section_id,
           rollNumber: row.roll_number || '—',
+          semester: row.current_semester ?? null,
+          batchYear: row.batch_year ?? null,
           status,
         };
       });
@@ -109,32 +116,64 @@ export default function OrgDirectory() {
     void loadDirectory();
   }, [orgId]);
 
-  // Bulk CSV parser and database writer
+  // Bulk CSV parser with robust, case-insensitive header mapping
   const parseCsvText = async (text: string, fileName: string) => {
-    const lines = text
+    const rawLines = text
       .split(/\r?\n/)
       .map((l) => l.trim())
       .filter(Boolean);
 
+    if (rawLines.length < 2) {
+      setImportNotice(`No data rows found in ${fileName}. Format requires at least a header row and one data row.`);
+      return;
+    }
+
+    // Dynamic case-insensitive header mapping
+    const headerCols = rawLines[0].split(',').map((h) => h.trim().toLowerCase());
+    const nameIdx = headerCols.findIndex((h) => h.includes('name'));
+    const emailIdx = headerCols.findIndex((h) => h.includes('email') || h.includes('mail'));
+    const roleIdx = headerCols.findIndex((h) => h.includes('role'));
+    const secIdx = headerCols.findIndex((h) => h.includes('section') || h.includes('sec'));
+    const rollIdx = headerCols.findIndex((h) => h.includes('roll') || h.includes('id'));
+    const semIdx = headerCols.findIndex((h) => h.includes('sem'));
+    const batchIdx = headerCols.findIndex((h) => h.includes('batch') || h.includes('year'));
+    const subjectIdx = headerCols.findIndex((h) => h.includes('subject') || h.includes('course'));
+
+    if (emailIdx === -1) {
+      setImportNotice(`Invalid CSV headers in ${fileName}. Must include an 'email' column.`);
+      return;
+    }
+
     const rowsToInsert: any[] = [];
-    lines.forEach((line, idx) => {
-      if (idx === 0 && line.toLowerCase().includes('email')) return; // skip header
-      const [name, email, roleRaw, sectionName, rollNumber] = line.split(',').map((s) => s.trim());
-      if (!email || !email.includes('@')) return;
+    const teacherAssignmentsToCreate: Array<{ email: string; sectionId: string; subjectName: string }> = [];
+
+    for (let i = 1; i < rawLines.length; i++) {
+      const cols = rawLines[i].split(',').map((s) => s.trim());
+      const email = emailIdx >= 0 ? cols[emailIdx] : '';
+      if (!email || !email.includes('@')) continue;
+
+      const name = nameIdx >= 0 ? cols[nameIdx] : '';
+      const roleRaw = roleIdx >= 0 ? cols[roleIdx]?.toUpperCase() : '';
+      const sectionName = secIdx >= 0 ? cols[secIdx] : '';
+      const rollNumber = rollIdx >= 0 ? cols[rollIdx] : '';
+      const semVal = semIdx >= 0 && cols[semIdx] ? parseInt(cols[semIdx], 10) : null;
+      const batchVal = batchIdx >= 0 && cols[batchIdx] ? parseInt(cols[batchIdx], 10) : null;
+      const subjectName = subjectIdx >= 0 ? cols[subjectIdx] : '';
 
       const role =
-        roleRaw?.toUpperCase() === 'TEACHER'
+        roleRaw === 'TEACHER'
           ? 'TEACHER'
-          : roleRaw?.toUpperCase() === 'ORG_ADMIN'
+          : roleRaw === 'ORG_ADMIN'
             ? 'ORG_ADMIN'
             : 'STUDENT';
 
-      // Match section by name if possible
+      // Match section by name or code if possible
       const matchedSection = courses.find(
         (c) =>
           c.level === 'SECTION' &&
           (c.name?.toLowerCase() === sectionName?.toLowerCase() ||
-            c.section?.toLowerCase() === sectionName?.toLowerCase()),
+            c.section?.toLowerCase() === sectionName?.toLowerCase() ||
+            c.code?.toLowerCase() === sectionName?.toLowerCase()),
       );
 
       rowsToInsert.push({
@@ -144,13 +183,23 @@ export default function OrgDirectory() {
         invited_name: name || email.split('@')[0],
         roll_number: rollNumber || null,
         section_id: matchedSection?.id || null,
+        current_semester: semVal && !isNaN(semVal) ? semVal : null,
+        batch_year: batchVal && !isNaN(batchVal) ? batchVal : null,
         is_active: true,
         onboarding_completed: false,
       });
-    });
+
+      if (role === 'TEACHER' && matchedSection && subjectName) {
+        teacherAssignmentsToCreate.push({
+          email: email.toLowerCase(),
+          sectionId: matchedSection.id,
+          subjectName,
+        });
+      }
+    }
 
     if (rowsToInsert.length === 0) {
-      setImportNotice(`No valid rows found in ${fileName}. Format: name, email, role, section, roll`);
+      setImportNotice(`No valid rows found in ${fileName}. Format: name, email, role, section, roll, semester, batch`);
       return;
     }
 
@@ -158,6 +207,21 @@ export default function OrgDirectory() {
       setLoading(true);
       const { error } = await (supabase.from('org_users') as any).insert(rowsToInsert);
       if (error) throw error;
+
+      // If teachers have subject assignments, trigger backend provisioning
+      for (const t of teacherAssignmentsToCreate) {
+        try {
+          await addTeacherApi({
+            orgId,
+            email: t.email,
+            sectionId: t.sectionId,
+            subjectName: t.subjectName,
+            authMode: 'GOOGLE',
+          });
+        } catch (tErr) {
+          console.warn('Auto teacher subject assignment warning:', tErr);
+        }
+      }
 
       setImportNotice(`Successfully whitelisted ${rowsToInsert.length} member(s) from ${fileName}.`);
       await loadDirectory();
@@ -189,12 +253,16 @@ export default function OrgDirectory() {
           email: formEmail.trim().toLowerCase(),
           fullName: formName.trim() || undefined,
           sectionId: formSectionId || undefined,
+          subjectName: formSubjectName.trim() || undefined,
           authMode: formTeacherAuthMode,
           password: formTeacherAuthMode === 'PASSWORD' ? formTeacherPassword : undefined,
         });
 
         setImportNotice(res.message || `Successfully provisioned faculty ${formEmail}.`);
       } else {
+        const semNum = formSemester ? parseInt(formSemester, 10) : null;
+        const batchNum = formBatchYear ? parseInt(formBatchYear, 10) : null;
+
         const { error } = await (supabase.from('org_users') as any).insert({
           org_id: orgId,
           role: 'STUDENT',
@@ -202,6 +270,8 @@ export default function OrgDirectory() {
           invited_name: formName.trim() || formEmail.split('@')[0],
           roll_number: formRoll.trim() || null,
           section_id: formSectionId || null,
+          current_semester: semNum && !isNaN(semNum) ? semNum : null,
+          batch_year: batchNum && !isNaN(batchNum) ? batchNum : null,
           is_active: true,
           onboarding_completed: false,
         });
@@ -214,6 +284,9 @@ export default function OrgDirectory() {
       setFormEmail('');
       setFormRoll('');
       setFormSectionId('');
+      setFormSemester('');
+      setFormBatchYear('');
+      setFormSubjectName('');
       setFormTeacherPassword('');
       setModalOpen(false);
       await loadDirectory();
@@ -227,10 +300,10 @@ export default function OrgDirectory() {
 
   const simulateSampleCsv = () => {
     const sample = [
-      'name,email,role,section,roll',
-      'Ananya Sharma,ananya.s@aravali.edu.in,STUDENT,Section A,24CSE088',
-      'Kabir Mehta,kabir.m@aravali.edu.in,STUDENT,Section B,24CSE089',
-      'Prof. Deepak Joshi,d.joshi@aravali.edu.in,TEACHER,Section A,FAC-142',
+      'name,email,role,section,roll,semester,batch,subject',
+      'Ananya Sharma,ananya.s@aravali.edu.in,STUDENT,Section A,24CSE088,4,2026,',
+      'Kabir Mehta,kabir.m@aravali.edu.in,STUDENT,Section B,24CSE089,4,2026,',
+      'Prof. Deepak Joshi,d.joshi@aravali.edu.in,TEACHER,Section A,FAC-142,,2026,Design & Analysis of Algorithms',
     ].join('\n');
     void parseCsvText(sample, 'aravali_faculty_students_batch.csv');
   };
@@ -309,9 +382,9 @@ export default function OrgDirectory() {
             Drop Teacher or Student CSV Roster Here
           </h2>
           <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-            Directly populates <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">public.org_users</code>. Format:{' '}
+            Directly populates <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">public.org_users</code>. Flexible format:{' '}
             <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">
-              name, email, role, section, roll
+              name, email, role, section, roll, semester, batch, subject
             </code>
           </p>
           <div className="mt-4 inline-flex items-center gap-2 text-xs font-label font-bold text-primary">
@@ -375,6 +448,7 @@ export default function OrgDirectory() {
                     <th className="py-3.5 px-5">Member</th>
                     <th className="py-3.5 px-5">Role</th>
                     <th className="py-3.5 px-5">Cohort / Dept</th>
+                    <th className="py-3.5 px-5">Academic Tag</th>
                     <th className="py-3.5 px-5">Roll / ID</th>
                     <th className="py-3.5 px-5">Status</th>
                   </tr>
@@ -400,6 +474,23 @@ export default function OrgDirectory() {
                         </span>
                       </td>
                       <td className="py-3.5 px-5 text-xs text-slate-700">{m.section}</td>
+                      <td className="py-3.5 px-5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {m.semester ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              Sem {m.semester}
+                            </span>
+                          ) : null}
+                          {m.batchYear ? (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                              Batch '{String(m.batchYear).slice(-2)}
+                            </span>
+                          ) : null}
+                          {!m.semester && !m.batchYear && (
+                            <span className="text-xs text-slate-400">—</span>
+                          )}
+                        </div>
+                      </td>
                       <td className="py-3.5 px-5 font-mono text-xs text-slate-600">{m.rollNumber}</td>
                       <td className="py-3.5 px-5">
                         <span
@@ -487,8 +578,58 @@ export default function OrgDirectory() {
               </div>
             </div>
 
+            {formRole === 'STUDENT' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
+                    Current Semester
+                  </label>
+                  <select
+                    value={formSemester}
+                    onChange={(e) => setFormSemester(e.target.value)}
+                    className={`w-full px-3.5 py-2.5 text-sm ${classes.input}`}
+                  >
+                    <option value="">Unassigned</option>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((s) => (
+                      <option key={s} value={s}>
+                        Semester {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-label font-semibold text-slate-700 mb-1.5">
+                    Batch Year
+                  </label>
+                  <input
+                    type="number"
+                    value={formBatchYear}
+                    onChange={(e) => setFormBatchYear(e.target.value)}
+                    placeholder="e.g. 2026"
+                    min="2020"
+                    max="2035"
+                    className={`w-full px-3.5 py-2.5 text-sm ${classes.input}`}
+                  />
+                </div>
+              </div>
+            )}
+
             {formRole === 'TEACHER' && (
               <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
+                <div>
+                  <label className="block text-xs font-label font-semibold text-slate-800 mb-1">
+                    Subject Name (Optional Auto-Assignment)
+                  </label>
+                  <input
+                    type="text"
+                    value={formSubjectName}
+                    onChange={(e) => setFormSubjectName(e.target.value)}
+                    placeholder="e.g. Distributed Operating Systems"
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs font-label font-semibold text-slate-800 mb-1">
                     Faculty Authentication Mode

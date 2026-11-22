@@ -160,6 +160,7 @@ export interface AddTeacherParams {
   fullName?: string;
   department?: string;
   sectionId?: string;
+  subjectName?: string;
   authMode: 'GOOGLE' | 'PASSWORD';
   password?: string;
 }
@@ -304,4 +305,46 @@ export async function getGoogleAuthUrlApi(redirectUri: string): Promise<string> 
     throw new Error(data.error || 'Failed to retrieve Google auth URL from worker');
   }
   return data.authUrl;
+}
+
+/**
+ * 11. Assign Teacher to Section/Course with Subject & Semester
+ */
+export async function assignTeacherApi(params: {
+  orgId?: string;
+  teacherId: string;
+  sectionId: string;
+  subjectName: string;
+  academicYear?: string;
+  semester?: number;
+}): Promise<{ success: boolean; message: string; assignment: any }> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/org/teachers/assign`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(params),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to assign teacher');
+  }
+  return data;
+}
+
+/**
+ * 12. Delete Teacher Assignment
+ */
+export async function deleteTeacherAssignmentApi(assignmentId: string): Promise<{ success: boolean; message: string }> {
+  const headers = await getAuthHeaders();
+  const res = await fetch(`${WORKER_BASE}/api/org/teachers/assign/${encodeURIComponent(assignmentId)}`, {
+    method: 'DELETE',
+    headers,
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to delete assignment');
+  }
+  return data;
 }
