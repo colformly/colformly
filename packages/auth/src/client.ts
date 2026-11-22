@@ -1,30 +1,62 @@
 import { createBrowserClient, createServerClient, type CookieOptions } from '@supabase/ssr';
 import type { Database } from '@colformly/types';
 
-function readEnv(key: string): string {
-  const metaEnv = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
-  if (metaEnv && typeof metaEnv[key] === 'string') {
-    return metaEnv[key] as string;
-  }
-  const proc = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } })
-    .process;
-  if (proc?.env && typeof proc.env[key] === 'string') {
-    return proc.env[key] as string;
-  }
-  return '';
-}
+// Production Supabase defaults for Colformly (ap-south-1)
+const DEFAULT_SUPABASE_URL = 'https://crprffwlfngyiyztwgwb.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_t9dfV3HzxY50ZwkiumiD_w_RurnQuC4';
 
 export function getSupabaseConfig() {
-  const url = readEnv('VITE_SUPABASE_URL') || readEnv('PUBLIC_SUPABASE_URL');
-  const key =
-    readEnv('VITE_SUPABASE_PUBLISHABLE_KEY') ||
-    readEnv('PUBLIC_SUPABASE_PUBLISHABLE_KEY') ||
-    readEnv('VITE_SUPABASE_ANON_KEY') ||
-    readEnv('PUBLIC_SUPABASE_ANON_KEY');
+  let url = '';
+  let key = '';
+
+  // 1. Direct static property access for Vite, Astro, and Rollup build-time AST replacement
+  try {
+    if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+      url =
+        (import.meta as any).env.VITE_SUPABASE_URL ||
+        (import.meta as any).env.PUBLIC_SUPABASE_URL ||
+        '';
+      key =
+        (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+        (import.meta as any).env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+        (import.meta as any).env.VITE_SUPABASE_ANON_KEY ||
+        (import.meta as any).env.PUBLIC_SUPABASE_ANON_KEY ||
+        '';
+    }
+  } catch {
+    // import.meta may not be available in non-ESM environments
+  }
+
+  // 2. Node / Cloudflare Worker process.env fallback
+  if (!url || !key) {
+    try {
+      const proc = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process;
+      if (proc?.env) {
+        url = url || proc.env.VITE_SUPABASE_URL || proc.env.PUBLIC_SUPABASE_URL || '';
+        key =
+          key ||
+          proc.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+          proc.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+          proc.env.VITE_SUPABASE_ANON_KEY ||
+          proc.env.PUBLIC_SUPABASE_ANON_KEY ||
+          '';
+      }
+    } catch {
+      // process not defined
+    }
+  }
+
+  // 3. Fallback to production credentials if unconfigured or pointing to legacy placeholder
+  if (!url || url.includes('placeholder.supabase.co')) {
+    url = DEFAULT_SUPABASE_URL;
+  }
+  if (!key || key === 'placeholder-key') {
+    key = DEFAULT_SUPABASE_ANON_KEY;
+  }
 
   return {
-    url: url || 'https://placeholder.supabase.co',
-    key: key || 'placeholder-key',
+    url,
+    key,
     isConfigured: Boolean(url && key),
   };
 }

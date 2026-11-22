@@ -5,6 +5,7 @@ import tailwind from '@astrojs/tailwind';
 export default defineConfig({
   vite: {
     envDir: '../../',
+    envPrefix: ['VITE_', 'PUBLIC_'],
   },
   integrations: [
     react(),
